@@ -72,8 +72,6 @@
 
     -->
     
-    <property name="store.jar" value="TimePath Commons.jar"/>
-    
     <target name="-post-jar">
         <mkdir dir="dist/lib"/>
 <!--        <delete file="dist/lib.jar"/>-->
@@ -82,10 +80,10 @@
 <!--            <zipgroupfileset dir="natives" includes="*.dll, *.so, *.dylib"/>-->
         </jar>
         <jar destfile="dist/final.jar">
-            <zipfileset src="dist/${store.jar}"/>
+            <zipfileset src="${dist.jar}"/>
             <zipfileset src="dist/lib.jar"/>
         </jar>
-        <move file="dist/final.jar" tofile="dist/${store.jar}" overwrite="true"/>
+        <move file="dist/final.jar" tofile="${dist.jar}" overwrite="true"/>
         <delete file="dist/lib.jar"/>
         <deltree dir="dist/lib"/>
         <delete file="dist/README.TXT"/>

@@ -45,10 +45,10 @@ public class Utils {
         return str;
     }
 
-    public static String workingDirectory() {
+    public static String workingDirectory(Class c) {
         String ans;
         try {
-            ans = new File(URLDecoder.decode(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8")).getParentFile().getAbsolutePath();
+            ans = new File(URLDecoder.decode(c.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8")).getParentFile().getAbsolutePath();
         } catch(UnsupportedEncodingException ex) {
             Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
             ans = System.getProperty("user.dir") + File.separator;
@@ -79,9 +79,9 @@ public class Utils {
         return md5;
     }
 
-    public static String selfCheck() {
+    public static String selfCheck(Class c) {
         String md5 = null;
-        String runPath = workingDirectory();
+        String runPath = workingDirectory(c);
         if(runPath.endsWith(".jar")) {
             try {
                 md5 = Utils.takeMD5(Utils.loadFile(new File(runPath)));
