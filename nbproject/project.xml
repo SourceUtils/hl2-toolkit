@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://www.netbeans.org/ns/project/1">
+    <type>org.netbeans.modules.java.j2seproject</type>
+    <configuration>
+        <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
+            <name>TimePath Commons</name>
+            <source-roots>
+                <root id="src.borrowed.dir" name="Borrowed Code"/>
+                <root id="src.dir"/>
+                <root id="src.ftp.dir" name="FTP Server"/>
+                <root id="src.hl2.dir" name="Source Engine"/>
+                <root id="src.hl2scores.dir" name="External Scoreboard"/>
+                <root id="src.image.dir" name="Image Loaders"/>
+                <root id="src.plaf.dir" name="Platform Integration"/>
+                <root id="src.steam.dir" name="Steam Tools"/>
+                <root id="src.swing.dir" name="Swing Components"/>
+            </source-roots>
+            <test-roots>
+                <root id="test.src.dir"/>
+            </test-roots>
+        </data>
+        <libraries xmlns="http://www.netbeans.org/ns/ant-project-libraries/1">
+            <definitions>./lib/nblibraries.properties</definitions>
+        </libraries>
+    </configuration>
+</project>
