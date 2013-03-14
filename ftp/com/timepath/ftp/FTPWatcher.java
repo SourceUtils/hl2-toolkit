@@ -1,5 +1,6 @@
 package com.timepath.ftp;
 
+import essiembre.FileChangeListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,6 +9,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,17 +28,31 @@ public class FTPWatcher {
     private static final Logger LOG = Logger.getLogger(FTPWatcher.class.getName());
 
     public static void main(String... args) {
-        new FTPWatcher("test.txt").start();
+        getInstance();
     }
+    private static final FTPWatcher instance = new FTPWatcher();
+
+    public static FTPWatcher getInstance() {
+        return instance;
+    }
+
+    ArrayList<FTPUpdateListener> listeners = new ArrayList<FTPUpdateListener>();
+    
+    public void addFileChangeListener(FTPUpdateListener listener) {
+        listeners.add(listener);
+    }
+    
+    public interface FTPUpdateListener {
+        
+        public void fileChanged(String newLines);
+        
+    }
+    
     private int port = 8000;
     private String file;
     private boolean shutdown;
 
-    public FTPWatcher(String file) {
-        this.file = file;
-    }
-
-    public void start() {
+    public FTPWatcher() {
         try {
             final ServerSocket sock = new ServerSocket(port, 0, InetAddress.getByName(null)); // cannot use java7 InetAddress.getLoopbackAddress(). On windows, this prevents firewall warnings. It's also good for security in general
             port = sock.getLocalPort();
@@ -92,7 +108,7 @@ public class FTPWatcher {
                                             data = pasv.accept();
                                         }
                                         PrintWriter out = new PrintWriter(data.getOutputStream(), true);
-                                        out(out, "-rw-r--r--   1 ftpuser  ftpusers     14886 Dec  3 15:22 Acmemail.TXT");
+                                        out(out, "-rw-r--r--   1 ftpuser  ftpusers     14886 Dec  3 15:22 out.log");
                                         data.close();
                                         out(pw, "226 Listing completed.");
                                     } else if (cmd.startsWith("CWD")) {
@@ -149,9 +165,12 @@ public class FTPWatcher {
                                         BufferedReader in = new BufferedReader(new InputStreamReader(data.getInputStream()));
                                         PrintWriter out = new PrintWriter(data.getOutputStream(), true);
                                         String line;
-                                        while((line = in.readLine()) != null) {
+                                        while ((line = in.readLine()) != null) {
 //                                            LOG.log(Level.INFO, "=== {0}", line);
                                             text += line + "\r\n";
+                                        }
+                                        for(int i = 0; i < listeners.size(); i++) {
+                                            listeners.get(i).fileChanged(text);
                                         }
                                         text = text.substring(0, text.length() - 2);
                                         LOG.log(Level.INFO, "*** \r\n{0}", text);
