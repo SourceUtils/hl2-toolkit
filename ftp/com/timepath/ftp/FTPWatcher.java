@@ -1,6 +1,5 @@
 package com.timepath.ftp;
 
-import essiembre.FileChangeListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +19,9 @@ import java.util.logging.Logger;
  * http://www.nsftools.com/tips/RawFTP.htm
  * http://www.ipswitch.com/support/ws_ftp-server/guide/v5/a_ftpref3.html
  * http://graham.main.nc.us/~bhammel/graham/ftp.html
+ * 
+ * Mounting requires CurlFtpFS
+ *     curlftpfs ftp://localhost:8000 ~/Desktop/ftp/
  * 
  * @author timepath
  */
