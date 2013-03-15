@@ -1,9 +1,7 @@
 package com.timepath.hl2.gameinfo;
 
+import com.timepath.ftp.FTPUpdateListener;
 import com.timepath.ftp.FTPWatcher;
-import com.timepath.ftp.FTPWatcher.FTPUpdateListener;
-//import essiembre.FileChangeListener;
-//import essiembre.FileMonitor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
