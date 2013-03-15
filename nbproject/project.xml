@@ -6,7 +6,8 @@
             <name>TimePath Commons</name>
             <source-roots>
                 <root id="src.borrowed.dir" name="Borrowed Code"/>
-                <root id="src.dir"/>
+                <root id="src.dir" name="Other"/>
+                <root id="src.dnd.dir" name="DnD"/>
                 <root id="src.ftp.dir" name="FTP Server"/>
                 <root id="src.hl2.dir" name="Source Engine"/>
                 <root id="src.hl2scores.dir" name="External Scoreboard"/>
