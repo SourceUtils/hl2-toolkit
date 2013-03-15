@@ -1,9 +1,9 @@
 package com.timepath.hl2.io.test;
 
-import com.timepath.steam.SteamUtils;
-import com.timepath.steam.io.GCF;
 import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.Entry;
+import com.timepath.steam.SteamUtils;
+import com.timepath.steam.io.GCF;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;

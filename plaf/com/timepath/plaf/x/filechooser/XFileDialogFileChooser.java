@@ -3,6 +3,7 @@ package com.timepath.plaf.x.filechooser;
 import com.timepath.plaf.OS;
 import java.awt.Frame;
 import java.io.File;
+import java.util.logging.Logger;
 import net.tomahawk.XFileDialog;
 
 /**
@@ -45,5 +46,6 @@ public class XFileDialogFileChooser extends BaseFileChooser {
             return new File(selection);
         }
     }
+    private static final Logger LOG = Logger.getLogger(XFileDialogFileChooser.class.getName());
     
 }

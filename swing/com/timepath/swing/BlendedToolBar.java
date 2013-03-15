@@ -17,7 +17,7 @@ import javax.swing.JToolBar;
  * @author timepath
  */
 @SuppressWarnings("serial")
-public final class BlendedToolBar extends JToolBar implements MouseListener, MouseMotionListener {
+public class BlendedToolBar extends JToolBar implements MouseListener, MouseMotionListener {
 
     /**
      * Creates new form BlendedToolBar

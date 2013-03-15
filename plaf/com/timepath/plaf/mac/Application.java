@@ -140,7 +140,7 @@ public class Application {
             LOG.log(Level.WARNING, "This version of Mac OS X does not support the Apple EAWT. ApplicationEvent handling has been disabled ({0})", cnfe);
         } catch(Exception ex) {
             LOG.warning("Mac OS X Adapter could not talk to EAWT.");
-            ex.printStackTrace();
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 

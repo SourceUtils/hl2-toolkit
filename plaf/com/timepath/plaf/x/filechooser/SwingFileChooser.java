@@ -3,6 +3,7 @@ package com.timepath.plaf.x.filechooser;
 import com.timepath.plaf.OS;
 import java.awt.Frame;
 import java.io.File;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 
 /**
@@ -33,5 +34,6 @@ public class SwingFileChooser extends BaseFileChooser {
             return new File(selection);
         }
     }
+    private static final Logger LOG = Logger.getLogger(SwingFileChooser.class.getName());
     
 }

@@ -1,8 +1,7 @@
 package com.timepath.steam;
 
-import java.util.logging.Logger;
-
 import com.timepath.plaf.OS;
+import java.util.logging.Logger;
 
 /**
  *

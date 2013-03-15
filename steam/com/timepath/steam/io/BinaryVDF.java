@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -50,7 +51,7 @@ public class BinaryVDF {
              * 4 dev
              */
             int universe = DataUtils.readULEInt(rf);
-            System.out.println("Universe: " + universe);
+            LOG.log(Level.INFO, "Universe: {0}", universe);
             if(magic[1] == 0x44) {
                 /**
                  * sections
@@ -83,7 +84,7 @@ public class BinaryVDF {
                     long lastUpdated = DataUtils.readULEInt(rf);
                     DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
                     df.setTimeZone(TimeZone.getTimeZone("GMT"));
-                    System.out.println(appID + " : " + df.format(new Date(lastUpdated * 1000)) + " : " + lastUpdated);
+                    LOG.log(Level.INFO, "{0} : {1} : {2}", new Object[]{appID, df.format(new Date(lastUpdated * 1000)), lastUpdated});
                     long dummy2 = (DataUtils.readULEInt(rf) << 32) + DataUtils.readULEInt(rf);
                     byte[] dummy3 = DataUtils.readBytes(rf, 20);
                     long changeNumber = (DataUtils.readULEInt(rf) << 32) + DataUtils.readULEInt(rf);
@@ -153,15 +154,15 @@ public class BinaryVDF {
 //                System.out.append(sb.toString());
             } else if(b == textStart) {
                 String text = parse(rf, data, terminator, 2);
-                System.out.println(p + "\n" + "=" + text + "\n");
+                LOG.log(Level.INFO,"{0}" + "\n" + "={1}\n", new Object[]{p, text});
                 data.add(text);
             } else if(b == extended) {
                 String text = parse(rf, data, nul, 2);
-                System.out.println(p + "\n" + ">" + text + "\n");
+                LOG.log(Level.INFO,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
                 data.add(text);
             } else if(b == depots) {
                 String text = parse(rf, data, nul, 2);
-                System.out.println(p + "\n" + ">" + text + "\n");
+                LOG.log(Level.INFO,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
                 data.add(text);
             } else {
                 buf.write(b);

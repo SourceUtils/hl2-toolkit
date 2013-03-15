@@ -1,7 +1,7 @@
 package com.timepath.hl2.io.util;
 
-import com.timepath.steam.io.RES;
 import com.timepath.hl2.io.VTF;
+import com.timepath.steam.io.RES;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;

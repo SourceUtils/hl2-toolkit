@@ -1,7 +1,7 @@
 package com.timepath.plaf.linux;
 
-import com.timepath.Utils;
 import com.timepath.FileUtils;
+import com.timepath.Utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

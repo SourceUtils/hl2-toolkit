@@ -5,6 +5,7 @@ import java.awt.FileDialog;
 import java.awt.Frame;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.logging.Logger;
 
 /**
  *
@@ -44,5 +45,6 @@ public class AWTFileChooser extends BaseFileChooser {
             return new File(selection);
         }
     }
+    private static final Logger LOG = Logger.getLogger(AWTFileChooser.class.getName());
     
 }

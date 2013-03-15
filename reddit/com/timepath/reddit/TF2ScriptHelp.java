@@ -49,8 +49,8 @@ public class TF2ScriptHelp {
         }
         Iterator it = mp.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry)it.next();
-            System.out.println(pairs.getKey() + " = " + pairs.getValue());
+            Map.Entry pairs = (Map.Entry) it.next();
+            LOG.log(Level.INFO, "{0} = {1}", new Object[]{pairs.getKey(), pairs.getValue()});
             it.remove(); // avoids a ConcurrentModificationException
         }
         
@@ -77,7 +77,7 @@ public class TF2ScriptHelp {
         height += padding;
 //        int height = 47385;
 
-        System.out.println(width + " x " + height);
+        LOG.log(Level.INFO, "{0} x {1}", new Object[]{width, height});
 
         for(int r = 0; r < parts; r++) {
             
@@ -99,7 +99,7 @@ public class TF2ScriptHelp {
 //                c = randomColor(i);
                 g2d.setPaint(c);
                 g2d.drawString(strings[i], padding, y + ((i - (r * bit)) * y));
-                System.out.println((i + 1) + "/" + len);
+                LOG.log(Level.INFO, "{0}/{1}", new Object[]{i + 1, len});
             }
 
             g2d.dispose();
@@ -108,10 +108,10 @@ public class TF2ScriptHelp {
                 File scrot = new File("/home/timepath/Desktop/console"+r+".png");
                 ImageIO.write(img, "png", scrot);
             } catch(Exception e) {
-                e.printStackTrace();
+                LOG.log(Level.SEVERE, "Exception", e);
             }
         }
-        System.out.println("done");
+        LOG.info("done");
     }
     
     Color randomColor(long r) {
@@ -153,7 +153,7 @@ public class TF2ScriptHelp {
                 sb.append(" ");
             }
         }
-        System.out.println(sb.toString());
+        LOG.info(sb.toString());
     }
     
     /**
@@ -171,7 +171,7 @@ public class TF2ScriptHelp {
             if(x < 0) {
                 y *= -1;
             }
-            System.out.println(x + "\t" + y);
+            LOG.log(Level.INFO, "{0}\t{1}", new Object[]{x, y});
         }
     }
     
@@ -180,5 +180,6 @@ public class TF2ScriptHelp {
 //        generateBlockCodeNumbers();
         viewmodelFovGraph();
     }
+    private static final Logger LOG = Logger.getLogger(TF2ScriptHelp.class.getName());
     
 }

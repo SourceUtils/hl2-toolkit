@@ -60,7 +60,7 @@ public class VDF {
             String info = null;
 
             // not the best - what if both are used? ... splits at //, then [
-            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf("[") : -1);
+            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf('[') : -1);
             if(idx >= 0) {
                 info = val.substring(idx).trim();
                 val = val.substring(0, idx).trim();
@@ -94,7 +94,7 @@ public class VDF {
             } else if(line.startsWith("#")) {
                 String rest = line.substring(line.indexOf('#') + 1);
                 p.setKey("#" + rest);
-                int idx2 = rest.indexOf(" ");
+                int idx2 = rest.indexOf(' ');
                 if(idx2 == -1) {
                     idx2 = 0;
                 }

@@ -28,7 +28,7 @@ public class Ayatana {
                 return true;
             }
         } catch(UnsupportedClassVersionError e) { // crashes earlier versions of the JVM - particularly old macs
-            e.printStackTrace();
+            LOG.info("Ayatana: JVM not recent enough");
         }
         LOG.info("Ayatana: Failed");
         return false;

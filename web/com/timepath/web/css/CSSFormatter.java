@@ -3,6 +3,7 @@ package com.timepath.web.css;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.logging.Logger;
 
 /**
  *
@@ -33,5 +34,6 @@ public class CSSFormatter {
             }
         }
     }
+    private static final Logger LOG = Logger.getLogger(CSSFormatter.class.getName());
     
 }
