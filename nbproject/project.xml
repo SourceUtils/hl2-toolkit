@@ -12,8 +12,10 @@
                 <root id="src.hl2scores.dir" name="External Scoreboard"/>
                 <root id="src.image.dir" name="Image Loaders"/>
                 <root id="src.plaf.dir" name="Platform Integration"/>
+                <root id="src.reddit.dir"/>
                 <root id="src.steam.dir" name="Steam Tools"/>
                 <root id="src.swing.dir" name="Swing Components"/>
+                <root id="src.web.dir" name="Web Tools"/>
             </source-roots>
             <test-roots>
                 <root id="test.src.dir"/>
