@@ -114,6 +114,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         jMenu1.setText("File");
 
+        jMenuItem6.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem6.setText("New");
         jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -122,6 +123,7 @@ public class VCCDTest extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem6);
 
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem1.setText("Open");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -130,8 +132,8 @@ public class VCCDTest extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem1);
 
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem3.setText("Import");
-        jMenuItem3.setEnabled(false);
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 importCaptions(evt);
@@ -139,6 +141,7 @@ public class VCCDTest extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem3);
 
+        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem2.setText("Save");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -151,6 +154,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         jMenu2.setText("Edit");
 
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_INSERT, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem4.setText("Insert row");
         jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -159,6 +163,7 @@ public class VCCDTest extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem4);
 
+        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem5.setText("Delete row");
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -176,7 +181,8 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void loadCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadCaptions
         JFileChooser fc = new JFileChooser();
-
+        fc.setDialogTitle("Open");
+        
         FileFilter filter = new FileFilter() {
             public boolean accept(File file) {
                 return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
@@ -207,6 +213,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void saveCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptions
         JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Save");
 
         FileFilter filter = new FileFilter() {
             public boolean accept(File file) {
@@ -230,7 +237,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 Entry e = cl.getNewEntry();
                 Object crc = model.getValueAt(i, 0);
                 if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
-                    crc = hexFormat(takeCRC32(model.getValueAt(i, 1).toString()));
+                    crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
                 }
                 e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
                 e.setValue(model.getValueAt(i, 2).toString());
@@ -242,6 +249,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void importCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importCaptions
         JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Import");
 
         FileFilter filter = new FileFilter() {
             public boolean accept(File file) {
@@ -266,7 +274,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 model.removeRow(i);
             }
             for(int i = 0; i < entries.size(); i++) {
-                model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), attemptDecode(entries.get(i).getKey()), entries.get(i).getValue()});
+                model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), entries.get(i).getTrueKey(), entries.get(i).getValue()});
             }
         }
     }//GEN-LAST:event_importCaptions
@@ -278,8 +286,9 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void deleteRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRow
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        int newRow = Math.min(jTable1.getSelectedRow(), model.getRowCount() - 1);
         model.removeRow(jTable1.getSelectedRow());
-        
+        jTable1.setRowSelectionInterval(newRow, newRow);
     }//GEN-LAST:event_deleteRow
 
     private void createNew(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createNew
@@ -331,7 +340,7 @@ public class VCCDTest extends javax.swing.JFrame {
             }
 
             public void updateCRC() {
-                jTextField4.setText(hexFormat(takeCRC32(jTextField3.getText())));
+                jTextField4.setText(hexFormat(VCCD.takeCRC32(jTextField3.getText())));
             }
         });
 
@@ -363,7 +372,7 @@ public class VCCDTest extends javax.swing.JFrame {
             }
 
             public void updateCRC() {
-                jTextField4.setText(hexFormat(takeCRC32(jTextField3.getText())));
+                jTextField4.setText(hexFormat(VCCD.takeCRC32(jTextField3.getText())));
             }
         });
         return dce;
@@ -506,12 +515,6 @@ public class VCCDTest extends javax.swing.JFrame {
             LOG.log(Level.WARNING, "Error generating hash codes", ex);
         }
         return map;
-    }
-
-    public static int takeCRC32(String in) {
-        CRC32 crc = new CRC32();
-        crc.update(in.toLowerCase().getBytes());
-        return (int) crc.getValue();
     }
 
     public static String hexFormat(int in) {

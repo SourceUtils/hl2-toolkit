@@ -1,12 +1,18 @@
 package com.timepath.hl2.io;
 
 import com.timepath.DataUtils;
+import com.timepath.hl2.io.util.Element;
+import com.timepath.hl2.io.util.Property;
+import com.timepath.steam.io.VDF;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.CRC32;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -181,9 +187,35 @@ public class VCCD {
         }
         LOG.log(Level.INFO, "Saved {0}", file);
     }
+    
+    public static int takeCRC32(String in) {
+        CRC32 crc = new CRC32();
+        crc.update(in.toLowerCase().getBytes());
+        return (int) crc.getValue();
+    }
 
     public ArrayList<Entry> importFile(String file) {
-        return null;
+        DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
+        VDF.analyze(new File(file), tn);
+        ArrayList<Entry> children = new ArrayList<Entry>();
+        ArrayList<Property> props = ((Element)((DefaultMutableTreeNode)tn.getChildAt(0).getChildAt(0)).getUserObject()).getProps();
+        ArrayList<String> usedKeys = new ArrayList<String>();
+        for(int i = props.size() - 1; i >= 0; i--) {
+            Property p = props.get(i);
+//            LOG.log(Level.INFO, "Adding {0}", p);
+            Entry e = new Entry();
+            String key = p.getKey().replaceAll("\"", "");
+            if(key.equals("//") || key.equals("\\n") || usedKeys.contains(key)) {
+                LOG.log(Level.INFO, "Discarding: {0}", key);
+                continue;
+            }
+            usedKeys.add(key);
+            e.setKey(key);
+            e.setValue(p.getValue().replaceAll("\"", ""));
+            children.add(e);
+        }
+        Collections.sort(children);
+        return children;
     }
 
     public Entry getNewEntry() {
@@ -206,6 +238,20 @@ public class VCCD {
 
         public void setKey(long key) {
             this.key = key;
+        }
+        
+        private String trueKey;
+
+        public String getTrueKey() {
+//            if(trueKey == null) {
+//                trueKey = attemptDecode((int) key);
+//            }
+            return trueKey;
+        }
+
+        public void setKey(String key) {
+            this.key = takeCRC32(key);
+            this.trueKey = key;
         }
 
         private int block;
@@ -258,13 +304,11 @@ public class VCCD {
         }
 
         public int compareTo(Entry t) {
-            String e1 = null;
-//            e1 = attemptDecode((int)this.key);
+            String e1 = this.getTrueKey();
             if(e1 == null) {
                 e1 = "";
             }
-            String e2 = null;
-//            e2 = attemptDecode((int)t.key);
+            String e2 = t.getTrueKey();
             if(e2 == null) {
                 e2 = "";
             }
