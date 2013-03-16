@@ -6,9 +6,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -56,24 +60,60 @@ public class VDF {
         while(scanner.hasNext()) {
             // Read values
             String line = scanner.nextLine().trim(); // TODO: What if the line looks like "Scheme{Colors{"? Damn you Broesel...
-            String key = line.split("[ \t]+")[0];
-            String val = line.substring(key.length()).trim();
+            
+            // http://gskinner.com/RegExr/
+            
+            List<String> matchList = new ArrayList<String>();
+            Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"");
+            Matcher regexMatcher = regex.matcher(line);
+            while(regexMatcher.find()) {
+                if(regexMatcher.group(1) != null) { // Add double-quoted string without the quotes
+                    matchList.add(regexMatcher.group(1));
+                } else { // Add unquoted word
+                    matchList.add(regexMatcher.group());
+                }
+            }
+            
+            String[] args = matchList.toArray(new String[0]);
+            
+            if(args.length > 3) {
+                LOG.log(Level.WARNING, "More than 3 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
+            } else {
+                LOG.log(Level.FINE, "{0}:{1}", new Object[]{args.length, Arrays.toString(args)});
+            }
+            
+            String key = args[0];
+            String val = "";
             String info = null;
+            if(args.length > 1) {
+                val = args[1];
+            }
+            if(args.length > 2) {
+                info = args[2];
+            }
+            
+            if(line.length() == 0) {
+                LOG.log(Level.FINE, "Carrying new line");
+                carried.add(new Property("\\n", "", ""));
+                continue;
+            }
+            
+            if(line.equals("{")) { // just a { on its own line
+                continue;
+            }
 
+            // check for comments
             // not the best - what if both are used? ... splits at //, then [
             int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf('[') : -1);
             if(idx >= 0) {
                 info = val.substring(idx).trim();
                 val = val.substring(0, idx).trim();
             }
-            if(val.length() == 0) { // very good assumption
+            
+            if(val.length() == 0 && !key.equals("}")) { // very good assumption
                 val = "{";
             }
-
-            // Process values
-
-            Property p = new Property(key, val, info);
-
+            
             if(line.equals("}")) { // for returning out of recursion: analyze: processAnalyze > processAnalyze < break < break
                 Object obj = parent.getUserObject();
                 if(obj instanceof Element) {
@@ -81,18 +121,15 @@ public class VDF {
                     e.addProps(carried);
 //                    e.validate(); // TODO: Thread safety. oops
                 }
-                LOG.log(Level.FINE, "Returning");
+                LOG.log(Level.FINE, "Leaving {0}", obj);
                 break;
-            } else if(line.length() == 0) {
-                p.setKey("\\n");
-                p.setValue("\\n");
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            } else if(line.equals("{")) { // just a { on its own line
-                continue;
-            } else if(line.startsWith("#")) {
+            }
+
+            // Process values
+
+            Property p = new Property(key, val, info);
+
+            if(key.startsWith("#") && key.split("[ \t]+").length == 2) { // #include, #base
                 String rest = line.substring(line.indexOf('#') + 1);
                 p.setKey("#" + rest);
                 int idx2 = rest.indexOf(' ');
@@ -138,6 +175,7 @@ public class VDF {
                 processAnalyze(scanner, child, carried, file);
             } else { // properties
                 Object obj = parent.getUserObject();
+                LOG.log(Level.FINE, "{2} >> {0},{1}", new Object[]{key, val, obj});
                 if(obj instanceof Element) {
                     Element e = (Element) obj;
                     e.addProps(carried);

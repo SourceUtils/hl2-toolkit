@@ -1,7 +1,6 @@
 package com.timepath.plaf.x.filechooser;
 
 import com.timepath.FileUtils;
-import com.timepath.plaf.OS;
 import com.timepath.plaf.OS.WindowToolkit;
 import java.awt.Frame;
 import java.awt.Toolkit;
