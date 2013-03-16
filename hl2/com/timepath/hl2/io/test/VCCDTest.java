@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
@@ -53,21 +54,26 @@ public class VCCDTest extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         menuBar = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenu2 = new javax.swing.JMenu();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Caption Reader");
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
         hashPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("CRC32"));
+        hashPanel.setMaximumSize(new java.awt.Dimension(2147483647, 83));
         hashPanel.setLayout(new java.awt.BorderLayout());
-        hashPanel.add(jTextField3, java.awt.BorderLayout.PAGE_END);
+        hashPanel.add(jTextField3, java.awt.BorderLayout.PAGE_START);
 
         jTextField4.setEditable(false);
         jTextField4.setText("0");
-        hashPanel.add(jTextField4, java.awt.BorderLayout.PAGE_START);
+        hashPanel.add(jTextField4, java.awt.BorderLayout.PAGE_END);
 
         getContentPane().add(hashPanel);
 
@@ -79,14 +85,14 @@ public class VCCDTest extends javax.swing.JFrame {
                 "CRC32", "Key", "Value"
             }
         ) {
-            Class<?>[] types = new Class<?>[] {
+            Class[] types = new Class [] {
                 java.lang.Object.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
                 false, true, true
             };
 
-            public Class<?> getColumnClass(int columnIndex) {
+            public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
 
@@ -107,6 +113,14 @@ public class VCCDTest extends javax.swing.JFrame {
         getContentPane().add(contentPane);
 
         jMenu1.setText("File");
+
+        jMenuItem6.setText("New");
+        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createNew(evt);
+            }
+        });
+        jMenu1.add(jMenuItem6);
 
         jMenuItem1.setText("Open");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -135,6 +149,26 @@ public class VCCDTest extends javax.swing.JFrame {
 
         menuBar.add(jMenu1);
 
+        jMenu2.setText("Edit");
+
+        jMenuItem4.setText("Insert row");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                insertRow(evt);
+            }
+        });
+        jMenu2.add(jMenuItem4);
+
+        jMenuItem5.setText("Delete row");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteRow(evt);
+            }
+        });
+        jMenu2.add(jMenuItem5);
+
+        menuBar.add(jMenu2);
+
         setJMenuBar(menuBar);
 
         pack();
@@ -159,7 +193,7 @@ public class VCCDTest extends javax.swing.JFrame {
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
             ArrayList<Entry> entries = cl.loadFile(file.getAbsolutePath().toString());
-            logger.log(Level.INFO, "Entries: {0}", entries.size());
+            LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
             for(int i = model.getRowCount() - 1; i >= 0; i--) {
@@ -194,7 +228,13 @@ public class VCCDTest extends javax.swing.JFrame {
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
             for(int i = 0; i < model.getRowCount(); i++) {
                 Entry e = cl.getNewEntry();
-                e.setKey(Long.parseLong(model.getValueAt(i, 0).toString().toLowerCase(), 16));
+                Object crc = null;
+                if(model.getValueAt(i, 1) != null) {
+                    crc = hexFormat(takeCRC32(model.getValueAt(i, 1).toString()));
+                } else {
+                    crc = model.getValueAt(i, 0);
+                }
+                e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
                 e.setValue(model.getValueAt(i, 2).toString());
                 entries.add(e);
             }
@@ -221,7 +261,7 @@ public class VCCDTest extends javax.swing.JFrame {
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
             ArrayList<Entry> entries = cl.importFile(file.getAbsolutePath().toString());
-            logger.log(Level.INFO, "Entries: {0}", entries.size());
+            LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
             for(int i = model.getRowCount() - 1; i >= 0; i--) {
@@ -233,13 +273,36 @@ public class VCCDTest extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_importCaptions
 
+    private void insertRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertRow
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.addRow(new Object[]{});
+    }//GEN-LAST:event_insertRow
+
+    private void deleteRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRow
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.removeRow(jTable1.getSelectedRow());
+        
+    }//GEN-LAST:event_deleteRow
+
+    private void createNew(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createNew
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for(int i = model.getRowCount() - 1; i >= 0; i--) {
+            model.removeRow(i);
+        }
+        model.addRow(new Object[]{});
+    }//GEN-LAST:event_createNew
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
     private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
@@ -256,19 +319,20 @@ public class VCCDTest extends javax.swing.JFrame {
         initComponents();
 
         jTextField3.getDocument().addDocumentListener(new DocumentListener() {
+            
             public void changedUpdate(DocumentEvent e) {
-                update();
+                updateCRC();
             }
 
             public void removeUpdate(DocumentEvent e) {
-                update();
+                updateCRC();
             }
 
             public void insertUpdate(DocumentEvent e) {
-                update();
+                updateCRC();
             }
 
-            public void update() {
+            public void updateCRC() {
                 jTextField4.setText(hexFormat(takeCRC32(jTextField3.getText())));
             }
         });
@@ -276,7 +340,7 @@ public class VCCDTest extends javax.swing.JFrame {
         cl = new VCCD();
     }
 
-    TableCellEditor getKeyEditor() {
+    private TableCellEditor getKeyEditor() {
         JComboBox comboBox = new JComboBox();
         comboBox.setEditable(true);
         hashmap = generateHash();
@@ -285,16 +349,35 @@ public class VCCDTest extends javax.swing.JFrame {
         for(int i = 0; i < vals.length; i++) {
             comboBox.addItem(vals[i].toString());
         }
-        return new DefaultCellEditor(comboBox);
+        DefaultCellEditor dce = new DefaultCellEditor(comboBox);
+        ((JTextField)((JComboBox) dce.getComponent()).getEditor().getEditorComponent()).getDocument().addDocumentListener(new DocumentListener() {
+            
+            public void changedUpdate(DocumentEvent e) {
+                updateCRC();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                updateCRC();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                updateCRC();
+            }
+
+            public void updateCRC() {
+                jTextField4.setText(hexFormat(takeCRC32(jTextField3.getText())));
+            }
+        });
+        return dce;
     }
 
-    public class EditorPaneRenderer extends JPanel implements TableCellRenderer {
+    private class EditorPaneRenderer extends JPanel implements TableCellRenderer {
 
         private int curX;
 
         private String text;
 
-        public EditorPaneRenderer() {
+        EditorPaneRenderer() {
             super();
         }
 
@@ -339,7 +422,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private TableCellRenderer valueRenderer = new EditorPaneRenderer();
 
-    private static final Logger logger = Logger.getLogger(VCCDTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(VCCDTest.class.getName());
 
     /**
      * @param args the command line arguments
@@ -369,14 +452,14 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private HashMap<Integer, String> generateHash() {
         HashMap<Integer, String> map = new HashMap<Integer, String>();
-        logger.info("Generating hash codes ...");
+        LOG.info("Generating hash codes ...");
         try {
             GCF gcf = new GCF(new File(SteamUtils.locateSteamAppsDirectory() + "/Team Fortress 2 Content.gcf"));
 
             CRC32 crc = new CRC32();
 
-            String all = new String(gcf.ls);
-            String[] ls = gcf.getEntryNames();
+            String[] ls = new String(gcf.ls).split("\0");
+//            String[] ls = gcf.getEntryNames();
             for(int i = 0; i < ls.length; i++) {
                 int end = ls[i].length();
                 int ext = ls[i].lastIndexOf('.');
@@ -422,7 +505,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 }
             }
         } catch(IOException ex) {
-            logger.log(Level.WARNING, "Error generating hash codes", ex);
+            LOG.log(Level.WARNING, "Error generating hash codes", ex);
         }
         return map;
     }
