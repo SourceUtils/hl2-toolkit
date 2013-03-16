@@ -59,27 +59,37 @@ public class VDF {
     private static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, ArrayList<Property> carried, File file) {
         while(scanner.hasNext()) {
             // Read values
-            String line = scanner.nextLine().trim(); // TODO: What if the line looks like "Scheme{Colors{"? Damn you Broesel...
+            String line = scanner.nextLine().trim();
+
+            List<String> matchList = new ArrayList<String>();
             
             // http://gskinner.com/RegExr/
-            
-            List<String> matchList = new ArrayList<String>();
-            Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"");
+            // Regex: Quotes with escapes, single line comments, braces, unquoted words
+            // "(\\[\S]|[^"])*+"|(//.*[\S]*+)|(\{|\}[\S]*+)|([a-zA-Z\d\.]+)
+            Pattern regex = Pattern.compile("\"(\\\\[\\S]|[^\"])*+\"|(//.*[\\S]*+)|(\\{|\\}[\\S]*+)|([a-zA-Z\\d\\.]+)");
             Matcher regexMatcher = regex.matcher(line);
             while(regexMatcher.find()) {
-                if(regexMatcher.group(1) != null) { // Add double-quoted string without the quotes
-                    matchList.add(regexMatcher.group(1));
-                } else { // Add unquoted word
+//                if(regexMatcher.group(1) != null) { // Add double-quoted string without the quotes
+//                    matchList.add(regexMatcher.group(1));
+//                } else { // Add unquoted word
                     matchList.add(regexMatcher.group());
-                }
+//                }
             }
             
             String[] args = matchList.toArray(new String[0]);
+            
+            System.out.println(Arrays.toString(args));
             
             if(args.length > 3) {
                 LOG.log(Level.WARNING, "More than 3 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
             } else {
                 LOG.log(Level.FINE, "{0}:{1}", new Object[]{args.length, Arrays.toString(args)});
+            }
+            
+            if(args.length == 0) {
+                LOG.log(Level.FINE, "Carrying new line");
+                carried.add(new Property("\\n", "", ""));
+                continue;
             }
             
             String key = args[0];
@@ -91,23 +101,12 @@ public class VDF {
             if(args.length > 2) {
                 info = args[2];
             }
-            
-            if(line.length() == 0) {
-                LOG.log(Level.FINE, "Carrying new line");
-                carried.add(new Property("\\n", "", ""));
-                continue;
+            if(args.length > 3) {
+                info = line;
             }
             
             if(line.equals("{")) { // just a { on its own line
                 continue;
-            }
-
-            // check for comments
-            // not the best - what if both are used? ... splits at //, then [
-            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf('[') : -1);
-            if(idx >= 0) {
-                info = val.substring(idx).trim();
-                val = val.substring(0, idx).trim();
             }
             
             if(val.length() == 0 && !key.equals("}")) { // very good assumption
