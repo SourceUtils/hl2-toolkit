@@ -29,7 +29,7 @@ import javax.swing.tree.TreeNode;
  *
  * @author timepath
  */
-public class RES {
+public class RES extends VDF {
 
     private static final Logger LOG = Logger.getLogger(RES.class.getName());
 

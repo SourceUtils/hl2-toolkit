@@ -23,6 +23,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class VDF {
 
     private static final Logger LOG = Logger.getLogger(VDF.class.getName());
+    
+    public VDF() {
+        
+    }
 
     public VDF(String file) {
     }
@@ -37,9 +41,6 @@ public class VDF {
             RandomAccessFile rf = new RandomAccessFile(file.getPath(), "r");
             s = new Scanner(rf.getChannel());
             processAnalyze(s, top, new ArrayList<Property>(), file);
-//                    if(file.getName().equalsIgnoreCase("ClientScheme.res")) {
-//                        clientScheme(top);
-//                    }
         } catch(StackOverflowError ex) {
             LOG.log(Level.WARNING, "Taking too long on {0}", file);
         } catch(FileNotFoundException ex) {
@@ -60,7 +61,7 @@ public class VDF {
             String info = null;
 
             // not the best - what if both are used? ... splits at //, then [
-            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf("[") : -1);
+            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf('[') : -1);
             if(idx >= 0) {
                 info = val.substring(idx).trim();
                 val = val.substring(0, idx).trim();
@@ -94,7 +95,7 @@ public class VDF {
             } else if(line.startsWith("#")) {
                 String rest = line.substring(line.indexOf('#') + 1);
                 p.setKey("#" + rest);
-                int idx2 = rest.indexOf(" ");
+                int idx2 = rest.indexOf(' ');
                 if(idx2 == -1) {
                     idx2 = 0;
                 }

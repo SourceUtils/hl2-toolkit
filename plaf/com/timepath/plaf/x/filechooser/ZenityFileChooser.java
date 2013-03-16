@@ -2,6 +2,7 @@ package com.timepath.plaf.x.filechooser;
 
 import com.timepath.FileUtils;
 import com.timepath.plaf.OS;
+import com.timepath.plaf.OS.WindowToolkit;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
@@ -38,7 +39,7 @@ public class ZenityFileChooser extends BaseFileChooser {
             cmd.add("--save");
         }
         cmd.add(directory != null ? "--filename=" + directory.getPath() : "");
-        String windowClass = OS.WindowToolkit.projectName;
+        String windowClass = WindowToolkit.getWindowClass();
         try {
             Toolkit xToolkit = Toolkit.getDefaultToolkit();
             Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
@@ -51,7 +52,7 @@ public class ZenityFileChooser extends BaseFileChooser {
         }
         cmd.add("--class=" + windowClass);
 //        cmd.add("--name=" + Main.projectName + " ");
-        cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + OS.WindowToolkit.projectName + ".png");
+        cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
         cmd.add("--title=" + (saveDialog ? "Save" : "Open"));
 //        cmd.add("--ok-label=TEXT ");
 //        cmd.add("--cancel-label=TEXT ");

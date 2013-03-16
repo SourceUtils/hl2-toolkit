@@ -51,8 +51,6 @@ public enum OS {
     }
     
     public static class WindowToolkit {
-    
-        public static String projectName;
 
         private static String windowClass;
         
@@ -86,7 +84,10 @@ public enum OS {
             
             DesktopLauncher.create(windowClass, "/com/timepath/tf2/hudeditor/resources",
                                    new String[]{"Icon.png", "Icon.svg"},
-                                   new String[]{projectName, projectName});
+                                   new String[]{windowClass, windowClass});
+        }
+
+        private WindowToolkit() {
         }
     
     }
