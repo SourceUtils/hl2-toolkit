@@ -228,11 +228,9 @@ public class VCCDTest extends javax.swing.JFrame {
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
             for(int i = 0; i < model.getRowCount(); i++) {
                 Entry e = cl.getNewEntry();
-                Object crc = null;
-                if(model.getValueAt(i, 1) != null) {
+                Object crc = model.getValueAt(i, 0);
+                if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
                     crc = hexFormat(takeCRC32(model.getValueAt(i, 1).toString()));
-                } else {
-                    crc = model.getValueAt(i, 0);
                 }
                 e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
                 e.setValue(model.getValueAt(i, 2).toString());
