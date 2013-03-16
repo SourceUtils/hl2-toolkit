@@ -16,11 +16,11 @@ public class Ayatana {
     private static final Logger LOG = Logger.getLogger(Ayatana.class.getName());
     
     public static boolean installMenu(JFrame frame, JMenuBar jmb) {
-        if(!AyatanaDesktop.isSupported()) {
-            LOG.info("Ayatana: Unsupported");
-            return false;
-        }
         try {
+            if(!AyatanaDesktop.isSupported()) {
+                LOG.info("Ayatana: Unsupported");
+                return false;
+            }
             boolean worked = ApplicationMenu.tryInstall(frame, jmb);
             LOG.log(Level.INFO, "Ayatana: {0}", worked);
             if(worked) {
@@ -29,6 +29,9 @@ public class Ayatana {
             }
         } catch(UnsupportedClassVersionError e) { // crashes earlier versions of the JVM - particularly old macs
             LOG.info("Ayatana: JVM not recent enough");
+        } catch(NoClassDefFoundError e) {
+            LOG.info("Ayatana: Not found");
+            return false;
         }
         LOG.info("Ayatana: Failed");
         return false;
