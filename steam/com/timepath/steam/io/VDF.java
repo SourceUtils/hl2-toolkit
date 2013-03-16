@@ -56,9 +56,8 @@ public class VDF {
         }
     }
 
-    private static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, ArrayList<Property> carried, File file) {
+    static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, ArrayList<Property> carried, File file) {
         while(scanner.hasNext()) {
-            // Read values
             String line = scanner.nextLine().trim();
 
             List<String> matchList = new ArrayList<String>();
@@ -66,6 +65,7 @@ public class VDF {
             // http://gskinner.com/RegExr/
             // Regex: Quotes with escapes, single line comments, braces, unquoted words
             // "(\\[\S]|[^"])*+"|(//.*[\S]*+)|(\{|\}[\S]*+)|([a-zA-Z\d\.]+)
+            // TODO: Scheme{Colors{ in Broeselhud
             Pattern regex = Pattern.compile("\"(\\\\[\\S]|[^\"])*+\"|(//.*[\\S]*+)|(\\{|\\}[\\S]*+)|([a-zA-Z\\d\\.]+)");
             Matcher regexMatcher = regex.matcher(line);
             while(regexMatcher.find()) {
@@ -78,10 +78,10 @@ public class VDF {
             
             String[] args = matchList.toArray(new String[0]);
             
-            System.out.println(Arrays.toString(args));
+//            System.out.println(Arrays.toString(args));
             
             if(args.length > 3) {
-                LOG.log(Level.WARNING, "More than 3 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
+//                LOG.log(Level.WARNING, "More than 3 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
             } else {
                 LOG.log(Level.FINE, "{0}:{1}", new Object[]{args.length, Arrays.toString(args)});
             }
@@ -121,7 +121,7 @@ public class VDF {
 //                    e.validate(); // TODO: Thread safety. oops
                 }
                 LOG.log(Level.FINE, "Leaving {0}", obj);
-                break;
+                break; // TODO: /tf/scripts/HudAnimations_tf.txt
             }
 
             // Process values

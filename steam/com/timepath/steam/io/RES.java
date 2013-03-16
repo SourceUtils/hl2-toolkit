@@ -66,7 +66,19 @@ public class RES extends VDF {
 
     private static void clientScheme(DefaultMutableTreeNode props) {
         LOG.info("Found clientscheme");
-        TreeNode fontNode = props.getChildAt(0).getChildAt(3); // XXX: hardcoded
+        TreeNode fontNode = null;
+        for(int i = 0; i < props.getChildCount(); i++) {
+            DefaultMutableTreeNode c = ((DefaultMutableTreeNode)props.getChildAt(0).getChildAt(i));
+            LOG.log(Level.INFO, "Checking: {0}", ((Element)c.getUserObject()).getName());
+            if(((Element)c.getUserObject()).getName().equalsIgnoreCase("Font")) {
+                fontNode = c;
+                LOG.log(Level.INFO, "Found font node: {0}", fontNode);
+                break;
+            }
+        }
+        if(fontNode == null) {
+            return;
+        }
         for(int i = 0; i < fontNode.getChildCount(); i++) {
             TreeNode font = fontNode.getChildAt(i);
             TreeNode detailFont = font.getChildAt(0); // XXX: hardcoded detail level
@@ -76,95 +88,5 @@ public class RES extends VDF {
         }
         LOG.info("Loaded clientscheme");
     }
-
-    private static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, ArrayList<Property> carried, File file) {
-        while(scanner.hasNext()) {
-            // Read values
-            String line = scanner.nextLine().trim(); // TODO: What if the line looks like "Scheme{Colors{"? Damn you Broesel...
-            String key = line.split("[ \t]+")[0];
-            String val = line.substring(key.length()).trim();
-            String info = null;
-
-            // not the best - what if both are used? ... splits at //, then [
-            int idx = val.contains("//") ? val.indexOf("//") : (val.contains("[") ? val.indexOf('[') : -1);
-            if(idx >= 0) {
-                info = val.substring(idx).trim();
-                val = val.substring(0, idx).trim();
-            }
-            if(val.length() == 0) { // very good assumption
-                val = "{";
-            }
-
-            // Process values
-
-            Property p = new Property(key, val, info);
-
-            if(line.equals("}")) { // for returning out of recursion: analyze: processAnalyze > processAnalyze < break < break
-                Object obj = parent.getUserObject();
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addProps(carried);
-//                    e.validate(); // TODO: Thread safety. oops
-                }
-                LOG.log(Level.FINE, "Returning");
-                break;
-            } else if(line.length() == 0) {
-                p.setKey("\\n");
-                p.setValue("\\n");
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            } else if(line.equals("{")) { // just a { on its own line
-                continue;
-            } else if(line.startsWith("#")) {
-                String rest = line.substring(line.indexOf('#') + 1);
-                p.setKey("#" + rest.substring(0, rest.indexOf(' ')));
-                p.setValue(rest.substring(rest.indexOf(' ')));
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            } else if(line.startsWith("//")) {
-                p.setKey("//");
-                p.setValue(line.substring(line.indexOf("//") + 2)); // display this with .trim()
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            }
-
-            if(p.getValue().equals("{")) { // make new sub
-                Element childElement = new Element(p.getKey(), p.getInfo());
-                childElement.setParentFile(file);
-                LOG.log(Level.FINE, "Subbing: {0}", childElement);
-                // If setting the properties of a section, put put the value in the info spot
-                for(int i = 0; i < carried.size(); i++) {
-                    Property prop = carried.get(i);
-                    prop.setInfo(prop.getValue());
-                    prop.setValue("");
-                }
-                childElement.addProps(carried);
-
-                Object obj = parent.getUserObject();
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addChild(childElement);
-                }
-
-                DefaultMutableTreeNode child = new DefaultMutableTreeNode(childElement);
-//                child.setUserObject(childElement);
-                parent.add(child);
-
-                processAnalyze(scanner, child, carried, file);
-            } else { // properties
-                Object obj = parent.getUserObject();
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addProps(carried);
-                    e.addProp(p);
-                }
-            }
-        }
-    }
+    
 }

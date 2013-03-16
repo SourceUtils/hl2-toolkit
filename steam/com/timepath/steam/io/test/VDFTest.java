@@ -1,7 +1,10 @@
 package com.timepath.steam.io.test;
 
+import com.timepath.hl2.io.util.Element;
+import com.timepath.hl2.io.util.Property;
 import com.timepath.steam.io.VDF;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -76,10 +79,23 @@ public class VDFTest extends javax.swing.JFrame {
         DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode(f.getPath());
         VDF.analyze(f, tn);
+        addProperties(tn);
         model.setRoot(tn);
         model.reload();
     }//GEN-LAST:event_openVDF
 
+    private void addProperties(DefaultMutableTreeNode tn) {
+        for(int i = 0; i < tn.getChildCount(); i++) {
+            addProperties((DefaultMutableTreeNode) tn.getChildAt(i));
+        }
+        if(tn.getUserObject() instanceof Element) {
+            ArrayList<Property> props = ((Element)tn.getUserObject()).getProps();
+            for(int i = 0; i < props.size(); i++) {
+                tn.add(new DefaultMutableTreeNode(props.get(i)));
+            }
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
