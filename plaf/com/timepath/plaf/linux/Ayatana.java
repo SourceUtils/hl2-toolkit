@@ -33,5 +33,8 @@ public class Ayatana {
         LOG.info("Ayatana: Failed");
         return false;
     }
+
+    private Ayatana() {
+    }
     
 }
