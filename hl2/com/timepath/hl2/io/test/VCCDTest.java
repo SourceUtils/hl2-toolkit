@@ -4,10 +4,12 @@ import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.Entry;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.GCF;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,14 +20,15 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -64,6 +67,8 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
+        jMenuItem9 = new javax.swing.JMenuItem();
+        jMenuItem8 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem7 = new javax.swing.JMenuItem();
 
@@ -77,7 +82,7 @@ public class VCCDTest extends javax.swing.JFrame {
         hashPanel.add(jTextField3, java.awt.BorderLayout.PAGE_START);
 
         jTextField4.setEditable(false);
-        jTextField4.setText("0");
+        jTextField4.setText("The CRC will appear here");
         hashPanel.add(jTextField4, java.awt.BorderLayout.PAGE_END);
 
         getContentPane().add(hashPanel);
@@ -176,6 +181,22 @@ public class VCCDTest extends javax.swing.JFrame {
             }
         });
         jMenu2.add(jMenuItem5);
+
+        jMenuItem9.setText("Goto");
+        jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                gotoRow(evt);
+            }
+        });
+        jMenu2.add(jMenuItem9);
+
+        jMenuItem8.setText("Export");
+        jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                export(evt);
+            }
+        });
+        jMenu2.add(jMenuItem8);
 
         menuBar.add(jMenu2);
 
@@ -340,6 +361,52 @@ public class VCCDTest extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, message, "Formatting", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_formattingHelp
 
+    private void export(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_export
+        StringBuilder sb = new StringBuilder(jTable1.getRowCount() * 100); // rough estimate
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for(int i = 0; i < model.getRowCount(); i++) {
+            sb.append(model.getValueAt(i, 0)).append("\t").append(model.getValueAt(i, 2)).append("\n");
+        }
+        JTextArea pane = new JTextArea(sb.toString());
+        Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
+        pane.setLineWrap(false);
+        pane.setPreferredSize(new Dimension(s.width / 3, s.height / 2));
+        pane.setEditable(false);
+        pane.setOpaque(false);
+        pane.setBackground(new Color(0, 0, 0, 0));
+        JScrollPane jsp = new JScrollPane(pane);
+        jsp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        JOptionPane.showMessageDialog(this, jsp, "Hash List", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_export
+
+    private int showInputDialog() {
+        String inputValue = JOptionPane.showInputDialog("Enter row", jTable1.getSelectedRow() + 1);
+        int intValue = -1;
+        if(inputValue != null) {
+            try {
+                intValue = Integer.parseInt(inputValue) - 1;
+            } catch(NumberFormatException e) {
+                showInputDialog();
+            }
+            if(intValue < 0) {
+                showInputDialog();
+            }
+        }
+        return intValue;
+    }    
+    
+    private void gotoRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gotoRow
+        int row = showInputDialog();
+        if(row < 0) {
+            return;
+        }
+        if(row > jTable1.getRowCount()) {
+            row = jTable1.getRowCount();
+        }
+        jTable1.setRowSelectionInterval(row, row);
+        jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
+    }//GEN-LAST:event_gotoRow
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
@@ -353,6 +420,8 @@ public class VCCDTest extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JMenuItem jMenuItem7;
+    private javax.swing.JMenuItem jMenuItem8;
+    private javax.swing.JMenuItem jMenuItem9;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
@@ -561,7 +630,11 @@ public class VCCDTest extends javax.swing.JFrame {
     }
 
     public static String hexFormat(int in) {
-        return Integer.toHexString(in).toUpperCase();
+        String str = Integer.toHexString(in).toUpperCase();
+        while(str.length() < 8) {
+            str = "0" + str;
+        }
+        return str;
     }
 
     private String attemptDecode(int hash) {

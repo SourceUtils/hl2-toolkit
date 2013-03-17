@@ -199,7 +199,7 @@ public class VCCD {
     }
 
     /**
-     * The file must be in UCS-2 LE or UTF-16 LE format
+     * The file must be in UCS-2 LE or UTF-16 LE (unicode) format
      * @param file
      * @return 
      */

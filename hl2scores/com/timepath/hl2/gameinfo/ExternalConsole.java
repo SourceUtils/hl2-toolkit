@@ -28,6 +28,22 @@ public class ExternalConsole extends JFrame {
     JTextArea output;
     JTextField input;
     JScrollPane jsp;
+    
+    private void attachLinux() {
+//        > gdb -p 'pidof hl2_linux'
+//        > (gdb) call creat("/tmp/tf2out", 0600)
+//        < $1 = 3
+//        > (gdb) call dup2(3, 1)
+//        < $2 = 1
+        
+//        Or maybe
+        
+//        strace -ewrite -p 'pidof hl2_linux'
+        
+//        Another
+        
+//        http://superuser.com/questions/473240/redirect-stdout-while-a-process-is-running-what-is-that-process-sending-to-d/535938#535938
+    }
 
     public ExternalConsole() {
         output = new JTextArea();
