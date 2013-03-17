@@ -26,6 +26,8 @@ import javax.swing.tree.TreeNode;
  * $POSIX
  * $OSX
  * $LINUX
+ * 
+ * https://code.google.com/p/hl2sb-src/source/browse/#svn%2Ftrunk%2Fsrc%2Fgame%2Fclient%2Fgame_controls
  *
  * @author timepath
  */

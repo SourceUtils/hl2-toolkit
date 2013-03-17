@@ -16,6 +16,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
+ * https://developer.valvesoftware.com/wiki/Closed_Captions
+ * https://developer.valvesoftware.com/wiki/Subtitles_(Portal_2)
+ * https://developer.valvesoftware.com/wiki/Soundscript
+ * 
  * @author timepath
  */
 public class VCCD {
@@ -194,6 +198,11 @@ public class VCCD {
         return (int) crc.getValue();
     }
 
+    /**
+     * The file must be in UCS-2 LE or UTF-16 LE format
+     * @param file
+     * @return 
+     */
     public ArrayList<Entry> importFile(String file) {
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
         VDF.analyze(new File(file), tn);

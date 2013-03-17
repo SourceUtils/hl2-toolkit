@@ -18,8 +18,11 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
@@ -61,6 +64,8 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        jMenuItem7 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Caption Reader");
@@ -173,6 +178,19 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu2.add(jMenuItem5);
 
         menuBar.add(jMenu2);
+
+        jMenu3.setText("Help");
+
+        jMenuItem7.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+        jMenuItem7.setText("Formatting");
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                formattingHelp(evt);
+            }
+        });
+        jMenu3.add(jMenuItem7);
+
+        menuBar.add(jMenu3);
 
         setJMenuBar(menuBar);
 
@@ -299,17 +317,42 @@ public class VCCDTest extends javax.swing.JFrame {
         model.addRow(new Object[]{});
     }//GEN-LAST:event_createNew
 
+    private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
+        String message =
+        "<sfx>\n" +
+        "Marks a line as a sound effect that will only be displayed with full closed captioning.\n" +
+        "If the user has cc_subtitles set to \"1\", it will not display these lines.\n" +
+        "\n<clr:255,255,255>\n" +
+        "Sets the color of the caption using RGB color; 0 is no color, 255 is full color.\n" +
+        "For example, <clr:255,255,255> would be white.\n" +
+        "\n<b>\n" +
+        "Bolds all text following the tag.\n" +
+        "\n<i>\n" +
+        "Italics text following the tag.\n" +
+        "\n<cr>\n" +
+        "Inserts a line break.\n" +
+        "\nPortal 2\n" +
+        "\n<len:#>\n" +
+        "Indicates how long the caption should appear on the screen.\n" +
+        "\n<norepeat:#>\n" +
+        "Sets how long until the caption can appear again. Useful for frequent sounds." +
+        "";
+        JOptionPane.showMessageDialog(this, message, "Formatting", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_formattingHelp
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
+    private javax.swing.JMenuItem jMenuItem7;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
