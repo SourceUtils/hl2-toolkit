@@ -51,7 +51,9 @@ public class ZenityFileChooser extends BaseFileChooser {
         }
         cmd.add("--class=" + windowClass);
 //        cmd.add("--name=" + Main.projectName + " ");
-        cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
+        if(WindowToolkit.getWindowClass() != null) {
+            cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
+        }
         cmd.add("--title=" + (saveDialog ? "Save" : "Open"));
 //        cmd.add("--ok-label=TEXT ");
 //        cmd.add("--cancel-label=TEXT ");

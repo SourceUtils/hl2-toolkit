@@ -22,10 +22,6 @@ public class VDFTest extends javax.swing.JFrame {
      */
     public VDFTest() {
         initComponents();
-        
-        DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
-        ((DefaultMutableTreeNode)model.getRoot()).removeAllChildren();
-        model.reload();
     }
 
     /**
@@ -45,6 +41,8 @@ public class VDFTest extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
         jTree1.setRootVisible(false);
         jScrollPane1.setViewportView(jTree1);
 

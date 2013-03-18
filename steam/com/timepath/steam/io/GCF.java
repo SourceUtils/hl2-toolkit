@@ -1,6 +1,8 @@
 package com.timepath.steam.io;
 
 import com.timepath.DataUtils;
+import com.timepath.EnumFlagUtils;
+import com.timepath.EnumFlags;
 import com.timepath.hl2.io.util.ViewableData;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -8,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.Adler32;
@@ -27,17 +30,29 @@ public class GCF implements ViewableData {
     private static final Logger LOG = Logger.getLogger(GCF.class.getName());
 
     //<editor-fold defaultstate="collapsed" desc="Utils">
-    public void analyze(GCF g, final DefaultMutableTreeNode top) {
-        DirectoryEntry[] entries = g.directoryEntries;
-        g.analyze(entries[0], top);
+    public void analyze(DefaultMutableTreeNode top) {
+        analyze(top, true);
+    }
+    
+    public void analyze(DefaultMutableTreeNode top, boolean leaves) {
+        DirectoryEntry[] entries = directoryEntries;
+        analyze(entries[0], top, leaves);
     }
 
-    public void analyze(DirectoryEntry root, DefaultMutableTreeNode parent) {
-        DirectoryEntry[] entries = getImmediateChildren(root);
+    /**
+     * 
+     * @param rootEntry The root DirectoryEntry to analyze
+     * @param parent The parent TreeNode to attach to
+     * @param leaves Whether nodes with no children should be displayed
+     */
+    public void analyze(DirectoryEntry rootEntry, DefaultMutableTreeNode parent, boolean leaves) {
+        DirectoryEntry[] entries = getImmediateChildren(rootEntry);
         for(int i = 0; i < entries.length; i++) {
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(entries[i]);
             if(entries[i].firstChildIndex != 0) {
-                analyze(entries[i], child);
+                analyze(entries[i], child, leaves);
+            } else if(!leaves) {
+                continue;
             }
             parent.add(child);
         }
@@ -110,7 +125,7 @@ public class GCF implements ViewableData {
     public File extract(int index, File dest) throws IOException {
         String str = nameForDirectoryIndexRecursive(index);
         File outFile;
-        if(directoryEntries[index].attributes == 0) {
+        if(directoryEntries[index].isDirectory()) {
             //<editor-fold defaultstate="collapsed" desc="Extract directory">
             outFile = new File(dest.getPath(), str);
             outFile.mkdirs();
@@ -228,6 +243,14 @@ public class GCF implements ViewableData {
     @Override
     public String toString() {
         return file.getName();
+    }
+    
+    public static GCF load(File file) {
+        try {
+            return new GCF(file);
+        } catch(IOException e) {
+            return null;
+        }
     }
 
     public GCF(File file) throws IOException {
@@ -810,9 +833,9 @@ public class GCF implements ViewableData {
     }
 
     private DirectoryEntry[] directoryEntries;
-
-    enum DirectoryEntryAttributes {
-
+    
+    public enum DirectoryEntryAttributes implements EnumFlags {
+        
         File(0x4000),
         Executable_File(0x800),
         Hidden_File(0x400),
@@ -825,13 +848,18 @@ public class GCF implements ViewableData {
         Launch_File(0x2),
         Configuration_File(0x1),
         Directory(0);
-
-        int flags;
-
-        DirectoryEntryAttributes(int flags) {
-            this.flags = flags;
+        
+        private final int id;
+        
+        DirectoryEntryAttributes(int id) {
+            this.id = id;
         }
-    };
+        
+        public int getId() {
+            return id;
+        }
+        
+    }
 
     public class DirectoryEntry implements ViewableData {
 
@@ -850,7 +878,7 @@ public class GCF implements ViewableData {
          */
         public final int checksumIndex;
 
-        public final int attributes;
+        public final EnumSet<DirectoryEntryAttributes> attributes;
 
         /**
          * Index of the parent directory item.  (0xFFFFFFFF == None).
@@ -874,7 +902,7 @@ public class GCF implements ViewableData {
             nameOffset = DataUtils.readULEInt(rf);
             itemSize = DataUtils.readULEInt(rf);
             checksumIndex = DataUtils.readULEInt(rf);
-            attributes = DataUtils.readULEInt(rf);
+            attributes = EnumFlagUtils.decode(DataUtils.readULEInt(rf), DirectoryEntryAttributes.class);
             parentIndex = DataUtils.readULEInt(rf);
             nextIndex = DataUtils.readULEInt(rf);
             firstChildIndex = DataUtils.readULEInt(rf);
@@ -882,11 +910,23 @@ public class GCF implements ViewableData {
 
         @Override
         public String toString() {
+            return getName();
+        }
+        
+        public String getAbsoluteName() {
+            return nameForDirectoryIndexRecursive(index);
+        }
+        
+        public String getName() {
             return nameForDirectoryIndex(index);
         }
 
         public GCF getGCF() {
             return GCF.this;
+        }
+        
+        public boolean isDirectory() {
+            return this.attributes.contains(DirectoryEntryAttributes.Directory);
         }
 
         public Icon getIcon() {
@@ -894,7 +934,7 @@ public class GCF implements ViewableData {
             if(this.index == 0) {
                 return this.getGCF().getIcon();
             }
-            if(this.attributes == 0) {
+            if(this.isDirectory()) {
                 return UIManager.getIcon("FileView.directoryIcon");
             } else {
                 return UIManager.getIcon("FileView.fileIcon");
