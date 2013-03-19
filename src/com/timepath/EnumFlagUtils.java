@@ -11,7 +11,8 @@ import java.util.logging.Logger;
  */
 public class EnumFlagUtils {
     
-    public static <E extends Enum<E> & EnumFlags> EnumSet decode(int encoded, Class<E> enumClass) {
+    @SuppressWarnings("unchecked")
+    public static <E extends Enum<E> & EnumFlags<E>> EnumSet<E> decode(int encoded, Class<E> enumClass) {
         E[] map = enumClass/*.getDeclaringClass()*/.getEnumConstants();
         Arrays.sort(map, new Comparator() {
 
@@ -46,7 +47,7 @@ public class EnumFlagUtils {
                 ret.add(map[i]);
             }
         }
-        System.err.println(ret + " - " + encoded);
+//        System.err.println(ret + " - " + encoded);
         return ret;
     }
     

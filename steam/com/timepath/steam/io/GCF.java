@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,25 +104,27 @@ public class GCF implements ViewableData {
 //        }
         return str + (directoryEntries[idx].firstChildIndex != 0 ? "/" : "");
     }
-
+    
+    public ArrayList<DirectoryEntry> find(String search) {
+        ArrayList<DirectoryEntry> list = new ArrayList<DirectoryEntry>(this.directoryEntries.length);
+        for(int i = 0; i < directoryEntries.length; i++) {
+            String str = directoryEntries[i].getName();
+            if(str.contains(search)) {
+                list.add(directoryEntries[i]);
+            }
+        }
+        return list;
+    }
+    
     /**
+     * 
      * TODO: fast directory extraction
-     * @param search
+     * 
+     * @param index
      * @param dest
      * @return
-     * @throws IOException
+     * @throws IOException 
      */
-    public File extract(String search, File dest) throws IOException {
-        for(int i = 0; i < directoryEntries.length; i++) {
-            String str = nameForDirectoryIndexRecursive(i);
-            if(!str.equals(search)) {
-                continue;
-            }
-            return extract(i, dest);
-        }
-        return null;
-    }
-
     public File extract(int index, File dest) throws IOException {
         String str = nameForDirectoryIndexRecursive(index);
         File outFile;
@@ -141,6 +144,7 @@ public class GCF implements ViewableData {
             //                logger.log(Level.INFO, "\n\np:{0}\nblockidx:{1}\n", new Object[]{f.getPath(), idx});
             //                logger.log(Level.INFO, "\n\nb:{0}\n", new Object[]{block.toString()});
             outFile.getParentFile().mkdirs();
+            outFile.delete();
             outFile.createNewFile();
             if(idx >= blocks.length) {
                 LOG.log(Level.WARNING, "Block out of range for {0} : {1}. Is the size 0?", new Object[]{outFile.getPath(), index});
@@ -149,29 +153,35 @@ public class GCF implements ViewableData {
             BlockAllocationTableEntry block = this.getBlock(idx);
             RandomAccessFile out = new RandomAccessFile(outFile, "rw");
             int dataIdx = block.firstClusterIndex;
-            for(int q = 0;; q++) {
+            LOG.log(Level.INFO, "bSize: {0}", new Object[]{block.fileDataSize});
+            out.seek(block.fileDataOffset);
+            while(true) {
                 byte[] buf = this.readData(block, dataIdx);
-                out.seek(block.fileDataOffset + (q * dataBlockHeader.blockSize));
                 if(out.getFilePointer() + buf.length > block.fileDataSize) {
-                    out.write(buf, 0, (block.fileDataSize % dataBlockHeader.blockSize));
+                    out.write(buf, 0, block.fileDataSize % dataBlockHeader.blockSize);
                 } else {
                     out.write(buf);
                 }
-                if(dataIdx == 65535) {
-                    break;
-                }
+                
                 dataIdx = this.getEntry(dataIdx).nextClusterIndex;
-                if(dataIdx == -1) {
+                LOG.log(Level.FINE, "next dataIdx: {0}", dataIdx);
+                if(dataIdx == 0xFFFF) {
                     break;
                 }
             }
-            if(directoryEntries[index].itemSize != out.getFilePointer()) {
-                LOG.log(Level.WARNING, "size mismatch in {0}", outFile);
+            long theoreticalSize = directoryEntries[index].itemSize;
+            long realSize = out.getFilePointer();
+            if(realSize != theoreticalSize) {
+                LOG.log(Level.WARNING, "size mismatch in {0}: was {1}, supposed to be {2}", new Object[]{outFile, realSize, theoreticalSize});
             }
             out.close();
             //</editor-fold>
         }
         return outFile;
+    }
+    
+    public File extract(DirectoryEntry e, File dest) throws IOException {
+        return this.extract(e.index, dest);
     }
     //</editor-fold>
 
@@ -227,7 +237,7 @@ public class GCF implements ViewableData {
         rf.seek(pos);
         byte[] buf = new byte[dataBlockHeader.blockSize];
         if(block.fileDataOffset != 0) {
-            // logger.log(Level.INFO, "off = {0}", block.fileDataOffset);
+             LOG.log(Level.INFO, "off = {0}", block.fileDataOffset);
         }
         rf.read(buf);
         return buf;
@@ -836,7 +846,10 @@ public class GCF implements ViewableData {
     
     public enum DirectoryEntryAttributes implements EnumFlags {
         
+        Unknown_4(0x8000),
         File(0x4000),
+        Unknown_3(0x2000),
+        Unknown_2(0x1000),
         Executable_File(0x800),
         Hidden_File(0x400),
         ReadOnly_File(0x200),
@@ -845,6 +858,7 @@ public class GCF implements ViewableData {
         Backup_Before_Overwriting(0x40),
         NoCache_File(0x20),
         Locked_File(0x8),
+        Unknown_1(0x4),
         Launch_File(0x2),
         Configuration_File(0x1),
         Directory(0);
@@ -919,6 +933,11 @@ public class GCF implements ViewableData {
         
         public String getName() {
             return nameForDirectoryIndex(index);
+        }
+        
+        public String getPath() {
+            String abs = getAbsoluteName();
+            return abs.substring(0, abs.substring(0, abs.length() - 1).lastIndexOf('/'));
         }
 
         public GCF getGCF() {

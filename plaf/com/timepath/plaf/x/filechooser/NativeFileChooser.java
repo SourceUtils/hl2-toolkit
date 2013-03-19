@@ -36,5 +36,9 @@ public class NativeFileChooser extends BaseFileChooser {
         }
         return selection;
     }
+    
+    public static File choose(Frame parent, String title, File directory, boolean directoryMode, boolean saveDialog) {
+        return new NativeFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
+    }
 
 }
