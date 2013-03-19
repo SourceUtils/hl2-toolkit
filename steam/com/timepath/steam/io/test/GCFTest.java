@@ -139,6 +139,7 @@ public class GCFTest extends javax.swing.JFrame {
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
+        jTable1.setAutoCreateRowSorter(true);
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -146,7 +147,15 @@ public class GCFTest extends javax.swing.JFrame {
             new String [] {
                 "Name", "Size", "Attributes", "Path"
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
         jTable1.setFillsViewportHeight(true);
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
