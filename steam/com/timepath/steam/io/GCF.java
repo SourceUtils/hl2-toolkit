@@ -842,7 +842,7 @@ public class GCF implements ViewableData {
         }
     }
 
-    private DirectoryEntry[] directoryEntries;
+    public DirectoryEntry[] directoryEntries;
     
     public enum DirectoryEntryAttributes implements EnumFlags {
         

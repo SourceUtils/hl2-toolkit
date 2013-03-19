@@ -5,7 +5,6 @@ import com.timepath.steam.io.GCF;
 import com.timepath.steam.io.GCF.DirectoryEntry;
 import com.timepath.swing.DirectoryTreeCellRenderer;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -202,7 +201,9 @@ public class GCFTest extends javax.swing.JFrame {
         }
         ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
         DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
-        g.analyze(gcf, false);
+        DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
+        tree.insertNodeInto(direct, gcf, 0);
+        g.analyze(direct, false);
         tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
         tree.reload();
     }//GEN-LAST:event_open
