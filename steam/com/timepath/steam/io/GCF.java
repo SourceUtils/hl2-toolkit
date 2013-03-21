@@ -165,7 +165,7 @@ public class GCF implements ViewableData {
                 
                 dataIdx = this.getEntry(dataIdx).nextClusterIndex;
                 LOG.log(Level.FINE, "next dataIdx: {0}", dataIdx);
-                if(dataIdx == 0xFFFF) {
+                if(dataIdx == 0xFFFF || dataIdx == -1) {
                     break;
                 }
             }
@@ -844,7 +844,7 @@ public class GCF implements ViewableData {
 
     public DirectoryEntry[] directoryEntries;
     
-    public enum DirectoryEntryAttributes implements EnumFlags {
+    public enum DirectoryEntryAttributes implements EnumFlags<DirectoryEntryAttributes> {
         
         Unknown_4(0x8000),
         File(0x4000),

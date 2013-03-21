@@ -2,6 +2,8 @@ package com.timepath.steam.io.test;
 
 import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Property;
+import com.timepath.steam.io.BinaryVDF;
+import com.timepath.steam.io.Blob;
 import com.timepath.steam.io.VDF;
 import java.io.File;
 import java.util.ArrayList;
@@ -39,7 +41,8 @@ public class VDFTest extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(300, 300));
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
@@ -75,11 +78,27 @@ public class VDFTest extends javax.swing.JFrame {
             LOG.log(Level.INFO, "File is {0}", f);
         }
         DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
-        DefaultMutableTreeNode tn = new DefaultMutableTreeNode(f.getPath());
+        
+        DefaultMutableTreeNode pseudo = new DefaultMutableTreeNode(f.getPath());
+        model.setRoot(pseudo);
+        model.reload();
+        
+        DefaultMutableTreeNode blob = new DefaultMutableTreeNode("Blob");
+        Blob.analyze(f, blob);
+        pseudo.add(blob);
+        model.reload();
+        
+        DefaultMutableTreeNode bin = new DefaultMutableTreeNode("Binary VDF");
+        BinaryVDF.analyze(f, bin);
+        pseudo.add(bin);
+        model.reload();
+        
+        DefaultMutableTreeNode tn = new DefaultMutableTreeNode("VDF");
         VDF.analyze(f, tn);
         addProperties(tn);
-        model.setRoot(tn);
+        pseudo.add(tn);
         model.reload();
+        
     }//GEN-LAST:event_openVDF
 
     private void addProperties(DefaultMutableTreeNode tn) {
@@ -97,7 +116,7 @@ public class VDFTest extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String... args) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.

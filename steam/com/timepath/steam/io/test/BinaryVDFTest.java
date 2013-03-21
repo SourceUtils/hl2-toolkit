@@ -14,7 +14,7 @@ public class BinaryVDFTest {
 
     public static void main(String... args) throws IOException {
 //        System.out.println(new BinaryVDF(Utils.locateSteamAppsDirectory() + "../appcache/packageinfo.vdf"));
-        BinaryVDF bvdf = new BinaryVDF(SteamUtils.locateSteamAppsDirectory() + "../appcache/appinfo.vdf");
+        BinaryVDF bvdf = new BinaryVDF(SteamUtils.steamApps().getParent() + "/appcache/appinfo.vdf");
         LOG.log(Level.INFO, "{0}", bvdf);
     }
 

@@ -7,6 +7,7 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -55,8 +56,12 @@ public class Blob {
      * byte[dataSize]
      * the actual data for this blob. May contain more blob data chunks
      */
-    private static final Logger logger = Logger.getLogger(Blob.class.getName());
+    private static final Logger LOG = Logger.getLogger(Blob.class.getName());
 
+    public static void analyze(File f, DefaultMutableTreeNode root) {
+        
+    }
+    
     private BlobNode blob;
 
     public Blob(File f) {
@@ -64,7 +69,7 @@ public class Blob {
             RandomAccessFile rf = new RandomAccessFile(f, "r");
             this.blob = readBlob(rf);
         } catch(IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 

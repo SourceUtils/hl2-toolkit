@@ -5,6 +5,7 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>TimePath Commons</name>
             <source-roots>
+                <root id="src.productivity.dir" name="Productivity"/>
                 <root id="src.borrowed.dir" name="Borrowed Code"/>
                 <root id="src.dir" name="Other"/>
                 <root id="src.dnd.dir" name="DnD"/>

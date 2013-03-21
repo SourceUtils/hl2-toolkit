@@ -1,6 +1,7 @@
 package com.timepath.steam;
 
 import com.timepath.plaf.OS;
+import java.io.File;
 import java.util.logging.Logger;
 
 /**
@@ -12,6 +13,10 @@ public class SteamUtils {
     private static final Logger LOG = Logger.getLogger(SteamUtils.class.getName());
 
     private SteamUtils() {
+    }
+    
+    public static File steamApps() {
+        return new File(locateSteamAppsDirectory());
     }
 
     public static String locateSteamAppsDirectory() {
