@@ -27,7 +27,7 @@ import javax.swing.tree.TreeSelectionModel;
  * @author timepath
  */
 @SuppressWarnings("serial")
-public class GCFTest extends javax.swing.JFrame {
+public class ArchiveTest extends javax.swing.JFrame {
     private GCF g;
     private final DefaultTreeModel tree;
     private final DefaultTableModel table;
@@ -35,7 +35,7 @@ public class GCFTest extends javax.swing.JFrame {
     /**
      * Creates new form GCFTest
      */
-    public GCFTest() {
+    public ArchiveTest() {
         initComponents();
         jTree1.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         jTree1.setCellRenderer(new DirectoryTreeCellRenderer());
@@ -240,7 +240,7 @@ public class GCFTest extends javax.swing.JFrame {
             try {
                 g.extract(e.index, out);
             } catch (IOException ex) {
-                Logger.getLogger(GCFTest.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         LOG.info("Done");
@@ -351,20 +351,20 @@ public class GCFTest extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(GCFTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(GCFTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(GCFTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(GCFTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new GCFTest().setVisible(true);
+                new ArchiveTest().setVisible(true);
             }
         });
     }
@@ -384,5 +384,5 @@ public class GCFTest extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
-    private static final Logger LOG = Logger.getLogger(GCFTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(ArchiveTest.class.getName());
 }

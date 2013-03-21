@@ -24,7 +24,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author timepath
  */
-public class BinaryVDF {
+public class BVDF {
     
     private enum ControlCharacter {
         
@@ -56,7 +56,7 @@ public class BinaryVDF {
                     return search[s].name();
                 }
             }
-            return "UNKNOWN";
+            return "UNKNOWN (" + i + ")";
         }
         
     }
@@ -86,11 +86,41 @@ public class BinaryVDF {
                     return search[s].name();
                 }
             }
-            return "UNKNOWN";
+            return "UNKNOWN (" + i + ")";
         }
         
     }
     
+    private enum AppInfoState {
+        
+        UNAVAILBALE(1),
+        AVAILABLE(2);
+        
+        AppInfoState(int i) {
+            this.id = i;
+        }
+        
+        private int id;
+        
+        public int ID() {
+            return id;
+        }
+        
+        public static String get(int i) {
+            AppInfoState[] search = AppInfoState.values();
+            for(int s = 0; s < search.length; s++) {
+                if(search[s].ID() == i) {
+                    return search[s].name();
+                }
+            }
+            return "UNKNOWN (" + i + ")";
+        }
+        
+    }
+    
+    /**
+     * Can be found in steamclient native library, EAppInfoSection
+     */
     private enum Section {
         
         UNKNOWN(0),
@@ -108,7 +138,9 @@ public class BinaryVDF {
         ITEMS(12),
         POLICIES(13),
         SYSREQS(14),
-        COMMUNITY(15);
+        COMMUNITY(15),
+        SERVERONLY(16),
+        SERVERANDWGONLY(17);
         
         Section(int i) {
             this.id = i;
@@ -127,7 +159,7 @@ public class BinaryVDF {
                     return search[s].name();
                 }
             }
-            return "UNKNOWN";
+            return "UNKNOWN (" + i + ")";
         }
     }
     
@@ -135,18 +167,18 @@ public class BinaryVDF {
     
     public static void analyze(File f, DefaultMutableTreeNode root) {
         try {
-            BinaryVDF b = new BinaryVDF(f.getPath());
+            BVDF b = new BVDF(f.getPath());
             for(int i = 0; i < b.stuff.size(); i++) {
                 root.add(new DefaultMutableTreeNode(b.stuff.get(i)));
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BinaryVDF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BVDF.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(BinaryVDF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(BVDF.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public BinaryVDF(String location) throws FileNotFoundException, IOException {
+    public BVDF(String location) throws FileNotFoundException, IOException {
         RandomAccessFile rf = new RandomAccessFile(location, "r");
         byte[] magic = DataUtils.readBytes(rf, 4);
         if(magic[2] != 0x56) {
@@ -154,70 +186,85 @@ public class BinaryVDF {
             return;
         }
         int universe = DataUtils.readULEInt(rf);
-        LOG.log(Level.INFO, "Universe: {0}", Universe.get(universe));
-        if(magic[1] == 0x44) { // AppInfo
+        stuff.add("Info:");
+        stuff.add("  Universe: " + Universe.get(universe));
+        //<editor-fold defaultstate="collapsed" desc="AppInfo">
+        if(magic[1] == 0x44) {
             for(;;) {
                 int appID = DataUtils.readULEInt(rf);
-                if(appID == 0) {
+                if(appID == 0x0000 || appID == 0) {
                     break;
                 }
-                int size = DataUtils.readULEInt(rf);
-                int dummy1 = DataUtils.readULEInt(rf);
-                if(dummy1 != 2) {
-                    LOG.log(Level.INFO, "Dummy1 ({0}) not 2 for {1}", new Object[]{dummy1, appID});
+                int size = DataUtils.readULEInt(rf); // skip this many bytes to reach the next entry
+                long start = rf.getFilePointer();
+                int appInfoState = DataUtils.readULEInt(rf);
+                if(appInfoState != AppInfoState.AVAILABLE.ID()) {
+                    LOG.log(Level.INFO, "{0} {1}", new Object[]{appID, AppInfoState.get(appInfoState)});
                 }
                 long lastUpdated = DataUtils.readULEInt(rf);
                 DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
                 df.setTimeZone(TimeZone.getTimeZone("GMT"));
-                String fd = df.format(new Date(lastUpdated * 1000));
-//                    LOG.log(Level.INFO, "{0} : {1} : {2}", new Object[]{appID, fd, lastUpdated});
-                long dummy2 = (DataUtils.readULEInt(rf) << 32) + DataUtils.readULEInt(rf);
-                if(dummy2 != 0) {
-                    LOG.log(Level.INFO, "Dummy2 ({0}) not 0 for {1}", new Object[]{dummy2, appID});
+                String formattedDate = df.format(new Date(lastUpdated * 1000));
+                //<editor-fold defaultstate="collapsed" desc="Padding">
+                long dummy1 = (DataUtils.readULEInt(rf) << 32) + DataUtils.readULEInt(rf);
+                if(dummy1 != 0) {
+                    LOG.log(Level.INFO, "Dummy2 ({0}) not 0 for {1}", new Object[]{dummy1, appID});
                 }
-                byte[] dummy3 = DataUtils.readBytes(rf, 20);
-                long changeNumber = (DataUtils.readULEInt(rf) << 32) + DataUtils.readULEInt(rf);
-                long start = rf.getFilePointer();
+                byte[] dummy2 = DataUtils.readBytes(rf, 20);
+                //</editor-fold>
+                long changeNumber = (DataUtils.readULEInt(rf)); // perhaps this isn't part of the header, but child nodes?
+                
+                stuff.add("" + appID);
+                stuff.add("  Start: " + Long.toString(start - 8).toUpperCase());
+                stuff.add("    Length: " + (size + 8));
+                stuff.add("  AppInfoState: " + AppInfoState.get(appInfoState));
+                stuff.add("  Updated: " + formattedDate);
+                stuff.add("  ChangeNumber: " + changeNumber);
+                stuff.add("  Data:");
+                
+                parse(rf, stuff, 0, -1);
+                
 //                for(;;) {
-                    byte section = DataUtils.readByte(rf); // enum EAppInfoSection
-                    LOG.log(Level.FINE, "Section #: {0}", section);
-                    stuff.add("\tSection: " + section);
-                    rf.seek(start + size);// - 53);
-//                    if(section == 0x00) {// end of section data
+//                    byte section = DataUtils.readByte(rf);
+//                    stuff.add("      Section: " + Section.get(section));
+////                    if(section == 0x00) {
 //                        break;
-//                    }
-//                    break;
-//                    byte[] section_data; // section data as written by KeyValues::WriteAsBinary() (see KeyValues.cpp in Source SDK)
-//                    for(;;) {
-//                        if(rf.readByte() == ControlCharacter.TERMINATOR.ID()) {
-//                            break;
-//                        }
-//                    }
+////                    }
+////                    byte[] section_data; // section data as written by KeyValues::WriteAsBinary() (see KeyValues.cpp in Source SDK)
+////                    for(;;) {
+////                        if(rf.readByte() == ControlCharacter.TERMINATOR.ID()) {
+////                            break;
+////                        }
+////                    }
 //                }
                 long end = rf.getFilePointer();
-                if((end - start) != size) {
-                    LOG.log(Level.INFO, "Read: {0}, not {1}", new Object[]{(end - start), size});
+                if(end != (start + size)) {
+                    LOG.log(Level.FINE, "Read: {0}, not {1}", new Object[]{(end - start), size});
+                    rf.seek(start + size);
                 }
-                stuff.add(appID + ", " + fd + ", " + new String(dummy3) + ", " + changeNumber);
             }
-        } else if(magic[1] == 0x55) { // PackageInfo
+            //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="PackageInfo">
+        } else if(magic[1] == 0x55) {
             for(;;) {
                 int appID = DataUtils.readULEInt(rf);
-                if(appID == 0xFFFFFFFF) { // -1
+                if(appID == 0xFFFFFFFF || appID == -1) {
                     break;
                 }
                 byte[] unknown1 = DataUtils.readBytes(rf, 20);
                 int unknown2 = DataUtils.readULEInt(rf);
-//                    byte[] data;
+                
                 parse(rf, stuff, 0, -1);
             }
+            //</editor-fold>
         } else {
-//                raise Exception("Unknown file type!")
+//            throw new Exception("Unknown file type!");
         }
     }
 
     /**
      * http://cdr.xpaw.ru/app/5/#section_info
+     * TODO: reverse KeyValues::WriteAsBinary()
      *
      * @param rf
      * @param data
@@ -229,10 +276,14 @@ public class BinaryVDF {
      * @throws IOException
      */
     private String parse(RandomAccessFile rf, ArrayList<String> data, int end, int timesEndSeen) throws IOException {
+//        if(true) {
+//            return "";
+//        }
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         while(rf.getFilePointer() < rf.length()) {
-            byte b = rf.readByte();
             String p = Long.toHexString(rf.getFilePointer());
+            byte b = rf.readByte();
+            
             if(b == ControlCharacter.HEADING_START.ID()) {
                 ArrayList<String> d2 = new ArrayList<String>();
                 String heading = parse(rf, d2, ControlCharacter.NULL.ID(), 2);
@@ -245,15 +296,15 @@ public class BinaryVDF {
 //                System.out.append(sb.toString());
             } else if(b == ControlCharacter.TEXT_START.ID()) {
                 String text = parse(rf, data, ControlCharacter.TERMINATOR.ID(), 2);
-                LOG.log(Level.INFO,"{0}" + "\n" + "={1}\n", new Object[]{p, text});
+                LOG.log(Level.FINE,"{0}" + "\n" + "={1}\n", new Object[]{p, text});
                 data.add(text);
             } else if(b == ControlCharacter.EXTENDED.ID()) {
                 String text = parse(rf, data, ControlCharacter.NULL.ID(), 2);
-                LOG.log(Level.INFO,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
+                LOG.log(Level.FINE,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
                 data.add(text);
             } else if(b == ControlCharacter.DEPOTS.ID()) {
                 String text = parse(rf, data, ControlCharacter.NULL.ID(), 2);
-                LOG.log(Level.INFO,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
+                LOG.log(Level.FINE,"{0}" + "\n" + ">{1}\n", new Object[]{p, text});
                 data.add(text);
             } else {
                 buf.write(b);
@@ -285,5 +336,5 @@ public class BinaryVDF {
         return super.toString();
     }
 
-    private static final Logger LOG = Logger.getLogger(BinaryVDF.class.getName());
+    private static final Logger LOG = Logger.getLogger(BVDF.class.getName());
 }

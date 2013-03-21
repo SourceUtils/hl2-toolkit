@@ -4,6 +4,7 @@ import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Property;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,19 @@ public class VDF {
     }
 
     public VDF(String file) {
+    }
+    
+    public static boolean isBinary(File f) {
+        try {
+            RandomAccessFile rf = new RandomAccessFile(f, "r");
+            rf.seek(2);
+            return (rf.read() == 0x56);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(VDF.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(VDF.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 
     public static void analyze(final File file, final DefaultMutableTreeNode top) {

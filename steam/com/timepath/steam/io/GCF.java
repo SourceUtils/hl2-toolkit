@@ -26,7 +26,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author timepath
  */
-public class GCF implements ViewableData {
+public class GCF implements Archive, ViewableData {
 
     private static final Logger LOG = Logger.getLogger(GCF.class.getName());
 
