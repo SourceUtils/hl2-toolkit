@@ -12,6 +12,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
@@ -105,6 +106,31 @@ public class Blob {
         
         public static DataType get(int i) {
             for(DataType t : DataType.values()){
+                if(t.ID() == i) {
+                    return t;
+                }
+            }
+            return null;
+        }
+        
+    }
+    
+    private static enum FolderItemType {
+        FOLDER(0x01),
+        FILE(0x02);
+        
+        FolderItemType(int i) {
+            this.i = i;
+        }
+        
+        private int i;
+        
+        public int ID() {
+            return i;
+        }
+        
+        public static FolderItemType get(int i) {
+            for(FolderItemType t : FolderItemType.values()){
                 if(t.ID() == i) {
                     return t;
                 }
@@ -240,7 +266,7 @@ public class Blob {
 //                byte[] data = mybuf.array();
                 break;
             default:
-//                LOG.log(Level.WARNING, "Unknown data kind {0}", Integer.toHexString(kind));
+                System.out.println(tab(level) + "** Unknown data kind " + Integer.toHexString(kind));
             break;
         }
     }
@@ -267,52 +293,125 @@ public class Blob {
             int totalLen = mybuf.getInt(); // Total size of blob
             int padding = mybuf.getInt();
             
-            int descriptorLen = mybuf.getShort();
-            int payloadLen = mybuf.getInt() - 10; // minus 10 because of magic(2), len(4), padding(4)
-
-            String name = getText(readSlice(mybuf, descriptorLen));
-            
-            // Other
-            int headerLen = 16 + descriptorLen; // payloadLen - 10? 16 because of magic(2), len(4), padding(4), descriptorLen(2), payloadLen(4)
-            int childrenLen = totalLen - headerLen;
-            
-            // Check
-//            if(mybuf.remaining() < childrenLen + padding) { 
-//                LOG.log(Level.WARNING, "Content length ({0} and null padding ({1}) are bigger than the total remaining bytes ({2})", new Object[] {childrenLen, padding, mybuf.remaining()});
-//                return;
-//            }
-           
-            StringBuilder sb = new StringBuilder();
-            sb.append("'").append(name.replaceAll("\1", "[1]").replaceAll("\2", "[2]")).append("'");
-            sb.append(" ");
-            sb.append("| totalLen(4): ").append(totalLen);
-            sb.append(", padding(4): ").append(padding);
-            sb.append(", descriptorLen(2): ").append(descriptorLen);
-            sb.append(", payloadLen(4): ").append(payloadLen);
-            sb.append(", descriptor(").append(descriptorLen).append(")");
-            sb.append(" ");
-            sb.append("| headerLen: ").append(headerLen);
-            parent.setName(sb.toString());
-//            int end = mybuf.position() + childrenLen + padding;
-//            mybuf.limit(end);
-            
-            System.out.println(tab(level) + ">> " + parent.getName());
-            level++;
-            ByteBuffer payload = mybuf;//readSlice(mybuf);
+            mybuf.limit(mybuf.position() + totalLen - 10 + padding);
             while(mybuf.remaining() > padding) {
-                BlobNode child = new BlobNode();
-                parse(payload, child);
-                if(child.getName() != null) {
-                    parent.children.add(child);
+            
+                int descriptorLen = mybuf.getShort();
+                int payloadLen = mybuf.getInt(); // remaining bytes
+
+                ByteBuffer desc = readSlice(mybuf, descriptorLen);
+                ByteBuffer payload = readSlice(mybuf, payloadLen);
+
+                // Other
+                int headerLen = 16 + descriptorLen; // payloadLen - 10? 16 because of magic(2), len(4), padding(4), descriptorLen(2), payloadLen(4)
+                int childrenLen = totalLen - headerLen;
+                
+                // Check
+    //            if(mybuf.remaining() < childrenLen + padding) { 
+    //                LOG.log(Level.WARNING, "Content length ({0} and null padding ({1}) are bigger than the total remaining bytes ({2})", new Object[] {childrenLen, padding, mybuf.remaining()});
+    //                return;
+    //            }
+                
+                String name = getText(desc);
+                desc.rewind();
+                
+                StringBuilder sb = new StringBuilder();
+                sb.append("'").append(name.replaceAll("\1", "[1]").replaceAll("\2", "[2]")).append("'");
+                sb.append(" ");
+                sb.append("| totalLen(4): ").append(totalLen);
+                sb.append(", padding(4): ").append(padding);
+                sb.append(", descriptorLen(2): ").append(descriptorLen);
+                sb.append(", payloadLen(4): ").append(payloadLen);
+                sb.append(", descriptor(").append(descriptorLen).append(")");
+                sb.append(" ");
+                sb.append("| headerLen: ").append(headerLen);
+                parent.setName(sb.toString());
+                
+                if(parent.getHeader() == FolderItemType.FOLDER.ID()) { // reading value
+                    byte[] b = new byte[payload.remaining()];
+                    if(b.length > 100) {
+                        continue;
+                    }
+                    
+                    String s = null;
+                    
+                    int typeNum = payload.get();
+                    DataType type = DataType.get(typeNum);
+                    if(type != null) {
+                        s = type.toString();
+                    }
+                    if(s == null) {
+                        payload.position(0);
+                        payload.get(b);
+                        s = "[";
+                        for(int i = 0; i < b.length; i++) {
+                            if(i != 0) {
+                                s += " ";
+                            }
+                            s += Integer.toHexString(b[i] & 0xff);
+                        }
+                        s += "]";
+                    }
+                    System.out.println(tab(level+2) + "== " + s);
+                    continue;
+                }
+                if(parent.getHeader() == FolderItemType.FILE.ID()) { // reading value name
+                    BlobNode v = new BlobNode();
+                    v.setHeader(FolderItemType.FOLDER.ID());
+                    parse(payload, v);
+                    System.out.println(tab(level+1) + "== " + v.getName());
+                    continue;
+                }
+                
+                // parse payload
+                desc.position(0);
+                int typeNum = desc.get();
+                desc.position(0);
+                String s = getText(desc);
+                desc.position(0);
+                payload.position(0);
+                FolderItemType thisType = FolderItemType.get(typeNum);
+                if(thisType == null) { // regular directory
+                    System.out.println(tab(level++) + "=> " + parent.getName());
+                    BlobNode tmp = new BlobNode(); // a container directory
+                    parse(payload, tmp);
+                    parent.children.addAll(tmp.children);
+                    --level;
+                    System.out.println(tab(level) + "<= " + parent.getName());
+                } else {
+                    switch(thisType) {
+                        case FOLDER:
+                            System.out.println(tab(level++) + "-> " + parent.getName());
+                            BlobNode dir = new BlobNode(); // a normal directory
+                            parse(payload, dir);
+                            parent.children.add(dir);
+                            --level;
+                            System.out.println(tab(level) + "<- " + parent.getName());
+                            break;
+                        case FILE:
+                            System.out.println(tab(level++) + "+> " + parent.getName());
+                            BlobNode f = new BlobNode(); // a data entry
+                            f.setHeader(FolderItemType.FILE.ID());
+                            parse(payload, f);
+                            System.out.println(tab(level++) + "*> " + f.getName());
+                            parent.children.add(f);
+                            
+                            --level;
+                            System.out.println(tab(level) + "<* " + f.getName());
+                            --level;
+                            System.out.println(tab(level) + "<+ " + parent.getName());
+                            break;
+                        default:
+                            LOG.log(Level.WARNING, "Unexpected folder item type: {0}", typeNum);
+                            break;
+                    }
                 }
             }
-            level--;
-            System.out.println(tab(level) + "<< " + parent.getName());
             
-            mybuf.position(mybuf.limit());
-//            ret.underflow = mybuf.remaining();
-
-//            return ret;
+            mybuf.position(mybuf.position() + padding);
+            if(mybuf.remaining() != 0) {
+                System.out.println(tab(level) + "** Underflow: " + mybuf.remaining());
+            }
         } catch(BufferUnderflowException bue) {
 //            LOG.log(Level.SEVERE, "Buffer Underflow");//, bue);
         }
