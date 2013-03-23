@@ -268,6 +268,9 @@ public class VCCDTest extends javax.swing.JFrame {
         int returnVal = fc.showSaveDialog(this);
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
+            if(jTable1.isEditing()) {
+                jTable1.getCellEditor().stopCellEditing();
+            }
             File file = fc.getSelectedFile();
 
             ArrayList<Entry> entries = new ArrayList<Entry>();

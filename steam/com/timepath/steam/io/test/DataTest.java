@@ -151,10 +151,9 @@ public class DataTest extends javax.swing.JFrame {
             if(f.getName().toLowerCase().endsWith(".blob")) {
                 n = new DefaultMutableTreeNode("Blob");
                 Blob.analyze(f, n);
-                
             } else if(f.getName().toLowerCase().endsWith(".vdf")) {
                 if(VDF.isBinary(f)) {
-                    n = new DefaultMutableTreeNode("Binary VDF");
+                    n = new DefaultMutableTreeNode("BVDF");
                     BVDF.analyze(f, n);
                 } else {
                     n = new DefaultMutableTreeNode("VDF");
