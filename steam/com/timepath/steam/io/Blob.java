@@ -32,52 +32,53 @@ public class Blob {
     
     private static final Logger LOG = Logger.getLogger(Blob.class.getName());
     
+    //<editor-fold defaultstate="collapsed" desc="Inner classes">
     public static class BlobNode {
-
+        
         public BlobNode() {
         }
-
+        
         public BlobNode(String s) {
             this.setName(s);
         }
         private ArrayList<BlobNode> children = new ArrayList<BlobNode>();
-
+        
         public void addChild(BlobNode c) {
             children.add(c);
         }
-
+        
         public BlobNode getChild(int i) {
             return children.get(i);
         }
-
+        
         public int childCount() {
             return children.size();
         }
         private String name;
-
+        
         public void setName(String s) {
             this.name = s;
         }
-
+        
         public String getName() {
             return this.name;
         }
         private int header;
-
+        
         /**
          * @return the header
          */
         public int getHeader() {
             return header;
         }
-
+        
         /**
          * @param header the header to set
          */
         public void setHeader(int header) {
             this.header = header;
         }
-
+        
         @Override
         public String toString() {
             return getName();
@@ -112,15 +113,53 @@ public class Blob {
         }
         
     }
-
+    //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Public">
-
     public static void analyze(File f, DefaultMutableTreeNode root) throws IOException {
         BlobNode bn = new BlobNode();
         parse(mapFile(f), bn);     
         recurse(bn, root);
     }
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Utils">
+    //<editor-fold defaultstate="collapsed" desc="Slices">
+    private static ByteBuffer readSlice(ByteBuffer source) {
+        return readSlice(source, source.remaining());
+    }
 
+    private static ByteBuffer readSlice(ByteBuffer source, int length) {
+        int originalLimit = source.limit();
+        source.limit(source.position() + length);
+        ByteBuffer sub = source.slice();
+        source.position(source.limit());
+        source.limit(originalLimit);
+        sub.order(ByteOrder.LITTLE_ENDIAN);
+        return sub;
+    }
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Tabbing">
+    private static int level = 0;
+
+    private static String tab(int t) {
+        String s = "";
+        for(int i = 0; i < t; i++) {
+            s += "  ";
+        }
+        return s;
+    }
+    //</editor-fold>
+
+    private static ByteBuffer mapFile(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
+        FileChannel fc = fis.getChannel();
+        MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
+        mbb.order(ByteOrder.LITTLE_ENDIAN);
+        return mbb;
+    }
+    
     private static void recurse(BlobNode bn, DefaultMutableTreeNode tn) {
         DefaultMutableTreeNode t = new DefaultMutableTreeNode(bn);
         tn.add(t);
@@ -129,6 +168,44 @@ public class Blob {
             recurse(c.get(i), t);
         }
     }
+    
+    //<editor-fold defaultstate="collapsed" desc="Legacy code">
+    private static void legacy(RandomAccessFile rf, Blob.BlobNode parent) throws IOException {
+        int totalLength = DataUtils.readULEInt(rf); // Length of entire data node: header + data
+        int nullPadding = DataUtils.readULEInt(rf);
+        int descLength = DataUtils.readULEShort(rf);
+        int dataLength = DataUtils.readULEInt(rf); // Length of all child data, header(10) inclusive
+        byte[] nameArray = DataUtils.readBytes(rf, descLength);
+        String name = new String(nameArray);
+
+        int headLength = 2 + 4 + 4 + 2 + 4 + nameArray.length; // minimum 20
+        long offset = rf.getFilePointer() - headLength;
+        long dataStart = offset + headLength;
+        long dataEnd = dataStart + dataLength;
+
+        parent.setName("'" + name.replaceAll("\1", "[1]").replaceAll("\2", "[2]") + "', hS: " + offset + ", hL: " + headLength + ", hE/dS: " + dataStart + ", dL: " + dataLength + ", dE: " + dataEnd + " | bL: " + totalLength + ", bE: " + (offset + totalLength));
+
+        //        if(dataLength >= 20) {
+        System.out.println(tab(level) + ">> " + parent.getName());
+        level++;
+        while(rf.getFilePointer() < dataEnd) {
+            Blob.BlobNode child = null;// = readBlob(rf, new Blob.BlobNode());
+
+            if(child.getName() != null) {
+                parent.children.add(child);
+            }
+        }
+        level--;
+        System.out.println(tab(level) + "<< " + parent.getName());
+        //        }
+        rf.seek(dataEnd);
+        //        if(rf.getFilePointer() != dataEnd) {
+        //            LOG.log(Level.WARNING, "{0} finished in wrong position ({1} should be {2})", new Object[]{bn.getName(), rf.getFilePointer(), dataEnd});
+        //            rf.seek(dataEnd);
+        //        }
+
+    }
+    //</editor-fold>
     //</editor-fold>
     
     private static void parse(ByteBuffer buf, BlobNode parent) throws BufferUnderflowException {
@@ -187,32 +264,43 @@ public class Blob {
         try {
             ByteBuffer mybuf = readSlice(buf);
 
-            int childrenLen = mybuf.getInt() - 10; // Minus ten because it includes magic(2) len (4) padding (4)
+            int totalLen = mybuf.getInt(); // Total size of blob
             int padding = mybuf.getInt();
-            if(mybuf.remaining() < childrenLen + padding) {
-                LOG.log(Level.WARNING, "Content length ({0} and null padding ({1}) are bigger than the total remaining bytes ({2})", new Object[] {childrenLen, padding, mybuf.remaining()});
-            }
+            
             int descriptorLen = mybuf.getShort();
-            int payloadLen = mybuf.getInt();
-            assert ((payloadLen + descriptorLen) <= mybuf.remaining());
+            int payloadLen = mybuf.getInt() - 10; // minus 10 because of magic(2), len(4), padding(4)
 
-            ByteBuffer desc = readSlice(mybuf, descriptorLen);
-            String name = getText(desc);
-
-//                int headLength = 2 + 4 + 4 + 2 + 4 + desc.limit(); // minimum 20
-//                long offset = rf.getFilePointer() - headLength;
-//                long dataStart = offset + headLength;
-//                long dataEnd = dataStart + dataLength;                
-
-            parent.setName("'" + name.replaceAll("\1", "[1]").replaceAll("\2", "[2]") + "'");//, hS: " + offset + ", hL: " + headLength + ", hE/dS: " + dataStart + ", dL: " + dataLength + ", dE: " + dataEnd + " | bL: " + totalLength + ", bE: " + (offset + totalLength));
-            int end = mybuf.position() + childrenLen + padding;
+            String name = getText(readSlice(mybuf, descriptorLen));
+            
+            // Other
+            int headerLen = 16 + descriptorLen; // payloadLen - 10? 16 because of magic(2), len(4), padding(4), descriptorLen(2), payloadLen(4)
+            int childrenLen = totalLen - headerLen;
+            
+            // Check
+//            if(mybuf.remaining() < childrenLen + padding) { 
+//                LOG.log(Level.WARNING, "Content length ({0} and null padding ({1}) are bigger than the total remaining bytes ({2})", new Object[] {childrenLen, padding, mybuf.remaining()});
+//                return;
+//            }
+           
+            StringBuilder sb = new StringBuilder();
+            sb.append("'").append(name.replaceAll("\1", "[1]").replaceAll("\2", "[2]")).append("'");
+            sb.append(" ");
+            sb.append("| totalLen(4): ").append(totalLen);
+            sb.append(", padding(4): ").append(padding);
+            sb.append(", descriptorLen(2): ").append(descriptorLen);
+            sb.append(", payloadLen(4): ").append(payloadLen);
+            sb.append(", descriptor(").append(descriptorLen).append(")");
+            sb.append(" ");
+            sb.append("| headerLen: ").append(headerLen);
+            parent.setName(sb.toString());
+//            int end = mybuf.position() + childrenLen + padding;
 //            mybuf.limit(end);
             
             System.out.println(tab(level) + ">> " + parent.getName());
             level++;
+            ByteBuffer payload = mybuf;//readSlice(mybuf);
             while(mybuf.remaining() > padding) {
                 BlobNode child = new BlobNode();
-                ByteBuffer payload = readSlice(mybuf, payloadLen);
                 parse(payload, child);
                 if(child.getName() != null) {
                     parent.children.add(child);
@@ -285,85 +373,4 @@ public class Blob {
         return null;
     }
     
-    //<editor-fold defaultstate="collapsed" desc="Utils">
-    //<editor-fold defaultstate="collapsed" desc="Slices">
-    private static ByteBuffer readSlice(ByteBuffer source) {
-        return readSlice(source, source.remaining());
-    }
-
-    private static ByteBuffer readSlice(ByteBuffer source, int length) {
-        int originalLimit = source.limit();
-        source.limit(source.position() + length);
-        ByteBuffer sub = source.slice();
-        source.position(source.limit());
-        source.limit(originalLimit);
-        sub.order(ByteOrder.LITTLE_ENDIAN);
-        return sub;
-    }
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Tabbing">
-    private static int level = 0;
-
-    private static String tab(int t) {
-        String s = "";
-        for(int i = 0; i < t; i++) {
-            s += "  ";
-        }
-        return s;
-    }
-    //</editor-fold>
-
-    private static ByteBuffer mapFile(File f) throws IOException {
-        FileInputStream fis = new FileInputStream(f);
-        FileChannel fc = fis.getChannel();
-        MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
-        mbb.order(ByteOrder.LITTLE_ENDIAN);
-        return mbb;
-    }
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Legacy code">
-    /**
-     *
-     * @param rf
-     * @param parent section to read into
-     * @throws IOException
-     */
-    private static void readBlobUncompressed(RandomAccessFile rf, Blob.BlobNode parent) throws IOException {
-        int totalLength = DataUtils.readULEInt(rf); // Length of entire data node: header + data
-        int nullPadding = DataUtils.readULEInt(rf);
-        int descLength = DataUtils.readULEShort(rf);
-        int dataLength = DataUtils.readULEInt(rf); // Length of all child data, header(10) inclusive
-        byte[] nameArray = DataUtils.readBytes(rf, descLength);
-        String name = new String(nameArray);
-
-        int headLength = 2 + 4 + 4 + 2 + 4 + nameArray.length; // minimum 20
-        long offset = rf.getFilePointer() - headLength;
-        long dataStart = offset + headLength;
-        long dataEnd = dataStart + dataLength;
-
-        parent.setName("'" + name.replaceAll("\1", "[1]").replaceAll("\2", "[2]") + "', hS: " + offset + ", hL: " + headLength + ", hE/dS: " + dataStart + ", dL: " + dataLength + ", dE: " + dataEnd + " | bL: " + totalLength + ", bE: " + (offset + totalLength));
-
-        //        if(dataLength >= 20) {
-        System.out.println(tab(level) + ">> " + parent.getName());
-        level++;
-        while(rf.getFilePointer() < dataEnd) {
-            Blob.BlobNode child = null;// = readBlob(rf, new Blob.BlobNode());
-
-            if(child.getName() != null) {
-                parent.children.add(child);
-            }
-        }
-        level--;
-        System.out.println(tab(level) + "<< " + parent.getName());
-        //        }
-        rf.seek(dataEnd);
-        //        if(rf.getFilePointer() != dataEnd) {
-        //            LOG.log(Level.WARNING, "{0} finished in wrong position ({1} should be {2})", new Object[]{bn.getName(), rf.getFilePointer(), dataEnd});
-        //            rf.seek(dataEnd);
-        //        }
-
-    }
-    //</editor-fold>
 }
