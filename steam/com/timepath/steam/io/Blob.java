@@ -24,31 +24,15 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * http://cs.rin.ru/forum/viewtopic.php?f=29&t=44155
  * https://github.com/DHager/hl2parse/blob/master/hl2parse-binary/src/main/java/com/technofovea/hl2parse/registry/RegParser.java
  *
+ * Nodes of name \1 contain 'folders', \2 are 'files' (KeyValues)
+ * 
  * @author timepath
  */
 public class Blob {
-
-    //<editor-fold defaultstate="collapsed" desc="Public">
-    public Blob(File f) throws IOException {
-        parse(mapFile(f), data);
-    }
-
-    public static void analyze(File f, DefaultMutableTreeNode root) throws IOException {
-        Blob b = new Blob(f);
-        recurse(b.data, root);
-    }
-
-    private static void recurse(Blob.BlobNode bn, DefaultMutableTreeNode tn) {
-        DefaultMutableTreeNode t = new DefaultMutableTreeNode(bn);
-        tn.add(t);
-        ArrayList<Blob.BlobNode> c = bn.children;
-        for(int i = 0; i < c.size(); i++) {
-            recurse(c.get(i), t);
-        }
-    }
-    //</editor-fold>
-
-    public class BlobNode {
+    
+    private static final Logger LOG = Logger.getLogger(Blob.class.getName());
+    
+    public static class BlobNode {
 
         public BlobNode() {
         }
@@ -100,36 +84,95 @@ public class Blob {
         }
         
     }
-    public BlobNode data = new BlobNode("root");
-    //<editor-fold defaultstate="collapsed" desc="Constants">
-    private static final Logger LOG = Logger.getLogger(Blob.class.getName());
-    static final int HEADER_VAL = 0x5001; // Big endian = 01 50
-    static final int HEADER_COMPRESSED = 0x4301; // Big endian = 01 43
-    static final int NULL_TERMINATOR = 0x00;
-    static final Charset charset = Charset.forName("UTF-8");
-    //</editor-fold>
+    
+    private static enum DataType {
+        TEXT(0x00),
+        DWORD(0x01),
+        RAW(0x02),
+        DIRECTORY(0x50),
+        COMPRESSED(0x43);
+        
+        DataType(int i) {
+            this.i = i;
+        }
+        
+        private int i;
+        
+        public int ID() {
+            return i;
+        }
+        
+        public static DataType get(int i) {
+            for(DataType t : DataType.values()){
+                if(t.ID() == i) {
+                    return t;
+                }
+            }
+            return null;
+        }
+        
+    }
 
-    private void parse(ByteBuffer buf, BlobNode parent) {
+    //<editor-fold defaultstate="collapsed" desc="Public">
+
+    public static void analyze(File f, DefaultMutableTreeNode root) throws IOException {
+        BlobNode bn = new BlobNode();
+        parse(mapFile(f), bn);     
+        recurse(bn, root);
+    }
+
+    private static void recurse(BlobNode bn, DefaultMutableTreeNode tn) {
+        DefaultMutableTreeNode t = new DefaultMutableTreeNode(bn);
+        tn.add(t);
+        ArrayList<Blob.BlobNode> c = bn.children;
+        for(int i = 0; i < c.size(); i++) {
+            recurse(c.get(i), t);
+        }
+    }
+    //</editor-fold>
+    
+    private static void parse(ByteBuffer buf, BlobNode parent) throws BufferUnderflowException {
+        if(buf == null) {
+            return;
+        }
         ByteBuffer mybuf = readSlice(buf);
-        int magic = mybuf.getShort();
-        switch(magic) {
-            case HEADER_COMPRESSED:
-                parse(decompress(mybuf), parent);
+        int kind = mybuf.get();
+        switch(kind) {
+            case 0x01: // 'folders'
+                int typeNum = mybuf.get();
+                DataType type = DataType.get(typeNum);
+                if(type == null) {
+//                    LOG.log(Level.WARNING, "Unknown data type {0}", Integer.toHexString(typeNum));
+                    break;
+                } else {
+//                    LOG.log(Level.INFO, "Data type {0}", type);
+                }
+                switch(type) {
+                    case COMPRESSED:
+                        parse(decompress(mybuf), parent);
+                    break;
+                    case DIRECTORY:
+                        parseDecompressed(mybuf, parent);
+                    break;
+                    default:
+//                        LOG.log(Level.WARNING, "Unknown magic value {0}", new Object[] {Integer.toHexString(magic)});
+                    break;
+                }
                 break;
-            case HEADER_VAL:
-                parseDecompressed(mybuf, parent);
+            case 0x02: // 'files'
+//                byte[] data = mybuf.array();
                 break;
             default:
-                LOG.log(Level.WARNING, "Unknown magic value {0}", new Object[] {Integer.toHexString(magic)});
-                break;
+//                LOG.log(Level.WARNING, "Unknown data kind {0}", Integer.toHexString(kind));
+            break;
         }
     }
     
-    public String getText(ByteBuffer source) {
+    private static String getText(ByteBuffer source) {
         int pos = source.position();
         int end = source.limit();
         while(source.remaining() > 0) {
-            if(source.get() == NULL_TERMINATOR) {
+            if(source.get() == 0x00) { // NULL_TERMINATOR
                 end = source.position() - 1;
                 break;
             }
@@ -137,40 +180,53 @@ public class Blob {
         source.position(pos);
         source.limit(end);
 
-        return charset.decode(source).toString();
+        return Charset.forName("UTF-8").decode(source).toString();
     }
     
-    private void parseDecompressed(ByteBuffer buf, BlobNode parent) {
+    private static void parseDecompressed(ByteBuffer buf, BlobNode parent) {
         try {
             ByteBuffer mybuf = readSlice(buf);
 
             int childrenLen = mybuf.getInt() - 10; // Minus ten because it includes magic(2) len (4) padding (4)
             int padding = mybuf.getInt();
-            if(padding != 0) {
-                LOG.log(Level.INFO, "Padding: {0}", padding);
-            }
             if(mybuf.remaining() < childrenLen + padding) {
                 LOG.log(Level.WARNING, "Content length ({0} and null padding ({1}) are bigger than the total remaining bytes ({2})", new Object[] {childrenLen, padding, mybuf.remaining()});
             }
+            int descriptorLen = mybuf.getShort();
+            int payloadLen = mybuf.getInt();
+            assert ((payloadLen + descriptorLen) <= mybuf.remaining());
 
-            mybuf.limit(mybuf.position() + childrenLen + padding);
+            ByteBuffer desc = readSlice(mybuf, descriptorLen);
+            String name = getText(desc);
+
+//                int headLength = 2 + 4 + 4 + 2 + 4 + desc.limit(); // minimum 20
+//                long offset = rf.getFilePointer() - headLength;
+//                long dataStart = offset + headLength;
+//                long dataEnd = dataStart + dataLength;                
+
+            parent.setName("'" + name.replaceAll("\1", "[1]").replaceAll("\2", "[2]") + "'");//, hS: " + offset + ", hL: " + headLength + ", hE/dS: " + dataStart + ", dL: " + dataLength + ", dE: " + dataEnd + " | bL: " + totalLength + ", bE: " + (offset + totalLength));
+            int end = mybuf.position() + childrenLen + padding;
+//            mybuf.limit(end);
+            
+            System.out.println(tab(level) + ">> " + parent.getName());
+            level++;
             while(mybuf.remaining() > padding) {
-                int descriptorLen = mybuf.getShort();
-                int payloadLen = mybuf.getInt();
-                assert ((payloadLen + descriptorLen) <= mybuf.remaining());
-
-                ByteBuffer desc = readSlice(mybuf, descriptorLen);
-                BlobNode child = new BlobNode(getText(desc));
-                parent.children.add(child);
+                BlobNode child = new BlobNode();
                 ByteBuffer payload = readSlice(mybuf, payloadLen);
-                parse(payload, parent);
+                parse(payload, child);
+                if(child.getName() != null) {
+                    parent.children.add(child);
+                }
             }
-            mybuf.position(mybuf.position() + padding);
+            level--;
+            System.out.println(tab(level) + "<< " + parent.getName());
+            
+            mybuf.position(mybuf.limit());
 //            ret.underflow = mybuf.remaining();
 
 //            return ret;
         } catch(BufferUnderflowException bue) {
-            LOG.log(Level.SEVERE, "Buffer Underflow", bue);
+//            LOG.log(Level.SEVERE, "Buffer Underflow");//, bue);
         }
     }
 
@@ -183,7 +239,7 @@ public class Blob {
      * @param originalBuffer compressed blob
      * @return the originalBufffer decompressed
      */
-    private ByteBuffer decompress(ByteBuffer originalBuffer) {
+    private static ByteBuffer decompress(ByteBuffer originalBuffer) {
         LOG.log(Level.INFO, "Inflating a compressed binary section, initial length (including header) is {0}", originalBuffer.remaining());
         int headerSkip = 2;
         Inflater inflater = new Inflater(true);
@@ -224,18 +280,18 @@ public class Blob {
 
             return newBuf;
         } catch(BufferUnderflowException bue) {
-            LOG.log(Level.SEVERE, "Buffer Underflow", bue);
+            LOG.log(Level.SEVERE, "Buffer Underflow");//, bue);
         }
         return null;
     }
     
     //<editor-fold defaultstate="collapsed" desc="Utils">
     //<editor-fold defaultstate="collapsed" desc="Slices">
-    public static ByteBuffer readSlice(ByteBuffer source) {
+    private static ByteBuffer readSlice(ByteBuffer source) {
         return readSlice(source, source.remaining());
     }
 
-    public static ByteBuffer readSlice(ByteBuffer source, int length) {
+    private static ByteBuffer readSlice(ByteBuffer source, int length) {
         int originalLimit = source.limit();
         source.limit(source.position() + length);
         ByteBuffer sub = source.slice();
@@ -245,8 +301,9 @@ public class Blob {
         return sub;
     }
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Tabbing">
-    private int level = 0;
+    private static int level = 0;
 
     private static String tab(int t) {
         String s = "";
@@ -257,7 +314,7 @@ public class Blob {
     }
     //</editor-fold>
 
-    private ByteBuffer mapFile(File f) throws IOException {
+    private static ByteBuffer mapFile(File f) throws IOException {
         FileInputStream fis = new FileInputStream(f);
         FileChannel fc = fis.getChannel();
         MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
@@ -265,20 +322,17 @@ public class Blob {
         return mbb;
     }
     //</editor-fold>
+    
     //<editor-fold defaultstate="collapsed" desc="Legacy code">
-
     /**
      *
      * @param rf
      * @param parent section to read into
      * @throws IOException
      */
-    private void readBlobUncompressed(RandomAccessFile rf, Blob.BlobNode parent) throws IOException {
+    private static void readBlobUncompressed(RandomAccessFile rf, Blob.BlobNode parent) throws IOException {
         int totalLength = DataUtils.readULEInt(rf); // Length of entire data node: header + data
         int nullPadding = DataUtils.readULEInt(rf);
-        if(nullPadding != 0) {
-            LOG.log(Level.INFO, "Padding: {0}", nullPadding);
-        }
         int descLength = DataUtils.readULEShort(rf);
         int dataLength = DataUtils.readULEInt(rf); // Length of all child data, header(10) inclusive
         byte[] nameArray = DataUtils.readBytes(rf, descLength);
@@ -296,9 +350,7 @@ public class Blob {
         level++;
         while(rf.getFilePointer() < dataEnd) {
             Blob.BlobNode child = null;// = readBlob(rf, new Blob.BlobNode());
-            if(child.getHeader() == HEADER_COMPRESSED) {
-                break;
-            }
+
             if(child.getName() != null) {
                 parent.children.add(child);
             }
