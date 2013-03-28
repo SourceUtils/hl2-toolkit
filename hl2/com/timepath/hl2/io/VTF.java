@@ -246,6 +246,7 @@ public class VTF implements ViewableData {
             return cache.get(file);
         }
         if(!file.exists() || !file.canRead()) {
+            LOG.log(Level.WARNING, "File {0} not found", file);
             return null;
         }
         RandomAccessFile rf;

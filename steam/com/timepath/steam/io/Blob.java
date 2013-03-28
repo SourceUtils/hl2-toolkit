@@ -22,7 +22,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * http://cs.rin.ru/forum/viewtopic.php?f=29&t=44155
  * https://github.com/DHager/hl2parse/blob/master/hl2parse-binary/src/main/java/com/technofovea/hl2parse/registry/RegParser.java
  *
- * Nodes of name \1 contain 'folders', \2 are 'files'. Files contain a \1 and a \2 directory; KeyValues
+ * Nodes of name \1 contain 'folders', \2 are 'files'. Leaf \2 directories contain a key and a value node
+ * TODO: Load keys and values
  * 
  * @author timepath
  */
@@ -142,7 +143,7 @@ public class Blob {
     public static void analyze(File f, DefaultMutableTreeNode root) throws IOException {
         BlobNode bn = new BlobNode();
         parse(mapFile(f), bn);
-        recurse(bn, root);
+        recurse(bn.getChild(0), root);
     }
     //</editor-fold>
     
@@ -191,37 +192,6 @@ public class Blob {
         FolderItemType kind = FolderItemType.get(kindNum);
         if(kind == null) {
 //            LOG.log(Level.WARNING, "Unknown data kind {0}", Integer.toHexString(kindNum));
-            if(parent.getHeader() == FolderItemType.FOLDER) { // reading value
-                byte[] b = new byte[mybuf.remaining()];
-                if(b.length < 256) {
-                    String s = null;
-
-                    int typeNum = mybuf.get();
-                    DataType type = DataType.get(typeNum);
-                    if(type != null) {
-                        s = type.toString();
-                    }
-                    if(s == null) {
-                        mybuf.position(0);
-                        mybuf.get(b);
-                        s = "[";
-                        for(int i = 0; i < b.length; i++) {
-                            if(i != 0) {
-                                s += " ";
-                            }
-                            s += Integer.toHexString(b[i] & 0xff);
-                        }
-                        s += "]";
-                    }
-                    parent.addChild(new BlobNode("VALUE: " + s));
-                }
-            } else 
-            if(parent.getHeader() == FolderItemType.FILE) { // reading value name
-                BlobNode v = new BlobNode("TYPE");
-                v.setHeader(FolderItemType.FOLDER);
-                parse(mybuf, v);
-                parent.addChild(v);
-            }
             return;
         }
         LOG.log(Level.FINE, "Data kind {0}", kind);
@@ -291,6 +261,33 @@ public class Blob {
                 desc.rewind();
                 desc.position(0);
                 
+                if(parent.getHeader() == FolderItemType.FOLDER) { // reading value
+                    byte[] b = new byte[mybuf.remaining()];
+                    if(b.length < 256) {
+                        String s = null;
+
+                        int typeNum = mybuf.get();
+                        DataType type = DataType.get(typeNum);
+                        if(type != null) {
+                            s = type.toString();
+                        }
+                        if(s == null) {
+                            mybuf.position(0);
+                            mybuf.get(b);
+                            s = "[";
+                            for(int i = 0; i < b.length; i++) {
+                                if(i != 0) {
+                                    s += " ";
+                                }
+                                s += Integer.toHexString(b[i] & 0xff);
+                            }
+                            s += "]";
+                        }
+                        parent.addChild(new BlobNode("VALUE: " + s));
+                    }
+                    continue;
+                }
+                
                 int typeNum = desc.get(); // foldable?
                 desc.position(0);
                 payload.position(0);
@@ -300,10 +297,17 @@ public class Blob {
                     parse(payload, child); // enumerate the children on any subdirectories to this node
                 } else {
                     child.setHeader(thisType);
+                    boolean verbose = false;
                     switch(thisType) {
                         case FOLDER: // Contains normal directories
+                            if(!verbose) {
+                                parse(payload, parent);
+                            } else {
+                                parent.children.add(child);
+                                parse(payload, child);
+                            }
+                            break;
                         case FILE: // Contains data entries
-                            boolean verbose = false;
                             if(!verbose) {
                                 parse(payload, parent);
                             } else {

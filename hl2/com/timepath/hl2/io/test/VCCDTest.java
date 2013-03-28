@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
-import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
