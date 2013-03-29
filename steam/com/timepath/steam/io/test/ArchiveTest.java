@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -291,10 +290,10 @@ public class ArchiveTest extends javax.swing.JFrame {
             if(clicked == null) {
                 return;
             }
-            Object obj = clicked.getLastPathComponent();
-            if(obj instanceof DefaultMutableTreeNode) {
-                obj = ((DefaultMutableTreeNode) obj).getUserObject();
-            }
+//            Object obj = clicked.getLastPathComponent();
+//            if(obj instanceof DefaultMutableTreeNode) {
+//                obj = ((DefaultMutableTreeNode) obj).getUserObject();
+//            }
             if(jTree1.getSelectionPaths() == null || !Arrays.asList(jTree1.getSelectionPaths()).contains(clicked)) {
                 jTree1.setSelectionPath(clicked);
             }
