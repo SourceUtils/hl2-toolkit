@@ -373,7 +373,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.length; i++) {
             DirectoryEntry c = children[i];
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.isComplete()});
             }
         }
     }
