@@ -327,7 +327,7 @@ public class ArchiveTest extends javax.swing.JFrame {
             toExtract.clear();
             int[] selected = jTable1.getSelectedRows();
             for(int r : selected) {
-                Object userObject = table.getValueAt(r, 0);
+                Object userObject = table.getValueAt(jTable1.convertRowIndexToModel(r), 0);
                 if(userObject instanceof DirectoryEntry) {
                     toExtract.add((DirectoryEntry) userObject);
                 }
