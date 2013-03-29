@@ -14,7 +14,7 @@ public class NativeFileChooser extends BaseFileChooser {
 
     private static final Logger LOG = Logger.getLogger(NativeFileChooser.class.getName());
 
-    public NativeFileChooser(Frame parent, String title, File directory) {
+    public NativeFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
     
@@ -37,7 +37,7 @@ public class NativeFileChooser extends BaseFileChooser {
         return selection;
     }
     
-    public static File choose(Frame parent, String title, File directory, boolean directoryMode, boolean saveDialog) {
+    public static File choose(Frame parent, String title, String directory, boolean directoryMode, boolean saveDialog) {
         return new NativeFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
     }
 

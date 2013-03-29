@@ -22,7 +22,7 @@ public class ZenityFileChooser extends BaseFileChooser {
     
     private static final Logger LOG = Logger.getLogger(ZenityFileChooser.class.getName());
     
-    public ZenityFileChooser(Frame parent, String title, File directory) {
+    public ZenityFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
 
@@ -37,7 +37,7 @@ public class ZenityFileChooser extends BaseFileChooser {
         } else if(saveDialog) {
             cmd.add("--save");
         }
-        cmd.add(directory != null ? "--filename=" + directory.getPath() : "");
+        cmd.add(directory != null ? "--filename=" + directory : "");
         String windowClass = WindowToolkit.getWindowClass();
         try {
             Toolkit xToolkit = Toolkit.getDefaultToolkit();

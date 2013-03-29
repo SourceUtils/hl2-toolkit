@@ -1,6 +1,7 @@
 package com.timepath.steam.io.test;
 
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
+import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.GCF;
 import com.timepath.steam.io.GCF.DirectoryEntry;
 import com.timepath.swing.DirectoryTreeCellRenderer;
@@ -12,8 +13,8 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
@@ -228,7 +229,7 @@ public class ArchiveTest extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void open(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_open
-        File f = new NativeFileChooser(this, "Open GCF", null).choose(false, false);
+        File f = NativeFileChooser.choose(this, "Open GCF", SteamUtils.locateSteamAppsDirectory(), false, false);
         if(f == null) {
             LOG.info("File is null");
             return;
@@ -346,10 +347,10 @@ public class ArchiveTest extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jPopupMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem2ActionPerformed
-        DirectoryEntry last = toExtract.get(toExtract.size());
-        JFrame f = new JFrame(last.getName());
-        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        f.setVisible(true);
+        DirectoryEntry last = toExtract.get(toExtract.size() - 1);
+        String message = ""
+                + last.getAbsoluteName() + "\n";
+        JOptionPane.showMessageDialog(this, message, last.getName(), JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jPopupMenuItem2ActionPerformed
 
     private void search() {

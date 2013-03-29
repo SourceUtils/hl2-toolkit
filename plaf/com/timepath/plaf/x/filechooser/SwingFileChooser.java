@@ -12,7 +12,7 @@ import javax.swing.JFileChooser;
  */
 public class SwingFileChooser extends BaseFileChooser {
     
-    public SwingFileChooser(Frame parent, String title, File directory) {
+    public SwingFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
 

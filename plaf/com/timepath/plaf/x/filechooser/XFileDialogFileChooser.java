@@ -19,7 +19,7 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         XFileDialog.setTraceLevel(0);
     }
     
-    public XFileDialogFileChooser(Frame parent, String title, File directory) {
+    public XFileDialogFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
     
@@ -28,7 +28,7 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         XFileDialog fd = new XFileDialog(parent);
         fd.setTitle(title);
         if(directory != null) {
-            fd.setDirectory(directory.getPath());
+            fd.setDirectory(directory);
         }
         if(directoryMode) {
             selection = fd.getFolder();

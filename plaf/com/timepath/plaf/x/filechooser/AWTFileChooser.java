@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class AWTFileChooser extends BaseFileChooser {
     
-    public AWTFileChooser(Frame parent, String title, File directory) {
+    public AWTFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
 
@@ -31,7 +31,7 @@ public class AWTFileChooser extends BaseFileChooser {
             });
         }
         if(directory != null) {
-            fd.setDirectory(directory.getPath());
+            fd.setDirectory(directory);
         }
         fd.setMode(saveDialog ? FileDialog.SAVE : FileDialog.LOAD);
         fd.setVisible(true);

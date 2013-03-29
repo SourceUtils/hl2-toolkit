@@ -17,9 +17,9 @@ public abstract class BaseFileChooser {
 
     String title;
 
-    File directory;
+    String directory;
     
-    public BaseFileChooser(Frame parent, String title, File directory) {
+    public BaseFileChooser(Frame parent, String title, String directory) {
         this.parent = parent;
         this.title = title;
         this.directory = directory;
