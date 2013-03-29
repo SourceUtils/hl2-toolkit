@@ -205,11 +205,15 @@ public class GCF implements Archive, ViewableData {
         return fae;
     }
 
-    public DirectoryMapEntry directoryMapEntries(int i) throws IOException {
+    public DirectoryMapEntry directoryMapEntries(int i) {
         DirectoryMapEntry dme = directoryMapEntries[i];
         if(dme == null) {
-            rf.seek(directoryMapHeader.pos + DirectoryMapHeader.SIZE + (i * DirectoryMapEntry.SIZE));
-            return (directoryMapEntries[i] = new DirectoryMapEntry());
+            try {
+                rf.seek(directoryMapHeader.pos + DirectoryMapHeader.SIZE + (i * DirectoryMapEntry.SIZE));
+                return (directoryMapEntries[i] = new DirectoryMapEntry());
+            } catch(IOException ex) {
+                Logger.getLogger(GCF.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return dme;
     }
@@ -947,11 +951,21 @@ public class GCF implements Archive, ViewableData {
         public boolean isDirectory() {
             return this.attributes.contains(DirectoryEntryAttributes.Directory);
         }
+        
+        public boolean isComplete() {
+            if(GCF.this.directoryMapEntries(index).firstBlockIndex >= blocks.length && this.itemSize != 0) {
+                return false;
+            }
+            return true;
+        }
 
         public Icon getIcon() {
             Icon i;
             if(this.index == 0) {
                 return this.getGCF().getIcon();
+            }
+            if(!isComplete()) {
+                return UIManager.getIcon("html.missingImage");
             }
             if(this.isDirectory()) {
                 return UIManager.getIcon("FileView.directoryIcon");

@@ -12,9 +12,13 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
+import javax.swing.Icon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -28,6 +32,7 @@ import javax.swing.tree.TreeSelectionModel;
  */
 @SuppressWarnings("serial")
 public class ArchiveTest extends javax.swing.JFrame {
+
     private GCF g;
     private final DefaultTreeModel tree;
     private final DefaultTableModel table;
@@ -41,11 +46,28 @@ public class ArchiveTest extends javax.swing.JFrame {
         jTree1.setCellRenderer(new DirectoryTreeCellRenderer());
         tree = (DefaultTreeModel) jTree1.getModel();
         jTable1.setDefaultEditor(Object.class, new CellSelectionListener());
+        jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            JLabel label = new JLabel();
+
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                label = (JLabel) comp;
+                label.setIcon(null);
+                if(value instanceof DirectoryEntry) {
+                    DirectoryEntry de = (DirectoryEntry) value;
+                    label.setIcon(de.getIcon());
+                    label.setText(de.getName());
+                    return label;
+                }
+                return comp;
+            }
+        });
         table = (DefaultTableModel) jTable1.getModel();
     }
-    
+
     private class CellSelectionListener extends DefaultCellEditor {
-        
+
         CellSelectionListener() {
             super(new JTextField());
         }
@@ -71,6 +93,7 @@ public class ArchiveTest extends javax.swing.JFrame {
 
         jPopupMenu1 = new javax.swing.JPopupMenu();
         jPopupMenuItem1 = new javax.swing.JMenuItem();
+        jPopupMenuItem2 = new javax.swing.JMenuItem();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
@@ -92,6 +115,14 @@ public class ArchiveTest extends javax.swing.JFrame {
             }
         });
         jPopupMenu1.add(jPopupMenuItem1);
+
+        jPopupMenuItem2.setText("Properties");
+        jPopupMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jPopupMenuItem2ActionPerformed(evt);
+            }
+        });
+        jPopupMenu1.add(jPopupMenuItem2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("GCF Viewer");
@@ -207,7 +238,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
         tree.reload();
     }//GEN-LAST:event_open
-    
+
     private void directoryChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_directoryChanged
         TreePath selection = evt.getNewLeadSelectionPath();
         if(selection == null) {
@@ -224,13 +255,12 @@ public class ArchiveTest extends javax.swing.JFrame {
         }
         directoryChanged((DirectoryEntry) obj);
     }//GEN-LAST:event_directoryChanged
-
     private ArrayList<DirectoryEntry> toExtract = new ArrayList<DirectoryEntry>();
-    
+
     private void extractablesUpdated() {
         jPopupMenuItem1.setEnabled(!toExtract.isEmpty());
     }
-    
+
     private void jPopupMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem1ActionPerformed
         File out = NativeFileChooser.choose(this, "Select extraction directory", null, true, true);
         if(out == null) {
@@ -239,7 +269,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(DirectoryEntry e : toExtract) {
             try {
                 g.extract(e.index, out);
-            } catch (IOException ex) {
+            } catch(IOException ex) {
                 Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -265,7 +295,7 @@ public class ArchiveTest extends javax.swing.JFrame {
                 if(!(p.getLastPathComponent() instanceof DefaultMutableTreeNode)) {
                     return;
                 }
-                Object userObject = ((DefaultMutableTreeNode)p.getLastPathComponent()).getUserObject();
+                Object userObject = ((DefaultMutableTreeNode) p.getLastPathComponent()).getUserObject();
                 if(userObject instanceof DirectoryEntry) {
                     toExtract.add((DirectoryEntry) userObject);
                 }
@@ -281,7 +311,6 @@ public class ArchiveTest extends javax.swing.JFrame {
             if(row == -1) {
                 return;
             }
-            Object obj = table.getValueAt(row, 0);
             int[] selectedRows = jTable1.getSelectedRows();
             Arrays.sort(selectedRows);
             if(Arrays.binarySearch(selectedRows, row) < 0) {
@@ -307,7 +336,14 @@ public class ArchiveTest extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         search();
     }//GEN-LAST:event_jButton1ActionPerformed
-    
+
+    private void jPopupMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem2ActionPerformed
+        DirectoryEntry last = toExtract.get(toExtract.size());
+        JFrame f = new JFrame(last.getName());
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.setVisible(true);
+    }//GEN-LAST:event_jPopupMenuItem2ActionPerformed
+
     private void search() {
         jTree1.setSelectionPath(null);
         ArrayList<DirectoryEntry> children = g.find(jTextField1.getText());
@@ -315,11 +351,11 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.size(); i++) {
             DirectoryEntry c = children.get(i);
             if(!c.isDirectory()) {
-                table.addRow(new Object[]{c, c.itemSize, c.attributes, c.getPath()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath()});
             }
         }
     }
-    
+
     private void directoryChanged(DirectoryEntry dir) {
         if(!dir.isDirectory()) {
             return;
@@ -329,11 +365,11 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.length; i++) {
             DirectoryEntry c = children[i];
             if(!c.isDirectory()) {
-                table.addRow(new Object[]{c, c.itemSize, c.attributes, c.getPath()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath()});
             }
         }
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -344,19 +380,19 @@ public class ArchiveTest extends javax.swing.JFrame {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+            for(javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
+        } catch(ClassNotFoundException ex) {
             java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
+        } catch(InstantiationException ex) {
             java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
+        } catch(IllegalAccessException ex) {
             java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch(javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(ArchiveTest.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
@@ -377,6 +413,7 @@ public class ArchiveTest extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JMenuItem jPopupMenuItem1;
+    private javax.swing.JMenuItem jPopupMenuItem2;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
