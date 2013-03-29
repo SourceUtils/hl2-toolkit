@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultCellEditor;
-import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -47,18 +47,20 @@ public class ArchiveTest extends javax.swing.JFrame {
         tree = (DefaultTreeModel) jTree1.getModel();
         jTable1.setDefaultEditor(Object.class, new CellSelectionListener());
         jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            JLabel label = new JLabel();
+            private JLabel label = new JLabel();
 
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component comp = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                label = (JLabel) comp;
-                label.setIcon(null);
-                if(value instanceof DirectoryEntry) {
-                    DirectoryEntry de = (DirectoryEntry) value;
-                    label.setIcon(de.getIcon());
-                    label.setText(de.getName());
-                    return label;
+                if(comp instanceof JLabel) {
+                    label = (JLabel) comp;
+                    label.setIcon(null);
+                    if(value instanceof DirectoryEntry) {
+                        DirectoryEntry de = (DirectoryEntry) value;
+                        label.setIcon(de.getIcon());
+                        label.setText(de.getName());
+                        return label;
+                    }
                 }
                 return comp;
             }
@@ -175,15 +177,22 @@ public class ArchiveTest extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Name", "Size", "Attributes", "Path"
+                "Name", "Size", "Attributes", "Path", "Complete"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Boolean.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
         jTable1.setFillsViewportHeight(true);
@@ -351,7 +360,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.size(); i++) {
             DirectoryEntry c = children.get(i);
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.isComplete()});
             }
         }
     }
