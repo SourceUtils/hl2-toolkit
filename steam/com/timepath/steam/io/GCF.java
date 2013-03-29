@@ -79,7 +79,10 @@ public class GCF implements Archive, ViewableData {
     }
 
     public String nameForDirectoryIndexRecursive(int idx) {
-        String str = nameForDirectoryIndex(idx);
+        String str = nameForDirectoryIndex(idx) + "/";
+        if(idx == 0) {
+            str = "/";
+        }
         if(directoryEntries[idx].parentIndex != 0xFFFFFFFF) {
             String parent = nameForDirectoryIndexRecursive(directoryEntries[idx].parentIndex);
             str = parent + str;
@@ -91,9 +94,9 @@ public class GCF implements Archive, ViewableData {
 
     private String nameForDirectoryIndex(int idx) {
         String str;
-//        if(idx == 0) {
-//            str = "";
-//        } else {
+        if(idx == 0) {
+            str = "/";
+        } else {
             int off = directoryEntries[idx].nameOffset;
             ByteArrayOutputStream s = new ByteArrayOutputStream();
             while(ls[off] != 0) {
@@ -101,8 +104,8 @@ public class GCF implements Archive, ViewableData {
                 off++;
             }
             str = new String(s.toByteArray());
-//        }
-        return str + (directoryEntries[idx].firstChildIndex != 0 ? "/" : "");
+        }
+        return str;
     }
     
     public ArrayList<DirectoryEntry> find(String search) {
@@ -153,7 +156,7 @@ public class GCF implements Archive, ViewableData {
             BlockAllocationTableEntry block = this.getBlock(idx);
             RandomAccessFile out = new RandomAccessFile(outFile, "rw");
             int dataIdx = block.firstClusterIndex;
-            LOG.log(Level.INFO, "bSize: {0}", new Object[]{block.fileDataSize});
+            LOG.log(Level.FINE, "bSize: {0}", new Object[]{block.fileDataSize});
             out.seek(block.fileDataOffset);
             while(true) {
                 byte[] buf = this.readData(block, dataIdx);

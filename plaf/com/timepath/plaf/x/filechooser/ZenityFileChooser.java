@@ -60,7 +60,7 @@ public class ZenityFileChooser extends BaseFileChooser {
 
         String[] exec = new String[cmd.size()];
         cmd.toArray(exec);
-        LOG.log(Level.INFO, "zenity: {0}", Arrays.toString(exec));
+        LOG.log(Level.FINE, "zenity: {0}", Arrays.toString(exec));
         final Process proc = Runtime.getRuntime().exec(exec);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
