@@ -142,13 +142,17 @@ public class GCF implements Archive, ViewableData {
             //</editor-fold>
         } else {
             //<editor-fold defaultstate="collapsed" desc="Extract file">
-            outFile = new File(dest, str);
             int idx = this.directoryMapEntries(index).firstBlockIndex;
             //                logger.log(Level.INFO, "\n\np:{0}\nblockidx:{1}\n", new Object[]{f.getPath(), idx});
             //                logger.log(Level.INFO, "\n\nb:{0}\n", new Object[]{block.toString()});
-            outFile.getParentFile().mkdirs();
-            outFile.delete();
-            outFile.createNewFile();
+            if(dest != null) {
+                outFile = new File(dest, str);
+                outFile.getParentFile().mkdirs();
+                outFile.delete();
+                outFile.createNewFile();
+            } else {
+                outFile = File.createTempFile(directoryEntries[index].getName(), null);
+            }
             if(idx >= blocks.length) {
                 LOG.log(Level.WARNING, "Block out of range for {0} : {1}. Is the size 0?", new Object[]{outFile.getPath(), index});
                 return null;

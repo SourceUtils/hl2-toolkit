@@ -4,6 +4,8 @@ import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.Entry;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.GCF;
+import com.timepath.steam.io.GCF.DirectoryEntry;
+import com.timepath.steam.io.VDF;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -35,6 +37,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -578,53 +581,71 @@ public class VCCDTest extends javax.swing.JFrame {
             GCF gcf = new GCF(new File(SteamUtils.locateSteamAppsDirectory() + "/Team Fortress 2 Content.gcf"));
 
             CRC32 crc = new CRC32();
+            DefaultMutableTreeNode top = new DefaultMutableTreeNode();
+            ArrayList<DirectoryEntry> caps = gcf.find("game_sounds_vo");
+            for(DirectoryEntry de : caps) {
+                VDF.analyze(gcf.extract(de, null), top);
+            }
+            
+            for(int i = 0; i < top.getChildCount(); i++) {
+                String str = top.getChildAt(i).toString();
+                LOG.fine(str);
+                crc.update(str.replaceAll("\"", "").toLowerCase().getBytes());
+                map.put((int) crc.getValue(), str.toLowerCase());
+                crc.reset();
+            }
 
-            String[] ls = new String(gcf.ls).split("\0");
-//            String[] ls = gcf.getEntryNames();
-            for(int i = 0; i < ls.length; i++) {
-                int end = ls[i].length();
-                int ext = ls[i].lastIndexOf('.');
-                if(ext != -1) {
-                    end = ext;
-                }
-                String sp = ls[i].substring(0, end);
-                if(ls[i].toLowerCase().endsWith(".wav") || ls[i].toLowerCase().endsWith(".mp3")// ||
-                    //                    ls[i].toLowerCase().endsWith(".vcd") || ls[i].toLowerCase().endsWith(".bsp") ||
-                    //                    ls[i].toLowerCase().endsWith(".mp3") || ls[i].toLowerCase().endsWith(".bat") ||
-                    //                    ls[i].toLowerCase().endsWith(".doc") || ls[i].toLowerCase().endsWith(".raw") ||
-                    //                    ls[i].toLowerCase().endsWith(".pcf") || ls[i].toLowerCase().endsWith(".cfg") ||
-                    //                    ls[i].toLowerCase().endsWith(".vbsp") || ls[i].toLowerCase().endsWith(".inf") ||
-                    //                    ls[i].toLowerCase().endsWith(".rad") || ls[i].toLowerCase().endsWith(".vdf") ||
-                    //                    ls[i].toLowerCase().endsWith(".ctx") || ls[i].toLowerCase().endsWith(".vdf") ||
-                    //                    ls[i].toLowerCase().endsWith(".lst") || ls[i].toLowerCase().endsWith(".res") ||
-                    //                    ls[i].toLowerCase().endsWith(".pop") || ls[i].toLowerCase().endsWith(".dll") ||
-                    //                    ls[i].toLowerCase().endsWith(".dylib") || ls[i].toLowerCase().endsWith(".so") ||
-                    //                    ls[i].toLowerCase().endsWith(".scr") || ls[i].toLowerCase().endsWith(".rc") ||
-                    //                    ls[i].toLowerCase().endsWith(".vfe") || ls[i].toLowerCase().endsWith(".pre") ||
-                    //                    ls[i].toLowerCase().endsWith(".cache") || ls[i].toLowerCase().endsWith(".nav") ||
-                    //                    ls[i].toLowerCase().endsWith(".lmp") || ls[i].toLowerCase().endsWith(".bik") ||
-                    //                    ls[i].toLowerCase().endsWith(".mov") || ls[i].toLowerCase().endsWith(".snd") ||
-                    //                    ls[i].toLowerCase().endsWith(".midi") || ls[i].toLowerCase().endsWith(".png") ||
-                    //                    ls[i].toLowerCase().endsWith(".ttf") || ls[i].toLowerCase().endsWith(".ico") ||
-                    //                    ls[i].toLowerCase().endsWith(".dat") || ls[i].toLowerCase().endsWith(".pl") ||
-                    //                    ls[i].toLowerCase().endsWith(".ain") || ls[i].toLowerCase().endsWith(".db") ||
-                    //                    ls[i].toLowerCase().endsWith(".py") || ls[i].toLowerCase().endsWith(".xsc") ||
-                    //                    ls[i].toLowerCase().endsWith(".bmp") || ls[i].toLowerCase().endsWith(".icns") ||
-                    //                    ls[i].toLowerCase().endsWith(".txt") || ls[i].toLowerCase().endsWith(".manifest")
-                    ) {
-                    String str = sp;
-                    if(str.split("_").length == 2) {
-                        str = str.replaceAll("_", ".").replaceAll(" ", "");// + "\0";
+            //<editor-fold defaultstate="collapsed" desc="Old">
+            boolean oldMethod = false;
+            if(oldMethod) {
+                String[] ls = new String(gcf.ls).split("\0");
+                //            String[] ls = gcf.getEntryNames();
+                for(int i = 0; i < ls.length; i++) {
+                    int end = ls[i].length();
+                    int ext = ls[i].lastIndexOf('.');
+                    if(ext != -1) {
+                        end = ext;
                     }
-//                    System.out.println(str);
-                    crc.update(str.toLowerCase().getBytes());
-                    map.put((int) crc.getValue(), str.toLowerCase()); // enforce lowercase for consistency
-//                    logger.log(Level.INFO, "{0} > {1}", new Object[]{crc.getValue(), str});
-                    crc.reset();
-                } else {
-//                    logger.info(ls[i]);
+                    String sp = ls[i].substring(0, end);
+                    if(ls[i].toLowerCase().endsWith(".wav") || ls[i].toLowerCase().endsWith(".mp3")// ||
+                            //                    ls[i].toLowerCase().endsWith(".vcd") || ls[i].toLowerCase().endsWith(".bsp") ||
+                            //                    ls[i].toLowerCase().endsWith(".mp3") || ls[i].toLowerCase().endsWith(".bat") ||
+                            //                    ls[i].toLowerCase().endsWith(".doc") || ls[i].toLowerCase().endsWith(".raw") ||
+                            //                    ls[i].toLowerCase().endsWith(".pcf") || ls[i].toLowerCase().endsWith(".cfg") ||
+                            //                    ls[i].toLowerCase().endsWith(".vbsp") || ls[i].toLowerCase().endsWith(".inf") ||
+                            //                    ls[i].toLowerCase().endsWith(".rad") || ls[i].toLowerCase().endsWith(".vdf") ||
+                            //                    ls[i].toLowerCase().endsWith(".ctx") || ls[i].toLowerCase().endsWith(".vdf") ||
+                            //                    ls[i].toLowerCase().endsWith(".lst") || ls[i].toLowerCase().endsWith(".res") ||
+                            //                    ls[i].toLowerCase().endsWith(".pop") || ls[i].toLowerCase().endsWith(".dll") ||
+                            //                    ls[i].toLowerCase().endsWith(".dylib") || ls[i].toLowerCase().endsWith(".so") ||
+                            //                    ls[i].toLowerCase().endsWith(".scr") || ls[i].toLowerCase().endsWith(".rc") ||
+                            //                    ls[i].toLowerCase().endsWith(".vfe") || ls[i].toLowerCase().endsWith(".pre") ||
+                            //                    ls[i].toLowerCase().endsWith(".cache") || ls[i].toLowerCase().endsWith(".nav") ||
+                            //                    ls[i].toLowerCase().endsWith(".lmp") || ls[i].toLowerCase().endsWith(".bik") ||
+                            //                    ls[i].toLowerCase().endsWith(".mov") || ls[i].toLowerCase().endsWith(".snd") ||
+                            //                    ls[i].toLowerCase().endsWith(".midi") || ls[i].toLowerCase().endsWith(".png") ||
+                            //                    ls[i].toLowerCase().endsWith(".ttf") || ls[i].toLowerCase().endsWith(".ico") ||
+                            //                    ls[i].toLowerCase().endsWith(".dat") || ls[i].toLowerCase().endsWith(".pl") ||
+                            //                    ls[i].toLowerCase().endsWith(".ain") || ls[i].toLowerCase().endsWith(".db") ||
+                            //                    ls[i].toLowerCase().endsWith(".py") || ls[i].toLowerCase().endsWith(".xsc") ||
+                            //                    ls[i].toLowerCase().endsWith(".bmp") || ls[i].toLowerCase().endsWith(".icns") ||
+                            //                    ls[i].toLowerCase().endsWith(".txt") || ls[i].toLowerCase().endsWith(".manifest")
+                            ) {
+                        String str = sp;
+                        if(str.split("_").length == 2) {
+                            str = str.replaceAll("_", ".").replaceAll(" ", "");// + "\0";
+                        }
+                        //                    System.out.println(str);
+                        crc.update(str.toLowerCase().getBytes());
+                        map.put((int) crc.getValue(), str.toLowerCase()); // enforce lowercase for consistency
+                        //                    logger.log(Level.INFO, "{0} > {1}", new Object[]{crc.getValue(), str});
+                        crc.reset();
+                    } else {
+                        //                    logger.info(ls[i]);
+                    }
                 }
             }
+            //</editor-fold>
         } catch(IOException ex) {
             LOG.log(Level.WARNING, "Error generating hash codes", ex);
         }
