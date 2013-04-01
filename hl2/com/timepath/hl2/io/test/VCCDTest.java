@@ -344,24 +344,32 @@ public class VCCDTest extends javax.swing.JFrame {
     }//GEN-LAST:event_createNew
 
     private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
-        String message =
+        String message = "Main:\n" +
+        "<clr:r,g,b,a>\n" +
+        "\tSets the color of the caption using an RGBA color; 0 is no color, 255 is full color. The 'a' component is optional.\n" +
+        "\tFor example, <clr:255,100,100,255> would be red.\n" +
+        "\t<clr> with no arguments will restore the previous color for the next phrase.\n" +
+        "<B>\n" +
+        "\tToggles bold text for the next phrase.\n" +
+        "<I>\n" +
+        "\tToggles italicised text for the next phrase.\n" +
+        "<U>\n" +
+        "\tToggles underlined text for the next phrase.\n" +
+        "<cr>\n" +
+        "\tGo to new line for next phrase.\n" +
+        "Other:\n" +
+        "<sameline>\n" +
+        "\tDon't go to new line for next phrase.\n" +
         "<sfx>\n" +
-        "Marks a line as a sound effect that will only be displayed with full closed captioning.\n" +
-        "If the user has cc_subtitles set to \"1\", it will not display these lines.\n" +
-        "\n<clr:255,255,255>\n" +
-        "Sets the color of the caption using RGB color; 0 is no color, 255 is full color.\n" +
-        "For example, <clr:255,255,255> would be white.\n" +
-        "\n<b>\n" +
-        "Bolds all text following the tag.\n" +
-        "\n<i>\n" +
-        "Italics text following the tag.\n" +
-        "\n<cr>\n" +
-        "Inserts a line break.\n" +
-        "\nPortal 2\n" +
-        "\n<len:#>\n" +
-        "Indicates how long the caption should appear on the screen.\n" +
-        "\n<norepeat:#>\n" +
-        "Sets how long until the caption can appear again. Useful for frequent sounds." +
+        "\tMarks a line as a sound effect that will only be displayed with full closed captioning.\n" +
+        "\tIf the user has cc_subtitles set to \"1\", it will not display these lines.\n" +
+        "<linger:#> / <persist:#> / <len:#>\n" +
+        "\tIndicates how much longer than usual the caption should appear on the screen.\n" +
+        "<position:where>\n" +
+        "\tI don't know how this one works, but from the documentation:\n" +
+        "\tDraw caption at special location ??? needed.\n" +
+        "<norepeat:#>\n" +
+        "\tSets how long until the caption can appear again. Useful for frequent sounds.\n" +
         "";
         JOptionPane.showMessageDialog(this, message, "Formatting", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_formattingHelp
