@@ -365,11 +365,19 @@ public class VCCDTest extends javax.swing.JFrame {
         "\tIf the user has cc_subtitles set to \"1\", it will not display these lines.\n" +
         "<linger:#> / <persist:#> / <len:#>\n" +
         "\tIndicates how much longer than usual the caption should appear on the screen.\n" +
+        "<delay:#>\n" +
+        "\tSets a pre-display delay. The sfx tag overrides this.\n" +
         "<position:where>\n" +
         "\tI don't know how this one works, but from the documentation:\n" +
         "\tDraw caption at special location ??? needed.\n" +
         "<norepeat:#>\n" +
         "\tSets how long until the caption can appear again. Useful for frequent sounds.\n" +
+        "\tSee also: cc_sentencecaptionnorepeat" +
+        "<playerclr:playerRed,playerGreen,playerBlue:npcRed,npcGreen,npcBlue>\n" +
+        "\n" +
+        "cc_random emits a random caption\n" +
+        "Captions last for 5 seconds\n" +
+        "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n" +
         "";
         JOptionPane.showMessageDialog(this, message, "Formatting", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_formattingHelp

@@ -164,23 +164,7 @@ public class MDL {
                                 short group_flags = buf.get();
 
                                 LOG.log(Level.INFO, "\t\t\tstripOff: {2}, vertOff: {0}, indOff: {1},", new Object[] {group_vertOffset, group_indexOffset, group_stripOffset});
-
-                                group_stripOffset = 0; // don't care
-                                group_vertOffset = 0; // don't care
-
-                                LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].strips[] = {2}: {0} vs {1}", new Object[] {buf.position(), group_stripOffset, group_numStrips, group, mesh, lod, model, part});
-                                buf.position(group_stripOffset);
-                                for(int strip = 0; strip < group_numStrips; strip++) {
-                                    int strip_numIndices = buf.getInt();
-                                    int strip_indexOffset = buf.getInt();
-                                    int strip_numVerts = buf.getInt();
-                                    int strip_vertOffset = buf.getInt();
-                                    short strip_numBones = buf.getShort();
-                                    short strip_flags = buf.get();
-                                    int strip_numBoneStateChanges = buf.getInt();
-                                    int strip_boneStateChangeOffset = buf.getInt();
-                                }
-
+                                
                                 LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].verts[] = {2}: {0} vs {1}", new Object[] {buf.position(), group_vertOffset, group_numVerts, group, mesh, lod, model, part});
                                 buf.position(group_vertOffset);
                                 for(int vert = 0; vert < group_numVerts; vert++) {
@@ -202,6 +186,24 @@ public class MDL {
                                 for(int index = 0; index < group_numIndices; index++) {
                                     indices[index] = buf.getShort();
                                 }
+                                
+                                LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].strips[] = {2}: {0} vs {1}", new Object[] {buf.position(), group_stripOffset, group_numStrips, group, mesh, lod, model, part});
+                                buf.position(group_stripOffset);
+                                for(int strip = 0; strip < group_numStrips; strip++) {
+                                    int strip_numIndices = buf.getInt();
+                                    int strip_indexOffset = buf.getInt();
+                                    int strip_numVerts = buf.getInt();
+                                    int strip_vertOffset = buf.getInt();
+                                    short strip_numBones = buf.getShort();
+                                    short strip_flags = buf.get();
+                                    int strip_numBoneStateChanges = buf.getInt();
+                                    int strip_boneStateChangeOffset = buf.getInt();
+                                    buf.position(strip_boneStateChangeOffset);
+                                    for(int bone = 0; bone < strip_numBoneStateChanges; bone++) {
+                                        int bone_hardwareID = buf.getInt();
+                                        int bone_newBoneID = buf.getInt();
+                                    }
+                                }
                             }
                         }
                     }
@@ -216,6 +218,7 @@ public class MDL {
 
     /**
      * Valve Studio Model Vertex Data File
+     * IDSV, or IDCV when compressed
      *
      * @author timepath
      */
