@@ -20,7 +20,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * https://developer.valvesoftware.com/wiki/Subtitles_(Portal_2)
  * https://developer.valvesoftware.com/wiki/Soundscript
  * phonemes
- * 
+ *
  * @author timepath
  */
 public class VCCD {
@@ -42,17 +42,14 @@ public class VCCD {
         return (int) (Math.ceil(curr / round) * round);
     }
 
-    String currentFile;
-
     private static String magicID = "VCCD";
 
     private static int captionVer = 1;
 
-    public ArrayList<Entry> loadFile(String file) {
+    public static ArrayList<Entry> loadFile(String file) {
         if(file == null) {
             return null;
         }
-        this.currentFile = file;
         ArrayList<Entry> list = new ArrayList<Entry>();
         try {
             RandomAccessFile rf = new RandomAccessFile(file, "r");
@@ -102,11 +99,12 @@ public class VCCD {
      * @param file
      * @param entries
      */
-    public void saveFile(String file, ArrayList<Entry> entries) {
+    public static void saveFile(String file, ArrayList<Entry> entries) {
         if(file == null) {
             return;
         }
         try {
+            Collections.sort(entries);
             int directorySize = entries.size();
             int blockSize = 8192;
             int length = 0;
@@ -121,7 +119,7 @@ public class VCCD {
                 }
             }
 
-            System.out.println("Blocks: " + blocks);
+            LOG.log(Level.FINE, "Blocks: {0}", blocks);
 
             int dataOffset = alignValue((6 * 4) + (directorySize * 12), 512);
 
@@ -192,7 +190,7 @@ public class VCCD {
         }
         LOG.log(Level.INFO, "Saved {0}", file);
     }
-    
+
     public static int takeCRC32(String in) {
         CRC32 crc = new CRC32();
         crc.update(in.toLowerCase().getBytes());
@@ -201,14 +199,16 @@ public class VCCD {
 
     /**
      * The file must be in UCS-2 LE or UTF-16 LE (unicode) format
+     *
      * @param file
-     * @return 
+     *
+     * @return
      */
-    public ArrayList<Entry> importFile(String file) {
+    public static ArrayList<Entry> importFile(String file) {
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
         VDF.analyze(new File(file), tn);
         ArrayList<Entry> children = new ArrayList<Entry>();
-        ArrayList<Property> props = ((Element)((DefaultMutableTreeNode)tn.getChildAt(0).getChildAt(0)).getUserObject()).getProps();
+        ArrayList<Property> props = ((Element) ((DefaultMutableTreeNode) tn.getChildAt(0).getChildAt(0)).getUserObject()).getProps();
         ArrayList<String> usedKeys = new ArrayList<String>();
         for(int i = props.size() - 1; i >= 0; i--) {
             Property p = props.get(i);
@@ -228,14 +228,10 @@ public class VCCD {
         return children;
     }
 
-    public Entry getNewEntry() {
-        return new Entry();
-    }
-
     /**
      * Entries are stored alphabetically by original value of hash
      */
-    public class Entry implements Comparable<Entry> {
+    public static class Entry implements Comparable<Entry> {
 
         public Entry() {
         }
@@ -249,7 +245,7 @@ public class VCCD {
         public void setKey(long key) {
             this.key = key;
         }
-        
+
         private String trueKey;
 
         public String getTrueKey() {
@@ -325,4 +321,5 @@ public class VCCD {
             return e1.compareToIgnoreCase(e2);
         }
     }
+
 }

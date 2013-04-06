@@ -67,7 +67,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
 
     private JMenuBar menuBar;
 
-    private JComboBox comboBox;
+    private JComboBox<String> comboBox;
 
     private JRadioButton byComponent;
 
@@ -114,7 +114,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      * This panel is added to the North of the content pane
      */
     private JComponent buildNorthComponent() {
-        comboBox = new JComboBox();
+        comboBox = new JComboBox<String>();
 
         JLabel label = new JLabel("Select Item:");
         label.setDisplayedMnemonic('S');
@@ -178,7 +178,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
         }
 
         comboBox.removeItemListener(this);
-        comboBox.setModel(new DefaultComboBoxModel(comboBoxItems));
+        comboBox.setModel(new DefaultComboBoxModel<String>(comboBoxItems));
         comboBox.setSelectedIndex(-1);
         comboBox.addItemListener(this);
         comboBox.requestFocusInWindow();

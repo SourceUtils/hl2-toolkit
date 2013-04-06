@@ -15,12 +15,13 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -91,6 +92,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         getContentPane().add(hashPanel);
 
+        jTable1.setAutoCreateRowSorter(true);
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -238,7 +240,7 @@ public class VCCDTest extends javax.swing.JFrame {
     private void loadCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadCaptions
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Open");
-        
+
         FileFilter filter = new FileFilter() {
             public boolean accept(File file) {
                 return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
@@ -254,7 +256,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            ArrayList<Entry> entries = cl.loadFile(file.getAbsolutePath().toString());
+            ArrayList<Entry> entries = VCCD.loadFile(file.getAbsolutePath().toString());
             LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -267,9 +269,8 @@ public class VCCDTest extends javax.swing.JFrame {
             saveFile = file;
         }
     }//GEN-LAST:event_loadCaptions
-
     private File saveFile;
-    
+
     private void save(boolean flag) {
         if(saveFile == null || flag) { // save as
             JFileChooser fc = new JFileChooser();
@@ -294,7 +295,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 return;
             }
         }
-        
+
         if(jTable1.isEditing()) {
             jTable1.getCellEditor().stopCellEditing();
         }
@@ -302,7 +303,7 @@ public class VCCDTest extends javax.swing.JFrame {
         ArrayList<Entry> entries = new ArrayList<Entry>();
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         for(int i = 0; i < model.getRowCount(); i++) {
-            Entry e = cl.getNewEntry();
+            Entry e = new VCCD.Entry();
             Object crc = model.getValueAt(i, 0);
             if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
                 crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
@@ -311,10 +312,9 @@ public class VCCDTest extends javax.swing.JFrame {
             e.setValue(model.getValueAt(i, 2).toString());
             entries.add(e);
         }
-        saveFile.delete();
-        cl.saveFile(saveFile.getAbsolutePath().toString(), entries);
+        VCCD.saveFile(saveFile.getAbsolutePath().toString(), entries);
     }
-    
+
     private void saveCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptions
         save(false);
     }//GEN-LAST:event_saveCaptions
@@ -338,7 +338,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            ArrayList<Entry> entries = cl.importFile(file.getAbsolutePath().toString());
+            ArrayList<Entry> entries = VCCD.importFile(file.getAbsolutePath().toString());
             LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -378,47 +378,46 @@ public class VCCDTest extends javax.swing.JFrame {
     }//GEN-LAST:event_createNew
 
     private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
-        String message = "Main:\n" +
-        "Avoid using spaces immediately after opening tags.\n" +
-        "<clr:r,g,b>\n" +
-        "\tSets the color of the caption using an RGB color; 0 is no color, 255 is full color.\n" +
-        "\tFor example, <clr:255,100,100> would be red.\n" +
-        "\t<clr> with no arguments should restore the previous color for the next phrase, but doesn't?\n" +
-        "<B>\n" +
-        "\tToggles bold text for the next phrase.\n" +
-        "<I>\n" +
-        "\tToggles italicised text for the next phrase.\n" +
-        "<U>\n" +
-        "\tToggles underlined text for the next phrase.\n" +
-        "<cr>\n" +
-        "\tGo to new line for next phrase.\n" +
-        "Other:\n" +
-        "<sfx>\n" +
-        "\tMarks a line as a sound effect that will only be displayed with full closed captioning.\n" +
-        "\tIf the user has cc_subtitles 1, it will not display these lines.\n" +
-        "<delay:#>\n" +
-        "\tSets a pre-display delay. The sfx tag overrides this. This tag should come before all others. Can take a decimal value.\n" +
-                
-        "\nUnknown:\n" +
-        "<sameline>\n" +
-        "\tDon't go to new line for next phrase.\n" +
-        "<linger:#> / <persist:#> / <len:#>\n" +
-        "\tIndicates how much longer than usual the caption should appear on the screen.\n" +
-        "<position:where>\n" +
-        "\tI don't know how this one works, but from the documentation:\n" +
-        "\tDraw caption at special location ??? needed.\n" +
-        "<norepeat:#>\n" +
-        "\tSets how long until the caption can appear again. Useful for frequent sounds.\n" +
-        "\tSee also: cc_sentencecaptionnorepeat\n" +
-        "<playerclr:playerRed,playerGreen,playerBlue:npcRed,npcGreen,npcBlue>\n" +
-        "\n" +
-        "closecaption 1 enables the captions\n" +
-        "cc_subtitles 1 disables <sfx> captions\n" +
-        "Captions last for 5 seconds + cc_linger_time\n" +
-        "Captions are delayed by cc_predisplay_time seconds\n" +
-        "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n" +
-        "cc_random emits a random caption\n" +
-        "";
+        String message = "Main:\n"
+                         + "Avoid using spaces immediately after opening tags.\n"
+                         + "<clr:r,g,b>\n"
+                         + "\tSets the color of the caption using an RGB color; 0 is no color, 255 is full color.\n"
+                         + "\tFor example, <clr:255,100,100> would be red.\n"
+                         + "\t<clr> with no arguments should restore the previous color for the next phrase, but doesn't?\n"
+                         + "<B>\n"
+                         + "\tToggles bold text for the next phrase.\n"
+                         + "<I>\n"
+                         + "\tToggles italicised text for the next phrase.\n"
+                         + "<U>\n"
+                         + "\tToggles underlined text for the next phrase.\n"
+                         + "<cr>\n"
+                         + "\tGo to new line for next phrase.\n"
+                         + "Other:\n"
+                         + "<sfx>\n"
+                         + "\tMarks a line as a sound effect that will only be displayed with full closed captioning.\n"
+                         + "\tIf the user has cc_subtitles 1, it will not display these lines.\n"
+                         + "<delay:#>\n"
+                         + "\tSets a pre-display delay. The sfx tag overrides this. This tag should come before all others. Can take a decimal value.\n"
+                         + "\nUnknown:\n"
+                         + "<sameline>\n"
+                         + "\tDon't go to new line for next phrase.\n"
+                         + "<linger:#> / <persist:#> / <len:#>\n"
+                         + "\tIndicates how much longer than usual the caption should appear on the screen.\n"
+                         + "<position:where>\n"
+                         + "\tI don't know how this one works, but from the documentation:\n"
+                         + "\tDraw caption at special location ??? needed.\n"
+                         + "<norepeat:#>\n"
+                         + "\tSets how long until the caption can appear again. Useful for frequent sounds.\n"
+                         + "\tSee also: cc_sentencecaptionnorepeat\n"
+                         + "<playerclr:playerRed,playerGreen,playerBlue:npcRed,npcGreen,npcBlue>\n"
+                         + "\n"
+                         + "closecaption 1 enables the captions\n"
+                         + "cc_subtitles 1 disables <sfx> captions\n"
+                         + "Captions last for 5 seconds + cc_linger_time\n"
+                         + "Captions are delayed by cc_predisplay_time seconds\n"
+                         + "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n"
+                         + "cc_random emits a random caption\n"
+                         + "";
         JOptionPane pane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE);
         JDialog dialog = pane.createDialog(null, "Formatting");
         dialog.setModal(false);
@@ -457,8 +456,8 @@ public class VCCDTest extends javax.swing.JFrame {
             }
         }
         return intValue;
-    }    
-    
+    }
+
     private void gotoRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gotoRow
         int row = showInputDialog();
         if(row < 0) {
@@ -474,7 +473,6 @@ public class VCCDTest extends javax.swing.JFrame {
     private void saveCaptionsAs(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptionsAs
         save(true);
     }//GEN-LAST:event_saveCaptionsAs
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
@@ -497,17 +495,15 @@ public class VCCDTest extends javax.swing.JFrame {
     private javax.swing.JMenuBar menuBar;
     // End of variables declaration//GEN-END:variables
 
-    private VCCD cl;
-
-    //<editor-fold defaultstate="collapsed" desc="Entry point">
     /**
      * Creates new form CaptionLoaderFrame
      */
     public VCCDTest() {
+        hashmap = generateHash();
+
         initComponents();
 
         jTextField3.getDocument().addDocumentListener(new DocumentListener() {
-            
             public void changedUpdate(DocumentEvent e) {
                 updateCRC();
             }
@@ -524,39 +520,98 @@ public class VCCDTest extends javax.swing.JFrame {
                 jTextField4.setText(hexFormat(VCCD.takeCRC32(jTextField3.getText())));
             }
         });
+    }
 
-        cl = new VCCD();
+    private class TokenDropdown extends DefaultCellEditor {
+        
+        private ArrayList<String> tokens = initVals();
+
+        private ArrayList<String> initVals() {
+            ArrayList<String> list = new ArrayList<String>(hashmap.values());
+            Collections.sort(list);
+            return list;
+        }
+        
+        private ComboBoxChangeListener dl = new ComboBoxChangeListener();
+
+        TokenDropdown() {
+            super(new JComboBox<String>());
+            createComboBox(initVals());
+        }
+        
+        private void createComboBox(ArrayList<String> list) {
+            SharedPoolComboBox comboBox = new SharedPoolComboBox(list);
+            dl.setField((JTextField) comboBox.getEditor().getEditorComponent());
+            super.editorComponent = comboBox;
+        }
+        
+        //<editor-fold defaultstate="collapsed" desc="ComboBox">
+        private class SharedPoolComboBox extends JComboBox<String> {
+            
+            SharedPoolComboBox(ArrayList<String> list) {
+                DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+                this.setModel(model);
+                this.setEditable(true);
+                for(int i = 0; i < list.size(); i++) {
+                    this.addItem(list.get(i));
+                }
+            }
+        }
+        //</editor-fold>
+        
+        private class ComboBoxChangeListener implements DocumentListener {
+
+            String old;
+
+            JTextField field;
+
+            private void updated() {
+                if(field == null) {
+                    return;
+                }
+                String str = field.getText();
+
+//                        ArrayList<String> entries = new ArrayList<String>();
+//                        for(int i = 0; i < model.getRowCount(); i++) {
+//                            entries.add((String) model.getValueAt(jTable1.convertRowIndexToModel(i), 1));
+//                        }
+
+                ArrayList<String> diff = new ArrayList<String>(tokens);
+//                        diff.removeAll(entries);
+                LOG.log(Level.INFO, "Removing: {0}", str);
+                diff.remove(str);
+                createComboBox(diff);
+                
+                int erow = jTable1.getEditingRow();
+                if(erow > -1 && erow < jTable1.getRowCount()) {
+                    jTable1.getModel().setValueAt(hexFormat(VCCD.takeCRC32(str)), jTable1.convertRowIndexToModel(erow), 0);
+                }
+                old = str;
+            }
+
+            //<editor-fold defaultstate="collapsed" desc="Overrides">
+            public void changedUpdate(DocumentEvent e) {
+                updated();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                updated();
+            }
+
+            public void insertUpdate(DocumentEvent e) {
+                updated();
+            }
+            //</editor-fold>            
+
+            private void setField(JTextField jTextField) {
+                field = jTextField;
+                field.getDocument().addDocumentListener(this);
+            }
+        }
     }
 
     private TableCellEditor getKeyEditor() {
-        JComboBox comboBox = new JComboBox();
-        comboBox.setEditable(true);
-        hashmap = generateHash();
-        Object[] vals = hashmap.values().toArray();
-        Arrays.sort(vals);
-        for(int i = 0; i < vals.length; i++) {
-            comboBox.addItem(vals[i].toString());
-        }
-        DefaultCellEditor dce = new DefaultCellEditor(comboBox);
-        ((JTextField)((JComboBox) dce.getComponent()).getEditor().getEditorComponent()).getDocument().addDocumentListener(new DocumentListener() {
-            
-            public void changedUpdate(DocumentEvent e) {
-                updateCRC();
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                updateCRC();
-            }
-
-            public void insertUpdate(DocumentEvent e) {
-                updateCRC();
-            }
-
-            public void updateCRC() {
-                jTextField4.setText(hexFormat(VCCD.takeCRC32(jTextField3.getText())));
-            }
-        });
-        return dce;
+        return new TokenDropdown();
     }
 
     private class EditorPaneRenderer extends JPanel implements TableCellRenderer {
@@ -626,16 +681,15 @@ public class VCCDTest extends javax.swing.JFrame {
 
         new Thread(new Runnable() {
             public void run() {
-                final VCCDTest c = new VCCDTest();
+                VCCDTest c = new VCCDTest();
                 c.setLocationRelativeTo(null);
                 c.setVisible(true);
                 f.dispose();
             }
         }).start();
     }
-    //</editor-fold>
-
     //<editor-fold defaultstate="collapsed" desc="Hash codes">
+
     private HashMap<Integer, String> hashmap;
 
     private HashMap<Integer, String> generateHash() {
@@ -646,77 +700,26 @@ public class VCCDTest extends javax.swing.JFrame {
 
             CRC32 crc = new CRC32();
             DefaultMutableTreeNode top = new DefaultMutableTreeNode();
-            ArrayList<DirectoryEntry> caps = gcf.find("game_sounds_vo");
+            ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
             for(DirectoryEntry de : caps) {
                 VDF.analyze(gcf.extract(de, null), top);
             }
-            
+
             for(int i = 0; i < top.getChildCount(); i++) {
                 String str = top.getChildAt(i).toString();
+                str = str.replaceAll("\"", "").toLowerCase();
                 LOG.fine(str);
-                crc.update(str.replaceAll("\"", "").toLowerCase().getBytes());
-                map.put((int) crc.getValue(), str.toLowerCase());
+                crc.update(str.getBytes());
+                map.put((int) crc.getValue(), str);
                 crc.reset();
             }
-
-            //<editor-fold defaultstate="collapsed" desc="Old">
-            boolean oldMethod = false;
-            if(oldMethod) {
-                String[] ls = new String(gcf.ls).split("\0");
-                //            String[] ls = gcf.getEntryNames();
-                for(int i = 0; i < ls.length; i++) {
-                    int end = ls[i].length();
-                    int ext = ls[i].lastIndexOf('.');
-                    if(ext != -1) {
-                        end = ext;
-                    }
-                    String sp = ls[i].substring(0, end);
-                    if(ls[i].toLowerCase().endsWith(".wav") || ls[i].toLowerCase().endsWith(".mp3")// ||
-                            //                    ls[i].toLowerCase().endsWith(".vcd") || ls[i].toLowerCase().endsWith(".bsp") ||
-                            //                    ls[i].toLowerCase().endsWith(".mp3") || ls[i].toLowerCase().endsWith(".bat") ||
-                            //                    ls[i].toLowerCase().endsWith(".doc") || ls[i].toLowerCase().endsWith(".raw") ||
-                            //                    ls[i].toLowerCase().endsWith(".pcf") || ls[i].toLowerCase().endsWith(".cfg") ||
-                            //                    ls[i].toLowerCase().endsWith(".vbsp") || ls[i].toLowerCase().endsWith(".inf") ||
-                            //                    ls[i].toLowerCase().endsWith(".rad") || ls[i].toLowerCase().endsWith(".vdf") ||
-                            //                    ls[i].toLowerCase().endsWith(".ctx") || ls[i].toLowerCase().endsWith(".vdf") ||
-                            //                    ls[i].toLowerCase().endsWith(".lst") || ls[i].toLowerCase().endsWith(".res") ||
-                            //                    ls[i].toLowerCase().endsWith(".pop") || ls[i].toLowerCase().endsWith(".dll") ||
-                            //                    ls[i].toLowerCase().endsWith(".dylib") || ls[i].toLowerCase().endsWith(".so") ||
-                            //                    ls[i].toLowerCase().endsWith(".scr") || ls[i].toLowerCase().endsWith(".rc") ||
-                            //                    ls[i].toLowerCase().endsWith(".vfe") || ls[i].toLowerCase().endsWith(".pre") ||
-                            //                    ls[i].toLowerCase().endsWith(".cache") || ls[i].toLowerCase().endsWith(".nav") ||
-                            //                    ls[i].toLowerCase().endsWith(".lmp") || ls[i].toLowerCase().endsWith(".bik") ||
-                            //                    ls[i].toLowerCase().endsWith(".mov") || ls[i].toLowerCase().endsWith(".snd") ||
-                            //                    ls[i].toLowerCase().endsWith(".midi") || ls[i].toLowerCase().endsWith(".png") ||
-                            //                    ls[i].toLowerCase().endsWith(".ttf") || ls[i].toLowerCase().endsWith(".ico") ||
-                            //                    ls[i].toLowerCase().endsWith(".dat") || ls[i].toLowerCase().endsWith(".pl") ||
-                            //                    ls[i].toLowerCase().endsWith(".ain") || ls[i].toLowerCase().endsWith(".db") ||
-                            //                    ls[i].toLowerCase().endsWith(".py") || ls[i].toLowerCase().endsWith(".xsc") ||
-                            //                    ls[i].toLowerCase().endsWith(".bmp") || ls[i].toLowerCase().endsWith(".icns") ||
-                            //                    ls[i].toLowerCase().endsWith(".txt") || ls[i].toLowerCase().endsWith(".manifest")
-                            ) {
-                        String str = sp;
-                        if(str.split("_").length == 2) {
-                            str = str.replaceAll("_", ".").replaceAll(" ", "");// + "\0";
-                        }
-                        //                    System.out.println(str);
-                        crc.update(str.toLowerCase().getBytes());
-                        map.put((int) crc.getValue(), str.toLowerCase()); // enforce lowercase for consistency
-                        //                    logger.log(Level.INFO, "{0} > {1}", new Object[]{crc.getValue(), str});
-                        crc.reset();
-                    } else {
-                        //                    logger.info(ls[i]);
-                    }
-                }
-            }
-            //</editor-fold>
         } catch(IOException ex) {
             LOG.log(Level.WARNING, "Error generating hash codes", ex);
         }
         return map;
     }
 
-    public static String hexFormat(int in) {
+    private String hexFormat(int in) {
         String str = Integer.toHexString(in).toUpperCase();
         while(str.length() < 8) {
             str = "0" + str;
