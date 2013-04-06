@@ -578,9 +578,14 @@ public class VCCDTest extends javax.swing.JFrame {
 
                 ArrayList<String> diff = new ArrayList<String>(tokens);
 //                        diff.removeAll(entries);
-                LOG.log(Level.INFO, "Removing: {0}", str);
-                diff.remove(str);
-                createComboBox(diff);
+                if("".equals(str)) {
+                    LOG.log(Level.INFO, "Adding: {0}", old);
+                    diff.remove(old);
+                } else {
+                    LOG.log(Level.INFO, "Removing: {0}", str);
+                    diff.remove(str);
+                }
+//                createComboBox(diff);
                 
                 int erow = jTable1.getEditingRow();
                 if(erow > -1 && erow < jTable1.getRowCount()) {
