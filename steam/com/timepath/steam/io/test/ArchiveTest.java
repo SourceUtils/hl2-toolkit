@@ -33,7 +33,7 @@ import javax.swing.tree.TreeSelectionModel;
 @SuppressWarnings("serial")
 public class ArchiveTest extends javax.swing.JFrame {
 
-    private GCF g;
+    private ArrayList<GCF> gcfs = new ArrayList<GCF>();
     private final DefaultTreeModel tree;
     private final DefaultTableModel table;
 
@@ -177,14 +177,14 @@ public class ArchiveTest extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Name", "Size", "Attributes", "Path", "Complete"
+                "Name", "Size", "Attributes", "Path", "Archive", "Complete"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Boolean.class
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Object.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -234,12 +234,13 @@ public class ArchiveTest extends javax.swing.JFrame {
             LOG.info("File is null");
             return;
         }
-        g = GCF.load(f);
+        GCF g = GCF.load(f);
         if(g == null) {
             LOG.log(Level.WARNING, "Unable to load {0}", f);
             return;
         }
-        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
+        gcfs.add(g);
+//        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
         DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
         DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
         tree.insertNodeInto(direct, gcf, 0);
@@ -277,7 +278,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         }
         for(DirectoryEntry e : toExtract) {
             try {
-                g.extract(e.index, out);
+                e.extract(out);
             } catch(IOException ex) {
                 Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -285,16 +286,18 @@ public class ArchiveTest extends javax.swing.JFrame {
         LOG.info("Done");
     }//GEN-LAST:event_jPopupMenuItem1ActionPerformed
 
+    private GCF selectedGCF;
+    
     private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
         if(SwingUtilities.isRightMouseButton(evt)) {
             TreePath clicked = jTree1.getPathForLocation(evt.getX(), evt.getY());
             if(clicked == null) {
                 return;
             }
-//            Object obj = clicked.getLastPathComponent();
-//            if(obj instanceof DefaultMutableTreeNode) {
-//                obj = ((DefaultMutableTreeNode) obj).getUserObject();
-//            }
+            Object obj = clicked.getLastPathComponent();
+            if(obj instanceof DefaultMutableTreeNode) {
+                obj = ((DefaultMutableTreeNode) obj).getUserObject();
+            }
             if(jTree1.getSelectionPaths() == null || !Arrays.asList(jTree1.getSelectionPaths()).contains(clicked)) {
                 jTree1.setSelectionPath(clicked);
             }
@@ -306,7 +309,11 @@ public class ArchiveTest extends javax.swing.JFrame {
                 }
                 Object userObject = ((DefaultMutableTreeNode) p.getLastPathComponent()).getUserObject();
                 if(userObject instanceof DirectoryEntry) {
+                    selectedGCF = null;
                     toExtract.add((DirectoryEntry) userObject);
+                } else if(userObject instanceof GCF) {
+                    selectedGCF = (GCF) userObject;
+                    toExtract.add(selectedGCF.directoryEntries[0]);
                 }
             }
             extractablesUpdated();
@@ -347,20 +354,30 @@ public class ArchiveTest extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jPopupMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem2ActionPerformed
-        DirectoryEntry last = toExtract.get(toExtract.size() - 1);
-        String message = ""
-                + last.getAbsoluteName() + "\n";
-        JOptionPane.showMessageDialog(this, message, last.getName(), JOptionPane.INFORMATION_MESSAGE);
+        String title;
+        String message;
+        if(selectedGCF != null) {
+            title = selectedGCF.toString();
+            message = "V" + selectedGCF.header.applicationVersion + "\n";
+        } else {
+            DirectoryEntry last = toExtract.get(toExtract.size() - 1);
+            title = last.getName();
+            message = "" + last.getAbsoluteName() + "\n";
+        }
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jPopupMenuItem2ActionPerformed
 
     private void search() {
         jTree1.setSelectionPath(null);
-        ArrayList<DirectoryEntry> children = g.find(jTextField1.getText());
+        ArrayList<DirectoryEntry> children = new ArrayList<DirectoryEntry>();
+        for(GCF g : gcfs) {
+            children.addAll(g.find(jTextField1.getText()));
+        }
         table.setRowCount(0);
         for(int i = 0; i < children.size(); i++) {
             DirectoryEntry c = children.get(i);
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.isComplete()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
             }
         }
     }
@@ -369,12 +386,12 @@ public class ArchiveTest extends javax.swing.JFrame {
         if(!dir.isDirectory()) {
             return;
         }
-        DirectoryEntry[] children = g.getImmediateChildren(dir);
+        DirectoryEntry[] children = dir.getImmediateChildren();
         table.setRowCount(0);
         for(int i = 0; i < children.length; i++) {
             DirectoryEntry c = children[i];
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.isComplete()});
+                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
             }
         }
     }

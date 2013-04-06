@@ -980,6 +980,14 @@ public class GCF implements Archive, ViewableData {
                 return UIManager.getIcon("FileView.fileIcon");
             }
         }
+
+        public void extract(File out) throws IOException {
+            GCF.this.extract(index, out);
+        }
+
+        public DirectoryEntry[] getImmediateChildren() {
+            return GCF.this.getImmediateChildren(this);
+        }
     }
 
     private tagGCFDIRECTORYINFO1ENTRY[] info1Entries; // nameTable
