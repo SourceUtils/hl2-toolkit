@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -66,6 +67,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem10 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem5 = new javax.swing.JMenuItem();
@@ -75,7 +77,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenuItem7 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Caption Reader");
+        setTitle("Caption Editor");
         getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
         hashPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("CRC32"));
@@ -127,6 +129,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu1.setText("File");
 
         jMenuItem6.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem6.setMnemonic('N');
         jMenuItem6.setText("New");
         jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -136,6 +139,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu1.add(jMenuItem6);
 
         jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setMnemonic('O');
         jMenuItem1.setText("Open");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -145,6 +149,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu1.add(jMenuItem1);
 
         jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setMnemonic('I');
         jMenuItem3.setText("Import");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -154,6 +159,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenu1.add(jMenuItem3);
 
         jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem2.setMnemonic('S');
         jMenuItem2.setText("Save");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -161,6 +167,15 @@ public class VCCDTest extends javax.swing.JFrame {
             }
         });
         jMenu1.add(jMenuItem2);
+
+        jMenuItem10.setMnemonic('V');
+        jMenuItem10.setText("Save As...");
+        jMenuItem10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveCaptionsAs(evt);
+            }
+        });
+        jMenu1.add(jMenuItem10);
 
         menuBar.add(jMenu1);
 
@@ -249,46 +264,59 @@ public class VCCDTest extends javax.swing.JFrame {
             for(int i = 0; i < entries.size(); i++) {
                 model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), attemptDecode(entries.get(i).getKey()), entries.get(i).getValue()});
             }
+            saveFile = file;
         }
     }//GEN-LAST:event_loadCaptions
 
-    private void saveCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptions
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Save");
+    private File saveFile;
+    
+    private void save(boolean flag) {
+        if(saveFile == null || flag) { // save as
+            JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Save");
 
-        FileFilter filter = new FileFilter() {
-            public boolean accept(File file) {
-                return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
-            }
-
-            public String getDescription() {
-                return "VCCD Files (.dat)";
-            }
-        };
-        fc.setFileFilter(filter);
-
-        int returnVal = fc.showSaveDialog(this);
-
-        if(returnVal == JFileChooser.APPROVE_OPTION) {
-            if(jTable1.isEditing()) {
-                jTable1.getCellEditor().stopCellEditing();
-            }
-            File file = fc.getSelectedFile();
-
-            ArrayList<Entry> entries = new ArrayList<Entry>();
-            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-            for(int i = 0; i < model.getRowCount(); i++) {
-                Entry e = cl.getNewEntry();
-                Object crc = model.getValueAt(i, 0);
-                if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
-                    crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
+            FileFilter filter = new FileFilter() {
+                public boolean accept(File file) {
+                    return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
                 }
-                e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
-                e.setValue(model.getValueAt(i, 2).toString());
-                entries.add(e);
+
+                public String getDescription() {
+                    return "VCCD Files (.dat)";
+                }
+            };
+            fc.setFileFilter(filter);
+
+            int returnVal = fc.showSaveDialog(this);
+
+            if(returnVal == JFileChooser.APPROVE_OPTION) {
+                saveFile = fc.getSelectedFile();
+            } else {
+                return;
             }
-            cl.saveFile(file.getAbsolutePath().toString(), entries);
         }
+        
+        if(jTable1.isEditing()) {
+            jTable1.getCellEditor().stopCellEditing();
+        }
+
+        ArrayList<Entry> entries = new ArrayList<Entry>();
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for(int i = 0; i < model.getRowCount(); i++) {
+            Entry e = cl.getNewEntry();
+            Object crc = model.getValueAt(i, 0);
+            if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
+                crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
+            }
+            e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
+            e.setValue(model.getValueAt(i, 2).toString());
+            entries.add(e);
+        }
+        saveFile.delete();
+        cl.saveFile(saveFile.getAbsolutePath().toString(), entries);
+    }
+    
+    private void saveCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptions
+        save(false);
     }//GEN-LAST:event_saveCaptions
 
     private void importCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importCaptions
@@ -330,9 +358,15 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void deleteRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRow
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        int newRow = Math.min(jTable1.getSelectedRow(), model.getRowCount() - 1);
+        int newRow = Math.min(jTable1.getSelectedRow(), jTable1.getRowCount() - 1);
+        if(jTable1.getSelectedRow() == jTable1.getRowCount() - 1) {
+            newRow = jTable1.getRowCount() - 2;
+        }
+        LOG.log(Level.FINE, "New row: {0}", newRow);
         model.removeRow(jTable1.getSelectedRow());
-        jTable1.setRowSelectionInterval(newRow, newRow);
+        if(jTable1.getRowCount() > 0) {
+            jTable1.setRowSelectionInterval(newRow, newRow);
+        }
     }//GEN-LAST:event_deleteRow
 
     private void createNew(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createNew
@@ -345,10 +379,11 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
         String message = "Main:\n" +
-        "<clr:r,g,b,a>\n" +
-        "\tSets the color of the caption using an RGBA color; 0 is no color, 255 is full color. The 'a' component is optional.\n" +
-        "\tFor example, <clr:255,100,100,255> would be red.\n" +
-        "\t<clr> with no arguments will restore the previous color for the next phrase.\n" +
+        "Avoid using spaces immediately after opening tags.\n" +
+        "<clr:r,g,b>\n" +
+        "\tSets the color of the caption using an RGB color; 0 is no color, 255 is full color.\n" +
+        "\tFor example, <clr:255,100,100> would be red.\n" +
+        "\t<clr> with no arguments should restore the previous color for the next phrase, but doesn't?\n" +
         "<B>\n" +
         "\tToggles bold text for the next phrase.\n" +
         "<I>\n" +
@@ -358,28 +393,36 @@ public class VCCDTest extends javax.swing.JFrame {
         "<cr>\n" +
         "\tGo to new line for next phrase.\n" +
         "Other:\n" +
-        "<sameline>\n" +
-        "\tDon't go to new line for next phrase.\n" +
         "<sfx>\n" +
         "\tMarks a line as a sound effect that will only be displayed with full closed captioning.\n" +
-        "\tIf the user has cc_subtitles set to \"1\", it will not display these lines.\n" +
+        "\tIf the user has cc_subtitles 1, it will not display these lines.\n" +
+        "<delay:#>\n" +
+        "\tSets a pre-display delay. The sfx tag overrides this. This tag should come before all others. Can take a decimal value.\n" +
+                
+        "\nUnknown:\n" +
+        "<sameline>\n" +
+        "\tDon't go to new line for next phrase.\n" +
         "<linger:#> / <persist:#> / <len:#>\n" +
         "\tIndicates how much longer than usual the caption should appear on the screen.\n" +
-        "<delay:#>\n" +
-        "\tSets a pre-display delay. The sfx tag overrides this.\n" +
         "<position:where>\n" +
         "\tI don't know how this one works, but from the documentation:\n" +
         "\tDraw caption at special location ??? needed.\n" +
         "<norepeat:#>\n" +
         "\tSets how long until the caption can appear again. Useful for frequent sounds.\n" +
-        "\tSee also: cc_sentencecaptionnorepeat" +
+        "\tSee also: cc_sentencecaptionnorepeat\n" +
         "<playerclr:playerRed,playerGreen,playerBlue:npcRed,npcGreen,npcBlue>\n" +
         "\n" +
-        "cc_random emits a random caption\n" +
-        "Captions last for 5 seconds\n" +
+        "closecaption 1 enables the captions\n" +
+        "cc_subtitles 1 disables <sfx> captions\n" +
+        "Captions last for 5 seconds + cc_linger_time\n" +
+        "Captions are delayed by cc_predisplay_time seconds\n" +
         "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n" +
+        "cc_random emits a random caption\n" +
         "";
-        JOptionPane.showMessageDialog(this, message, "Formatting", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane pane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(null, "Formatting");
+        dialog.setModal(false);
+        dialog.setVisible(true);
     }//GEN-LAST:event_formattingHelp
 
     private void export(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_export
@@ -428,6 +471,10 @@ public class VCCDTest extends javax.swing.JFrame {
         jTable1.scrollRectToVisible(jTable1.getCellRect(row, 0, true));
     }//GEN-LAST:event_gotoRow
 
+    private void saveCaptionsAs(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptionsAs
+        save(true);
+    }//GEN-LAST:event_saveCaptionsAs
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
@@ -435,6 +482,7 @@ public class VCCDTest extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem10;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
@@ -568,7 +616,7 @@ public class VCCDTest extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        final JFrame f = new JFrame("Loading caption reader...");
+        final JFrame f = new JFrame("Loading caption editor...");
         JProgressBar pb = new JProgressBar();
         pb.setIndeterminate(true);
         f.add(pb);
