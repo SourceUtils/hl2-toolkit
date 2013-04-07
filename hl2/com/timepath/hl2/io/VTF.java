@@ -148,6 +148,12 @@ public class VTF implements ViewableData {
         return thumbImage;
     }
 
+    /**
+     * 
+     * @param level 0 is full size
+     * @return
+     * @throws IOException 
+     */
     public Image getImage(int level) throws IOException {
         if(level >= this.mipCount) {
             return null;
