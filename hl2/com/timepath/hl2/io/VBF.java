@@ -46,7 +46,7 @@ public class VBF {
         short maxcharheight = buf.getShort();
         short flags = buf.getShort();
         short ascent = buf.getShort();
-        short totalAnd1 = buf.getShort();
+        short total = buf.getShort();
         
         Object[][] dbg = {
             {"Header = ", header},
@@ -57,7 +57,7 @@ public class VBF {
             {"MaxCharHeight = ", maxcharheight},
             {"Flags = ", flags},
             {"Ascent = ", ascent},
-            {"Total = ", totalAnd1}
+            {"Total = ", total}
         };
         
         for(int i = 0; i < dbg.length; i++) {
@@ -73,9 +73,10 @@ public class VBF {
         byte[] table = new byte[256];
         buf.get(table);
         
-        // BitmapGlyph
+        // BitmapGlyph @ offset 278
+        buf.get(new byte[14]); // skip the first one
         
-        for(int i = 0; i < totalAnd1; i++) {
+        for(int i = 0; i < total; i++) {
             short x = buf.getShort();
             short y = buf.getShort();
             short w = buf.getShort();
@@ -83,11 +84,9 @@ public class VBF {
             short a = buf.getShort();
             short b = buf.getShort();
             short c = buf.getShort();
-            if(i != 0) {
-                for(int j = 0; j < table.length; j++) {
-                    if(table[j] == i) {
-                        System.out.println((char) j  + ": (" + x + ", " + y + ")[" + w + ", " + h + "]{" + a + ", " + b + ", " + c + "}");
-                    }
+            for(int j = 0; j < table.length; j++) {
+                if(table[j] == i) {
+                    System.out.println((char) j  + ": (" + x + ", " + y + ")\t[" + w + ", " + h + "]\t{" + a + ", " + b + ", " + c + "}");
                 }
             }
         }
