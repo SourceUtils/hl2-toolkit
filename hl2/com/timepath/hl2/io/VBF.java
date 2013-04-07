@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,9 +14,8 @@ import java.util.ArrayList;
 public class VBF {
 
     /*
-     * Structure with respect to: "materials/vgui/fonts/buttons_32.vbf"
-     *
-     * // style flags
+     * style flags
+     * 
      * #define BF_BOLD	0x0001
      * #define BF_ITALIC	0x0002
      * #define BF_OUTLINED	0x0004
@@ -25,40 +24,17 @@ public class VBF {
      * #define BF_SCANLINES	0x0020
      * #define BF_ANTIALIASED	0x0040
      * #define BF_CUSTOM	0x0080
-     *
-     * char[4] = V,B,S,P
-     * int version = 3
-     * short width = 256
-     * short height = 256
-     * short maxcharwidth = 64
-     * short maxcharheight = 32
-     * short flags = 128
-     * short ascent = 0
-     * short total+1 = 43
-     *
-     * byte table[256]
-     *
-     * be at 278
-     * 
-     * skip to total (42 hex) *
-     *
-     * skip to 296 (0x128) (39 padding ints) // dummy3?
-     *
-     * for(int i = 0; i < 146; i++) {
-     * short width
-     * short height
-     * }
-     *
      */
+    
+    private static int expectedHeader = (('T' << 24) | ('N' << 16) | ('F' << 8) | ('V'));
+    private static int expectedVersion = 3;
+    
     public static void main(String... args) throws IOException {
         InputStream is = new FileInputStream("/home/timepath/Desktop/ico/hl2/materials/VGUI/fonts/Buttons_32.vbf");
         byte[] array = new byte[is.available()];
         is.read(array);
         ByteBuffer buf = ByteBuffer.wrap(array);
         buf.order(ByteOrder.LITTLE_ENDIAN);
-        
-        int expectedHeader = (('T' << 24) | ('N' << 16) | ('F' << 8) | ('V'));
-        int expectedVersion = 3;
         
         // BitmapFont
         
@@ -134,8 +110,8 @@ public class VBF {
      * LB (double width) = 2
      * RB (double width) = 3
      * back = 4
-     * start = 5
      * 
+     * start = 5
      * LS = 6
      * RS = 7
      * Left = 8
@@ -143,15 +119,16 @@ public class VBF {
      * Up = <
      * Down = >
      * Low = M
+     * 
      * Medium = N
      * Full = O
      * Warning = !
-     * 
      * No = ,
      * Yes = .
      * Volume = V
      * Mute = W
      * Play = s (lowercase)
+     * 
      * Gs = P
      * Ds = Q
      * Gt = S
@@ -160,9 +137,12 @@ public class VBF {
      * Dx = F
      * GSt = G
      * GDt = H
+     * 
      * Is = I
      * Ds = J
      * It = K
      * Dt = Z
      */
+
+    private static final Logger LOG = Logger.getLogger(VBF.class.getName());
 }
