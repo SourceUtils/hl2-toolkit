@@ -4,6 +4,7 @@ import com.timepath.hl2.io.VBF;
 import com.timepath.hl2.io.VBF.BitmapGlyph;
 import com.timepath.hl2.io.VTF;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -30,7 +31,7 @@ public class VBFCanvas extends JPanel {
     public VBFCanvas() {
     }
 
-    private static int padding = 32 * 0;
+    private static final int padding = 32 * 0;
 
     private static AffineTransform at = AffineTransform.getTranslateInstance(padding, padding);
 
@@ -47,6 +48,10 @@ public class VBFCanvas extends JPanel {
                 Logger.getLogger(VBFCanvas.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        if(this.vbf != null) {
+            g.setColor(Color.GRAY);
+            g.fillRect(0, 0, vbf.getWidth(), vbf.getHeight());
+        }
         if(img != null) {
             g.drawImage(img, 0, 0, this);
         }
@@ -57,18 +62,11 @@ public class VBFCanvas extends JPanel {
                     continue;
                 }
                 Rectangle bounds = glyphs[i].getBounds();
-                if(bounds == null) {
+                if(bounds == null || bounds.isEmpty()) {
                     continue;
                 }
                 g.setColor(Color.GREEN);
                 g.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-                char associatedCharacter = 0;
-                for(char j = 0; j < vbf.getTable().length; j++) {
-                    if(vbf.getTable()[j] == i) {
-                        associatedCharacter = j;
-                        break;
-                    }
-                }
 //                 TODO: Negative font folor
 //                Map<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
 //                map.put(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON);
@@ -76,7 +74,7 @@ public class VBFCanvas extends JPanel {
 //                map.put(TextAttribute.BACKGROUND, Color.TRANSLUCENT);
 //                Font f = this.getFont().deriveFont(map);
 //                g.setFont(f);
-                g.drawString(Character.toString(associatedCharacter), bounds.x + 1, bounds.y + bounds.height - 1);
+                g.drawString(Integer.toString(i), bounds.x + 1, bounds.y + bounds.height - 1);
             }
         }
     }
@@ -85,6 +83,7 @@ public class VBFCanvas extends JPanel {
 
     public void setVBF(VBF b) {
         this.vbf = b;
+        this.revalidate();
     }
 
     private Image img;
@@ -93,6 +92,15 @@ public class VBFCanvas extends JPanel {
 
     public void setVTF(VTF t) {
         this.vtf = t;
+        this.repaint();
+    }
+    
+    @Override
+    public Dimension getPreferredSize() {
+        if(vbf == null) {
+            return new Dimension(128, 128);
+        }
+        return new Dimension(vbf.getWidth(), vbf.getHeight());
     }
     
 }

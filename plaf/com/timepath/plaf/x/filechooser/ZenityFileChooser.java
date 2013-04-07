@@ -54,7 +54,7 @@ public class ZenityFileChooser extends BaseFileChooser {
         if(WindowToolkit.getWindowClass() != null) {
             cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
         }
-        cmd.add("--title=" + (saveDialog ? "Save" : "Open"));
+        cmd.add("--title=" + title);
 //        cmd.add("--ok-label=TEXT ");
 //        cmd.add("--cancel-label=TEXT ");
 
