@@ -22,6 +22,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -146,7 +147,7 @@ public class MDLTest extends SimpleApplication {
         public Object load(AssetInfo info) throws IOException {
             File f = new File("mdl/" + info.getKey().getName());
             LOG.info(f.toString());
-            VTF v = VTF.load(f);
+            VTF v = VTF.load(new FileInputStream(f));
             BufferedImage t = (BufferedImage) v.getThumbImage();
             t = (BufferedImage) v.getImage(0);
 

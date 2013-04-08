@@ -122,13 +122,16 @@ public class VBF {
             {"Total = ", total}
         };
 
+        StringBuilder sb = new StringBuilder();
         for(int i = 0; i < dbg.length; i++) {
-            StringBuilder sb = new StringBuilder();
             for(int x = 0; x < dbg[i].length; x++) {
                 sb.append(dbg[i][x]);
             }
-            System.out.println(sb.toString());
+            if(i < dbg.length) {
+                sb.append("\n");
+            }
         }
+        LOG.info(sb.toString());
 
 //        for(char i = 0; i < v.table.length; i++) { // for each character
 //            int glyphIndex = v.table[i];

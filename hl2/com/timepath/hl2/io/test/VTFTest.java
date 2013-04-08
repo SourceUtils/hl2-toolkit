@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,7 +77,7 @@ public class VTFTest {
                      */
                     if((name != null) && name.toLowerCase().endsWith(".vtf")) {
                         try {
-                            VTF v = VTF.load(selection);
+                            VTF v = VTF.load(new FileInputStream(selection));
                             if(v == null) {
                                 return;
                             }
@@ -84,7 +85,7 @@ public class VTFTest {
                             if(i == null) {
                                 return;
                             }
-                            f.setIconImage(VTF.load(selection).getThumbImage());
+                            f.setIconImage(VTF.load(new FileInputStream(selection)).getThumbImage());
                             image = (i != null ? i : new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB));
                             scaleImage();
                             repaint();
@@ -157,7 +158,12 @@ public class VTFTest {
                 if(!file.getName().toLowerCase().endsWith(".vtf")) {
                     return false;
                 }
-                VTF v = VTF.load(file);
+                VTF v = null;
+                try {
+                    v = VTF.load(new FileInputStream(file));
+                } catch(IOException ex) {
+                    Logger.getLogger(VTFTest.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 if(v == null) {
                     return false;
                 }

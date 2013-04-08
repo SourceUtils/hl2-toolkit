@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -20,6 +19,10 @@ import javax.swing.ImageIcon;
 import com.timepath.DataUtils;
 import com.timepath.steam.SteamUtils;
 import com.timepath.hl2.io.util.ViewableData;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * TODO: .360.vtf files seem to be a slightly different format... and LZMA compressed.
@@ -28,137 +31,132 @@ import com.timepath.hl2.io.util.ViewableData;
  */
 public class VTF implements ViewableData {
 
-    public VTF(File file) {
-        this.file = file;
-        try {
-            this.rf = new RandomAccessFile(file, "r");
-        } catch(FileNotFoundException ex) {
-            Logger.getLogger(VTF.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private static final Logger LOG = Logger.getLogger(VTF.class.getName());
+
+    public VTF() {
     }
 
-    /**
-     * The RandomAccessFile object that loaded this VTF
-     */
-    RandomAccessFile rf;
-
+    //<editor-fold defaultstate="collapsed" desc="Properties">
     /**
      * 8 bytes
      */
     public int[] version;
-
+    
     /**
      * 2 bytes
      * The size of the VTF header. Image data comes after this
      */
     public int headerSize;
-
+    
     /**
      * 2 bytes
      */
     public int width;
-
+    
     /**
      * 2 bytes
      */
     public int height;
-
+    
     /**
      * 4 bytes
      */
     public int flags;
-
+    
     /**
      * 2 bytes
      */
     public int frameCount;
-
+    
     /**
      * 2 bytes
      * Zero indexed
      */
     public int frameFirst;
-
+    
     /**
      * 12 bytes
      */
     public float[] reflectivity;
-
+    
     /**
      * 4 bytes
      */
     public float bumpScale;
-
+    
     /**
      * 4 bytes
      */
     public Format format;
-
+    
     /**
      * 1 byte
      */
     public int mipCount;
-
+    
     /**
      * 4 bytes
      */
     public Format thumbFormat;
-
+    
     /**
      * 1 byte
      */
     public int thumbWidth;
-
+    
     /**
      * 1 byte
      */
     public int thumbHeight;
-
+    
     /**
      * 1 byte
      * The documentation says 2, but I don't think so...
      */
     public int depth;
+    //</editor-fold>
 
-    private final File file;
+    private File file;
+    
+    private static int expectedCrcHead = (('C') | ('R' << 8) | ('C' << 16) | ('\2' << 24));
 
     public void getControls() throws IOException {
-        rf.seek(this.headerSize - 8); // 8 bytes for CRC or other things. I have no idea what the data after the first 64 bytes up until here are for
+        buf.position(this.headerSize - 8); // 8 bytes for CRC or other things. I have no idea what the data after the first 64 bytes up until here are for
+        int crcHead = buf.getInt();
+        int crc = buf.getInt();
 
-        String crcHead = new String(new byte[]{DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf)});
-        int crc = DataUtils.readULong(rf);
-
-        if(!(crcHead.equals("CRC\2"))) {
-            System.err.println("CRC=" + crcHead + ", invalid");
+        if(crcHead != expectedCrcHead) {
+            LOG.log(Level.WARNING, "CRC header {0} is invalid", crcHead);
         } else {
-//                System.err.println("CRC=0x" + Integer.toHexString(crc).toUpperCase());
+            LOG.log(Level.INFO, "CRC=0x{0}", Integer.toHexString(crc).toUpperCase());
         }
     }
 
-//    private int _thumbLength = Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) / 2;
     private Image thumbImage;
 
     public Image getThumbImage() throws IOException {
         if(thumbImage == null) {
-            rf.seek(this.headerSize);
+            buf.position(this.headerSize);
             byte[] thumbData = new byte[Math.max(this.thumbWidth, 4) * Math.max(this.thumbHeight, 4) / 2]; // DXT1. Each 'block' is 4*4 pixels. 16 pixels become 8 bytes
-            rf.read(thumbData);
+            buf.get(thumbData);
             thumbImage = loadDXT1(thumbData, this.thumbWidth, this.thumbHeight);
         }
         return thumbImage;
     }
 
     /**
-     * 
+     *
      * @param level 0 is full size
+     *
      * @return
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public Image getImage(int level) throws IOException {
         if(level >= this.mipCount) {
             return null;
         }
-        rf.seek(this.headerSize + (Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) / 2));
+        buf.position(this.headerSize + (Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) / 2));
 
         BufferedImage image = null;
 
@@ -186,14 +184,13 @@ public class VTF implements ViewableData {
             } else if(this.format == Format.IMAGE_FORMAT_UV88) {
                 nBytes = w * h * 2; // BGR888. Each pixel is 3 bytes -  r g b
             } else {
-                System.err.println("Unrecognised VTF format " + this.format);
+                LOG.log(Level.WARNING, "Unrecognised VTF format {0}", this.format);
                 return null;
             }
 
             if(this.mipCount - 1 - i == level && nBytes > 0) { // biggest
                 byte[] imageData = new byte[nBytes];
-                rf.read(imageData);
-
+                buf.get(imageData);
                 image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = (Graphics2D) image.getGraphics();
                 if(this.format == Format.IMAGE_FORMAT_DXT1) {
@@ -208,7 +205,8 @@ public class VTF implements ViewableData {
                     g.drawImage(loadUV(imageData, w, h), 0, 0, w, h, null);
                 }
             } else {
-                rf.skipBytes(nBytes);
+//                rf.skipBytes(nBytes);
+                buf.get(new byte[nBytes]);
             }
         }
         return image;
@@ -217,7 +215,54 @@ public class VTF implements ViewableData {
     // STATIC METHODS
     public static GCF mats = null;
 
-    public static VTF load(String path) {
+    private static int expectedHeader = (('V') | ('T' << 8) | ('F' << 16) | ('\0' << 24));
+
+    private InputStream stream;
+    private ByteBuffer buf;
+
+    public static VTF load(InputStream is) throws IOException {
+        VTF vtf = new VTF();
+        vtf.stream = is;
+        byte[] array = new byte[is.available()/*65*/];
+        is.read(array);
+        vtf.buf = ByteBuffer.wrap(array);
+        vtf.buf.order(ByteOrder.LITTLE_ENDIAN);
+
+        if(vtf.buf.getInt() != expectedHeader) {
+            LOG.severe("Invalid VTF file");
+//            cache.put(file, null);
+            return null;
+        }
+        vtf.version = new int[]{vtf.buf.getInt(), vtf.buf.getInt()};
+        vtf.headerSize = vtf.buf.getInt();
+        vtf.width = vtf.buf.getShort();
+        vtf.height = vtf.buf.getShort();
+        vtf.flags = vtf.buf.getInt();
+        vtf.frameCount = vtf.buf.getShort();
+        vtf.frameFirst = vtf.buf.getShort();
+        vtf.buf.get(new byte[4]);
+        vtf.reflectivity = new float[]{vtf.buf.getFloat(), vtf.buf.getFloat(), vtf.buf.getFloat()};
+        vtf.buf.get(new byte[4]);
+        vtf.bumpScale = vtf.buf.getFloat();
+        vtf.format = Format.getEnumForIndex(vtf.buf.getInt());
+        vtf.mipCount = vtf.buf.get();
+        vtf.thumbFormat = Format.getEnumForIndex(vtf.buf.getInt());
+        vtf.thumbWidth = vtf.buf.get();
+        vtf.thumbHeight = vtf.buf.get();
+        vtf.depth = vtf.buf.getShort();
+
+        LOG.log(Level.INFO, "Format: {0}", vtf.format);
+
+        if(vtf.frameCount > 1) {
+            LOG.log(Level.WARNING, "FRAMES = {0}", vtf.frameCount); // zero indexed
+            if(vtf.frameFirst != 0) {
+                LOG.log(Level.WARNING, "FIRSTFRAME = {0}", vtf.frameFirst); // zero indexed
+            }
+        }
+        return vtf;
+    }
+
+    public static VTF load(String path) throws IOException {
         path = new File(path).getAbsolutePath();
         if(mats == null) {
             try {
@@ -237,69 +282,10 @@ public class VTF implements ViewableData {
         } catch(IOException ex) {
             Logger.getLogger(VTF.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return VTF.load(f);
+        return VTF.load(new FileInputStream(f));
     }
 
-    private static HashMap<File, VTF> cache = new HashMap<File, VTF>();
-
-    public static VTF load(File file) {
-        if(file == null) {
-            return null;
-        }
-        file = file.getAbsoluteFile();
-
-        if(cache.containsKey(file)) {
-            return cache.get(file);
-        }
-        if(!file.exists() || !file.canRead()) {
-            LOG.log(Level.WARNING, "File {0} not found", file);
-            return null;
-        }
-        RandomAccessFile rf;
-        try {
-            rf = new RandomAccessFile(file, "r");
-//            System.out.println("Loading " + path + "...");
-            String signature = new String(new byte[]{DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf)});
-            if(!(signature.equals("VTF\0"))) {
-                System.err.println("Invalid VTF file " + file);
-                cache.put(file, null);
-                return null;
-            }
-            VTF vtf = new VTF(file);
-            vtf.version = new int[]{DataUtils.readULEInt(rf), DataUtils.readULEInt(rf)};
-            vtf.headerSize = DataUtils.readULEInt(rf);
-            vtf.width = DataUtils.readULEShort(rf);
-            vtf.height = DataUtils.readULEShort(rf);
-            vtf.flags = DataUtils.readULEInt(rf);
-            vtf.frameCount = DataUtils.readULEShort(rf);
-            vtf.frameFirst = DataUtils.readULEShort(rf);
-            rf.skipBytes(4); // padding
-            vtf.reflectivity = new float[]{DataUtils.readLEFloat(rf), DataUtils.readLEFloat(rf), DataUtils.readLEFloat(rf)};
-            rf.skipBytes(4); // padding
-            vtf.bumpScale = DataUtils.readLEFloat(rf);
-            vtf.format = Format.getEnumForIndex(DataUtils.readULEInt(rf));
-            vtf.mipCount = DataUtils.readUByte(rf);
-            vtf.thumbFormat = Format.getEnumForIndex(DataUtils.readULEInt(rf));
-            vtf.thumbWidth = DataUtils.readUByte(rf);
-            vtf.thumbHeight = DataUtils.readUByte(rf);
-            vtf.depth = DataUtils.readULEShort(rf); // the docs say that there are 64 bytes for this section, but I count 64. Should this be a single byte?
-
-//            System.out.println(vtf.format);
-
-//            System.err.println("USEMIPS=" + !((flags & Flags.TEXTUREFLAGS_NOMIP.getMask()) == 0xff));
-            if(vtf.frameCount > 1) {
-                System.err.println("FRAMES = " + vtf.frameCount); // zero indexed
-                if(vtf.frameFirst != 0) {
-                    System.err.println("FIRSTFRAME = " + vtf.frameFirst); // zero indexed
-                }
-            }
-            cache.put(file, vtf);
-            return vtf;
-        } catch(Exception e) {
-            LOG.severe(e.toString());
-            return null;
-        }
-    }
+    private static HashMap<InputStream, VTF> cache = new HashMap<InputStream, VTF>();
 
     /**
      * 8 bytes per 4*4
@@ -332,14 +318,14 @@ public class VTF implements ViewableData {
 //        	    sel |= b[pos++] << 16;
 //        	    sel |= b[pos++] << 24;
                 for(int y1 = 0; y1 < 4/*
-                     * - (height % 4)
-                     */; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
+                         * - (height % 4)
+                         */; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                     byte rowData = b[pos++];
                     int[] rowBits = {(rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4, (rowData & 0xC) >>> 2, rowData & 0x3};
 
                     for(int x1 = 0; x1 < 4/*
-                         * - (width % 4)
-                         */; x1++) { // column scan
+                             * - (width % 4)
+                             */; x1++) { // column scan
                         bi.setRGB((x) + x1, (y) + y1, colour[rowBits[3 - x1]].getRGB()); // c is taken from 3 to ensure everything is drawn the correct way around
 //                        bi.setRGB((x+x1), (y+y1), colour[sel & 3].getRGB());
 //                        sel >>= 2;
@@ -744,8 +730,6 @@ public class VTF implements ViewableData {
     public String toString() {
         return file.getName();
     }
-
-    private static final Logger LOG = Logger.getLogger(VTF.class.getName());
 
     public Icon getIcon() {
         Icon i;
