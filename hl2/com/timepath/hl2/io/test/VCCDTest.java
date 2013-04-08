@@ -13,6 +13,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -256,7 +258,13 @@ public class VCCDTest extends javax.swing.JFrame {
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            ArrayList<Entry> entries = VCCD.loadFile(file.getAbsolutePath().toString());
+            ArrayList<Entry> entries;
+            try {
+                entries = VCCD.load(new FileInputStream(file));
+            } catch(FileNotFoundException ex) {
+                Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
             LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -312,7 +320,7 @@ public class VCCDTest extends javax.swing.JFrame {
             e.setValue(model.getValueAt(i, 2).toString());
             entries.add(e);
         }
-        VCCD.saveFile(saveFile.getAbsolutePath().toString(), entries);
+        VCCD.save(saveFile.getAbsolutePath().toString(), entries);
     }
 
     private void saveCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptions

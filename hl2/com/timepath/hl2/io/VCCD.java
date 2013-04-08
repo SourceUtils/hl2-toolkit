@@ -6,7 +6,10 @@ import com.timepath.hl2.io.util.Property;
 import com.timepath.steam.io.VDF;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -42,54 +45,56 @@ public class VCCD {
         return (int) (Math.ceil(curr / round) * round);
     }
 
-    private static String magicID = "VCCD";
+    private static int expectedHeader = (('V') | ('C' << 8) | ('C' << 16) | ('D' << 24));
 
-    private static int captionVer = 1;
+    private static int expectedVersion = 1;
 
-    public static ArrayList<Entry> loadFile(String file) {
-        if(file == null) {
-            return null;
-        }
+    public static ArrayList<Entry> load(InputStream is) {
         ArrayList<Entry> list = new ArrayList<Entry>();
         try {
-            RandomAccessFile rf = new RandomAccessFile(file, "r");
-            String magic = new String(new byte[]{DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf), DataUtils.readByte(rf)});
-            if(!magic.equals(magic)) {
+            byte[] array = new byte[is.available()];
+            is.read(array);
+            ByteBuffer buf = ByteBuffer.wrap(array);
+            buf.order(ByteOrder.LITTLE_ENDIAN);
+            
+            if(buf.getInt() != expectedHeader) {
                 LOG.severe("Header mismatch");
             }
-            int ver = DataUtils.readULEInt(rf);
-            int blocks = DataUtils.readULEInt(rf);
-            int blockSize = DataUtils.readULEInt(rf);
-            int directorySize = DataUtils.readULEInt(rf);
-            int dataOffset = DataUtils.readULEInt(rf);
-            LOG.log(Level.INFO, "Header: {0}, Version: {1}, Blocks: {2}, BlockSize: {3}, DirectorySize: {4}, DataOffset: {5}", new Object[]{magic, ver, blocks, blockSize, directorySize, dataOffset});
+            int version = buf.getInt();
+            if(version != expectedVersion) {
+                LOG.log(Level.WARNING, "Unsupported version: {0}", version);
+            }
+            int blocks = buf.getInt();
+            int blockSize = buf.getInt();
+            int directorySize = buf.getInt();
+            int dataOffset = buf.getInt();
+            LOG.log(Level.INFO, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", new Object[]{version, blocks, blockSize, directorySize, dataOffset});
 
             Entry[] entries = new Entry[directorySize];
             for(int i = 0; i < directorySize; i++) {
                 Entry e = new Entry();
-                e.setKey(DataUtils.readULong(rf));
-                e.setBlock(DataUtils.readULEInt(rf));
-                e.setOffset(DataUtils.readULEShort(rf));
-                e.setLength(DataUtils.readULEShort(rf));
+                e.setKey(buf.getInt());
+                e.setBlock(buf.getInt());
+                e.setOffset(buf.getShort());
+                e.setLength(buf.getShort());
 //                    System.out.println("<" + i + " - " + e);
                 entries[i] = e;
             }
-            rf.seek(dataOffset);
+            buf.position(dataOffset);
             for(int i = 0; i < directorySize; i++) {
-                rf.seek(dataOffset + (entries[i].block * blockSize) + entries[i].offset);
+                buf.position(dataOffset + (entries[i].block * blockSize) + entries[i].offset);
                 StringBuilder sb = new StringBuilder((entries[i].length / 2) - 1);
                 for(int x = 0; x < (entries[i].length / 2) - 1; x++) {
-                    sb.append(DataUtils.readLEChar(rf));
+                    sb.append(buf.getChar()); // 2 bytes
                 }
-                rf.skipBytes(2);
+                buf.get(new byte[2]);
                 entries[i].setValue(sb.toString());
                 list.add(entries[i]);
             }
-            rf.close(); // The rest of the file is garbage, 0's or otherwise
+            is.close(); // The rest of the file is garbage, 0's or otherwise
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-//            saveFile(file + ".test", list); // debugging
         return list;
     }
 
@@ -99,7 +104,7 @@ public class VCCD {
      * @param file
      * @param entries
      */
-    public static void saveFile(String file, ArrayList<Entry> entries) {
+    public static void save(String file, ArrayList<Entry> entries) {
         if(file == null) {
             return;
         }
@@ -130,7 +135,7 @@ public class VCCD {
                 f.createNewFile();
             }
             RandomAccessFile rf = new RandomAccessFile(f, "rw");
-            rf.write(magicID.getBytes()); // Big endian
+            rf.write(expectedHeader);
             DataUtils.writeLEInt(rf, 1);
             DataUtils.writeLEInt(rf, blocks);
             DataUtils.writeLEInt(rf, blockSize);
@@ -154,7 +159,7 @@ public class VCCD {
                     offset = 0;
                     currentBlock++;
                     firstInBlock = i;
-                    System.out.println("Doesn't fit; new block");
+                    LOG.fine("Doesn't fit; new block");
                 } else {
                     offset = proposedOffset;
                 }
