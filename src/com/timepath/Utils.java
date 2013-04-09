@@ -94,7 +94,7 @@ public class Utils {
 
     public static byte[] loadFile(File f) throws FileNotFoundException, IOException {
         InputStream fis = new FileInputStream(f);
-        byte[] buff = new byte[8192];
+        byte[] buff = new byte[fis.available()];
         int numRead;
         int size = 0;
         for(;;) {
