@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -110,5 +111,20 @@ public class Utils {
         System.arraycopy(buff, 0, ret, 0, ret.length);
         return ret;
     }
+    
+    public static Comparator<File> ALPHA_COMPARATOR = new Comparator<File>() {
+        /**
+         * Alphabetically sorts directories before files ignoring case.
+         */
+        public int compare(File a, File b) {
+            if(a.isDirectory() && !b.isDirectory()) {
+                return -1;
+            } else if(!a.isDirectory() && b.isDirectory()) {
+                return 1;
+            } else {
+                return a.getName().compareToIgnoreCase(b.getName());
+            }
+        }
+    };
     
 }
