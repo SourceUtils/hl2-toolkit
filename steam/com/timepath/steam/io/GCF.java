@@ -3,10 +3,12 @@ package com.timepath.steam.io;
 import com.timepath.DataUtils;
 import com.timepath.EnumFlagUtils;
 import com.timepath.EnumFlags;
+import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.util.ViewableData;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -359,6 +361,75 @@ public class GCF implements Archive, ViewableData {
             i = UIManager.getIcon("FileView.directoryIcon");
         }
         return i;
+    }
+
+    public InputStream get(final int index) {
+        return new InputStream() {
+            
+            private DirectoryEntry de = GCF.this.directoryEntries[index];
+            
+            private ByteBuffer buf = createBuffer();
+            
+            private ByteBuffer createBuffer() {
+                byte[] data = new byte[de.itemSize];
+                ByteBuffer b = ByteBuffer.wrap(data);
+                b.order(ByteOrder.LITTLE_ENDIAN);
+                
+                int idx = GCF.this.directoryMapEntries(index).firstBlockIndex;
+                if(idx >= blocks.length) {
+                    LOG.log(Level.WARNING, "Block out of range for item {0}. Is the size 0?", index);
+                    return null;
+                }
+                try {
+                    block = GCF.this.getBlock(idx);
+                    dataIdx = block.firstClusterIndex;
+                    LOG.log(Level.FINE, "bSize: {0}", new Object[]{block.fileDataSize});
+                    fill(b);
+                } catch(IOException ex) {
+                    Logger.getLogger(GCF.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return b;
+            }
+            
+            private BlockAllocationTableEntry block;
+            
+            private int dataIdx;
+            
+            private byte[] data;
+            
+            private void fill(ByteBuffer buf) throws IOException {
+                for(;;) {
+                    if(dataIdx == 0xFFFF || dataIdx == -1) {
+                        break;
+                    }
+                    byte[] b = GCF.this.readData(block, dataIdx);
+                    if(buf.position() + b.length > buf.capacity()) {
+                        buf.put(b, 0, block.fileDataSize % dataBlockHeader.blockSize);
+                    } else {
+                        buf.put(b);
+                    }
+                    dataIdx = GCF.this.getEntry(dataIdx).nextClusterIndex;
+                    LOG.log(Level.INFO, "next dataIdx: {0}", dataIdx);
+                }
+                data = buf.array();
+            }
+            
+            private int pointer;
+
+            @Override
+            public int available() throws IOException {
+                return de.itemSize - pointer;
+            }
+
+            @Override
+            public int read() throws IOException {
+                if(pointer > data.length) {
+                    return -1;
+                }
+                return data[pointer++];
+            }
+            
+        };
     }
 
     /**

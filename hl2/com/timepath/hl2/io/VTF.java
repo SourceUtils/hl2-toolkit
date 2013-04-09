@@ -8,15 +8,11 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-
-import com.timepath.DataUtils;
 import com.timepath.steam.SteamUtils;
 import com.timepath.hl2.io.util.ViewableData;
 import java.io.FileInputStream;

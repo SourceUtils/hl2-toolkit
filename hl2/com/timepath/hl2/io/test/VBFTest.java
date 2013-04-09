@@ -46,13 +46,17 @@ public class VBFTest extends javax.swing.JFrame {
                 int current = ((Number)jSpinner1.getValue()).intValue();
                 g.getBounds().x = current;
                 vBFCanvas1.repaint(Math.min(old, current), ((Number)jSpinner2.getValue()).intValue(), Math.max(old, current) + ((Number)jSpinner7.getValue()).intValue(), ((Number)jSpinner8.getValue()).intValue());
-                vBFCanvas1.repaint();
+//                vBFCanvas1.repaint();
                 old = current;
                 int wide = b.getWidth();
                 if(t != null) {
                     wide = t.width;
                 }
-                ((SpinnerNumberModel)jSpinner7.getModel()).setMaximum(wide - ((Number)jSpinner1.getValue()).intValue());
+                SpinnerNumberModel s = ((SpinnerNumberModel)jSpinner7.getModel());
+                s.setMaximum(wide - ((Number)jSpinner1.getValue()).intValue());
+//                if(s.getNumber() > s.g) {
+//                    s.setNumber(s.getMaximum());
+//                }
             }
         });
         jSpinner7.addChangeListener(new ChangeListener() {
@@ -66,7 +70,7 @@ public class VBFTest extends javax.swing.JFrame {
                 int current = ((Number)jSpinner7.getValue()).intValue();
                 g.getBounds().width = current;
                 vBFCanvas1.repaint(((Number)jSpinner1.getValue()).intValue(), ((Number)jSpinner2.getValue()).intValue(), Math.max(old, current), ((Number)jSpinner8.getValue()).intValue());
-                vBFCanvas1.repaint();
+//                vBFCanvas1.repaint();
                 old = current;
                 int wide = b.getWidth();
                 if(t != null) {
@@ -86,7 +90,7 @@ public class VBFTest extends javax.swing.JFrame {
                 int current = ((Number)jSpinner2.getValue()).intValue();
                 g.getBounds().y = current;
                 vBFCanvas1.repaint(((Number)jSpinner1.getValue()).intValue(), Math.min(old, current), ((Number)jSpinner7.getValue()).intValue(), Math.max(old, current) + ((Number)jSpinner8.getValue()).intValue());
-                vBFCanvas1.repaint();
+//                vBFCanvas1.repaint();
                 old = current;
                 int high = b.getHeight();
                 if(t != null) {
@@ -106,7 +110,7 @@ public class VBFTest extends javax.swing.JFrame {
                 int current = ((Number)jSpinner8.getValue()).intValue();
                 g.getBounds().height = current;
                 vBFCanvas1.repaint(((Number)jSpinner1.getValue()).intValue(), ((Number)jSpinner2.getValue()).intValue(), ((Number)jSpinner7.getValue()).intValue(), Math.max(old, current));
-                vBFCanvas1.repaint();
+//                vBFCanvas1.repaint();
                 old = current;
                 int high = b.getHeight();
                 if(t != null) {
@@ -124,10 +128,11 @@ public class VBFTest extends javax.swing.JFrame {
 
     private VTF t;
 
-    private void load(String f) throws IOException {
+    private void load(File f) throws IOException {
         if(f == null) {
             return;
         }
+        LOG.log(Level.INFO, "Loading {0}", f);
         VBFCanvas p = this.vBFCanvas1;
 
         b = VBF.load(new FileInputStream(f + ".vbf"));
@@ -344,7 +349,7 @@ public class VBFTest extends javax.swing.JFrame {
             return;
         }
         try {
-            load(f.getPath().replace(".vbf", ""));
+            load(f);
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }

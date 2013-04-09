@@ -73,13 +73,15 @@ public enum OS {
 //                }
             }
             
-            try {
-                Toolkit xToolkit = Toolkit.getDefaultToolkit();
-                Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
-                awtAppClassNameField.setAccessible(true);
-                awtAppClassNameField.set(xToolkit, windowClass);
-            } catch(Exception ex) {
-                LOG.log(Level.SEVERE, null, ex);
+            if(!OS.isWindows()) {
+                try {
+                    Toolkit xToolkit = Toolkit.getDefaultToolkit();
+                    Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
+                    awtAppClassNameField.setAccessible(true);
+                    awtAppClassNameField.set(xToolkit, windowClass);
+                } catch(Exception ex) {
+                    LOG.log(Level.WARNING, null, ex);
+                }
             }
             
             DesktopLauncher.create(windowClass, "/com/timepath/tf2/hudeditor/resources",

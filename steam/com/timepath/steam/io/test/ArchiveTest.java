@@ -7,7 +7,9 @@ import com.timepath.steam.io.GCF.DirectoryEntry;
 import com.timepath.swing.DirectoryTreeCellRenderer;
 import java.awt.Component;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -362,7 +364,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         } else {
             DirectoryEntry last = toExtract.get(toExtract.size() - 1);
             title = last.getName();
-            message = "" + last.getAbsoluteName() + "\n";
+            message = "Entry "+last.index+", " + last.getAbsoluteName() + "\n";
         }
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jPopupMenuItem2ActionPerformed

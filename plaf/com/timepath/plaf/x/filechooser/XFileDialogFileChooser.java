@@ -30,13 +30,12 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         if(directory != null) {
             fd.setDirectory(directory);
         }
-        if(directoryMode) {
-            selection = fd.getFolder();
-        } else {
+        selection = fd.getFolder();
+        if(!directoryMode) {
             if(saveDialog) {
-                selection = fd.getSaveFile();
+                selection += fd.getSaveFile();
             } else {
-                selection = fd.getFile();
+                selection += fd.getFile();
             }
         }
         fd.dispose();
