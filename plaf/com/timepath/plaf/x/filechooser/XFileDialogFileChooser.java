@@ -18,33 +18,48 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         }
         XFileDialog.setTraceLevel(0);
     }
-    
+
     public XFileDialogFileChooser(Frame parent, String title, String directory) {
         super(parent, title, directory);
     }
-    
+
     public File choose(boolean directoryMode, boolean saveDialog) {
-        String selection;
+        String[] selection;
         XFileDialog fd = new XFileDialog(parent);
         fd.setTitle(title);
         if(directory != null) {
             fd.setDirectory(directory);
         }
-        selection = fd.getFolder();
-        if(!directoryMode) {
-            if(saveDialog) {
-                selection += fd.getSaveFile();
+        boolean multi = false;
+        if(directoryMode) {
+            if(multi) {
+                selection = fd.getFolders();
             } else {
-                selection += fd.getFile();
+                selection = new String[]{fd.getFolder()};
+            }
+        } else {
+            if(saveDialog) {
+                selection = new String[]{fd.getSaveFile()};
+            } else {
+                if(multi) {
+                    selection = fd.getFiles();
+                } else {
+                    selection = new String[]{fd.getFile()};
+                }
             }
         }
         fd.dispose();
         if(selection == null) {
             return null;
         } else {
-            return new File(selection);
+            if(directoryMode) { 
+                return new File(selection[0]);
+            } else {
+                return new File(fd.getDirectory(), selection[0]);
+            }
         }
     }
+
     private static final Logger LOG = Logger.getLogger(XFileDialogFileChooser.class.getName());
-    
+
 }
