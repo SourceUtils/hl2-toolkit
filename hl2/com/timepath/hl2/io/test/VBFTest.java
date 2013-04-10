@@ -128,10 +128,7 @@ public class VBFTest extends javax.swing.JFrame {
 
     private VTF t;
 
-    private void load(File f) throws IOException {
-        if(f == null) {
-            return;
-        }
+    private void load(String f) throws IOException {
         LOG.log(Level.INFO, "Loading {0}", f);
         VBFCanvas p = this.vBFCanvas1;
 
@@ -349,7 +346,7 @@ public class VBFTest extends javax.swing.JFrame {
             return;
         }
         try {
-            load(f);
+            load(f.getName().replace(".vbf", ""));
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
