@@ -4,6 +4,7 @@ import com.timepath.hl2.io.VBF;
 import com.timepath.hl2.io.VBF.BitmapGlyph;
 import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.swing.VBFCanvas;
+import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import java.awt.Rectangle;
 import java.io.File;
@@ -341,11 +342,11 @@ public class VBFTest extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        File f = NativeFileChooser.choose(this, "Select vbf", null, false, false);
-        if(f == null) {
-            return;
-        }
         try {
+            File f = new NativeFileChooser().setParent(this).setTitle("Select vbf").choose();
+            if(f == null) {
+                return;
+            }
             load(f.getName().replace(".vbf", ""));
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -375,11 +376,11 @@ public class VBFTest extends javax.swing.JFrame {
     }//GEN-LAST:event_jTree1ValueChanged
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        File f = NativeFileChooser.choose(this, "Select save location", null, false, true);
-        if(f == null) {
-            return;
-        }
         try {
+            File f = new NativeFileChooser().setParent(this).setTitle("Select save location").setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
+            if(f == null) {
+                return;
+            }
             b.save(f);
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);

@@ -1,7 +1,6 @@
 package com.timepath.plaf.x.filechooser;
 
 import com.timepath.plaf.OS;
-import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -13,32 +12,37 @@ import java.util.logging.Logger;
 public class NativeFileChooser extends BaseFileChooser {
 
     private static final Logger LOG = Logger.getLogger(NativeFileChooser.class.getName());
-
-    public NativeFileChooser(Frame parent, String title, String directory) {
-        super(parent, title, directory);
-    }
     
-    @Override
-    public File choose(boolean directoryMode, boolean saveDialog) {
-        File selection;
+    private BaseFileChooser getChooser() {
+        BaseFileChooser chooser;
         if(OS.isWindows()) {
-            selection = new XFileDialogFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
+            chooser = new XFileDialogFileChooser();
         } else if(OS.isMac()) {
-            selection = new AWTFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
+            chooser = new AWTFileChooser();
         } else if(OS.isLinux()) {
-            try {
-                selection = new ZenityFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
-            } catch(IOException ex) {
-                selection = new SwingFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
-            }
+//            try {
+                chooser = new ZenityFileChooser();
+//            } catch(IOException ex) {
+//                chooser = new SwingFileChooser();  
+//            }
         } else {
-            selection = new SwingFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
+            chooser = new SwingFileChooser();
         }
-        return selection;
-    }
-    
-    public static File choose(Frame parent, String title, String directory, boolean directoryMode, boolean saveDialog) {
-        return new NativeFileChooser(parent, title, directory).choose(directoryMode, saveDialog);
+        chooser
+                .setApproveButtonText(approveButtonText)
+                .setTitle(dialogTitle)
+                .setDialogType(dialogType)
+                .setDirectory(directory)
+                .setFile(file)
+                .setFileMode(fileMode)
+                .setParent(parent)
+                ;
+        
+        return chooser;
     }
 
+    @Override
+    public File choose() throws IOException {
+        return getChooser().choose();
+    }
 }

@@ -8,6 +8,7 @@ import com.timepath.steam.io.BVDF;
 import com.timepath.steam.io.Blob;
 import com.timepath.steam.io.VDF;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,7 +117,11 @@ public class DataTest extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void openVDF(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openVDF
-        open(new NativeFileChooser(this, "Open VDF", null).choose(false, false));
+        try {
+            open(new NativeFileChooser().setParent(this).setTitle("Open VDF").choose());
+        } catch(IOException ex) {
+            Logger.getLogger(DataTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_openVDF
 
     private void appInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appInfo

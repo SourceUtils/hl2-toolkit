@@ -1,5 +1,6 @@
 package com.timepath.steam.io.test;
 
+import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.GCF;
@@ -231,24 +232,28 @@ public class ArchiveTest extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void open(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_open
-        File f = NativeFileChooser.choose(this, "Open GCF", SteamUtils.locateSteamAppsDirectory(), false, false);
-        if(f == null) {
-            LOG.info("File is null");
-            return;
+        try {
+            File f = new NativeFileChooser().setParent(this).setTitle("Open archive").setDirectory(SteamUtils.locateSteamAppsDirectory()).choose();
+            if(f == null) {
+                LOG.info("File is null");
+                return;
+            }
+            GCF g = GCF.load(f);
+            if(g == null) {
+                LOG.log(Level.WARNING, "Unable to load {0}", f);
+                return;
+            }
+            gcfs.add(g);
+    //        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
+            DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
+            DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
+            tree.insertNodeInto(direct, gcf, 0);
+            g.analyze(direct, false);
+            tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
+            tree.reload();
+        } catch(IOException ex) {
+            Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        GCF g = GCF.load(f);
-        if(g == null) {
-            LOG.log(Level.WARNING, "Unable to load {0}", f);
-            return;
-        }
-        gcfs.add(g);
-//        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
-        DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
-        DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
-        tree.insertNodeInto(direct, gcf, 0);
-        g.analyze(direct, false);
-        tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
-        tree.reload();
     }//GEN-LAST:event_open
 
     private void directoryChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_directoryChanged
@@ -274,18 +279,22 @@ public class ArchiveTest extends javax.swing.JFrame {
     }
 
     private void jPopupMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem1ActionPerformed
-        File out = NativeFileChooser.choose(this, "Select extraction directory", null, true, true);
-        if(out == null) {
-            return;
-        }
-        for(DirectoryEntry e : toExtract) {
-            try {
-                e.extract(out);
-            } catch(IOException ex) {
-                Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            File out = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").choose();
+            if(out == null) {
+                return;
             }
+            for(DirectoryEntry e : toExtract) {
+                try {
+                    e.extract(out);
+                } catch(IOException ex) {
+                    Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            LOG.info("Done");
+        } catch(IOException ex) {
+            Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        LOG.info("Done");
     }//GEN-LAST:event_jPopupMenuItem1ActionPerformed
 
     private GCF selectedGCF;

@@ -12,38 +12,35 @@ import java.util.logging.Logger;
  * @author timepath
  */
 public class AWTFileChooser extends BaseFileChooser {
-    
-    public AWTFileChooser(Frame parent, String title, String directory) {
-        super(parent, title, directory);
-    }
 
     @Override
-    public File choose(boolean directoryMode, boolean saveDialog) {
+    public File choose() {
         if(OS.isMac()) {
-            System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(directoryMode));
+            System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(this.isDirectoryMode()));
         }
-        FileDialog fd = new FileDialog(parent, title);
-        if(directoryMode) {
+        FileDialog fd = new FileDialog(parent, dialogTitle);
+        if(directory != null) {
+            fd.setDirectory(directory.getPath());
+        }
+        if(file != null) {
+            fd.setFile(file.getPath());
+        }
+        if(this.isDirectoryMode()) {
+            if(!OS.isMac()) {
+                LOG.warning("Using AWT for directory selection on non mac system - not ideal");
+            }
             fd.setFilenameFilter(new FilenameFilter() {
                 public boolean accept(File dir, String name) {
                     return new File(dir, name).isDirectory();
                 }
             });
         }
-        if(directory != null) {
-            fd.setDirectory(directory);
-        }
-        fd.setMode(saveDialog ? FileDialog.SAVE : FileDialog.LOAD);
+        fd.setMode(this.isSaveDialog() ? FileDialog.SAVE : FileDialog.LOAD);
         fd.setVisible(true);
-        if(fd.getDirectory() == null || fd.getFile() == null) {
+        if(fd.getDirectory() == null || fd.getFile() == null) { // cancelled
             return null;
         }
-        String selection = fd.getDirectory() + fd.getFile();
-        if(selection == null) {
-            return null;
-        } else {
-            return new File(selection);
-        }
+        return new File(fd.getDirectory() + File.pathSeparator + fd.getFile());
     }
     private static final Logger LOG = Logger.getLogger(AWTFileChooser.class.getName());
     

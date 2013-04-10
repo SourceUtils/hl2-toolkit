@@ -1,7 +1,6 @@
 package com.timepath.plaf.x.filechooser;
 
 import com.timepath.plaf.OS;
-import java.awt.Frame;
 import java.io.File;
 import java.util.logging.Logger;
 import net.tomahawk.XFileDialog;
@@ -19,26 +18,22 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         XFileDialog.setTraceLevel(0);
     }
 
-    public XFileDialogFileChooser(Frame parent, String title, String directory) {
-        super(parent, title, directory);
-    }
-
-    public File choose(boolean directoryMode, boolean saveDialog) {
+    public File choose() {
         String[] selection;
         XFileDialog fd = new XFileDialog(parent);
-        fd.setTitle(title);
+        fd.setTitle(dialogTitle);
         if(directory != null) {
-            fd.setDirectory(directory);
+            fd.setDirectory(directory.getPath());
         }
         boolean multi = false;
-        if(directoryMode) {
+        if(this.isDirectoryMode()) {
             if(multi) {
                 selection = fd.getFolders();
             } else {
                 selection = new String[]{fd.getFolder()};
             }
         } else {
-            if(saveDialog) {
+            if(this.isSaveDialog()) {
                 selection = new String[]{fd.getSaveFile()};
             } else {
                 if(multi) {
@@ -52,11 +47,11 @@ public class XFileDialogFileChooser extends BaseFileChooser {
         if(selection == null) {
             return null;
         } else {
-            if(directoryMode) { 
-                return new File(selection[0]);
-            } else {
+//            if(this.isDirectoryMode()) { 
+//                return new File(selection[0]);
+//            } else {
                 return new File(fd.getDirectory(), selection[0]);
-            }
+//            }
         }
     }
 

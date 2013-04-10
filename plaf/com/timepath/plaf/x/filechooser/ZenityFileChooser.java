@@ -21,21 +21,19 @@ import java.util.logging.Logger;
 public class ZenityFileChooser extends BaseFileChooser {
     
     private static final Logger LOG = Logger.getLogger(ZenityFileChooser.class.getName());
-    
-    public ZenityFileChooser(Frame parent, String title, String directory) {
-        super(parent, title, directory);
-    }
 
     @Override
-    public File choose(boolean directoryMode, boolean saveDialog) throws IOException {
+    public File choose() throws IOException {
         ArrayList<String> cmd = new ArrayList<String>();
         cmd.add("zenity");
-        //cmd.add("--multiple")
         cmd.add("--file-selection");
-        if(directoryMode) {
+        if(this.isDirectoryMode()) {
             cmd.add("--directory");
-        } else if(saveDialog) {
+        } else if(this.isSaveDialog()) {
             cmd.add("--save");
+        }
+        if(this.isMultiSelectionEnabled()) {
+            cmd.add("--multiple");
         }
         cmd.add(directory != null ? "--filename=" + directory : "");
         String windowClass = WindowToolkit.getWindowClass();
@@ -54,12 +52,10 @@ public class ZenityFileChooser extends BaseFileChooser {
         if(WindowToolkit.getWindowClass() != null) {
             cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
         }
-        if(title != null) {
-            cmd.add("--title=" + title);
-        } else {
-            cmd.add(saveDialog ? "Save" : "Open");
+        cmd.add("--title=" + this.getTitle());
+        if(this.getApproveButtonText() != null) {
+            cmd.add("--ok-label=" + this.getApproveButtonText());
         }
-//        cmd.add("--ok-label=TEXT ");
 //        cmd.add("--cancel-label=TEXT ");
 
         String[] exec = new String[cmd.size()];
