@@ -118,7 +118,11 @@ public class DataTest extends javax.swing.JFrame {
 
     private void openVDF(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openVDF
         try {
-            open(new NativeFileChooser().setParent(this).setTitle("Open VDF").choose());
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Open VDF").choose();
+            if(fs == null) {
+                return;
+            }
+            open(fs[0]);
         } catch(IOException ex) {
             Logger.getLogger(DataTest.class.getName()).log(Level.SEVERE, null, ex);
         }

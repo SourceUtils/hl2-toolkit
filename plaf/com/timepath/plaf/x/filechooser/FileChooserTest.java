@@ -267,16 +267,18 @@ public class FileChooserTest extends javax.swing.JFrame {
                     .setMultiSelectionEnabled(this.checkMulti.isSelected())
                     .setTitle(this.textTitle.getText());
 
-            File f = c.choose();
+            File[] f = c.choose();
 
             if(f == null) {
                 return;
             }
             DefaultTableModel table = (DefaultTableModel) jTable1.getModel();
             table.setRowCount(0);
-            Object[] row = new Object[]{f.getParentFile().getPath(), f.getName()};
-            LOG.log(Level.INFO, "{0}: {1}", new Object[]{f, Arrays.toString(row)});
-            table.addRow(row);
+            for(int i = 0; i < f.length; i++) {
+                Object[] row = new Object[]{f[i].getParentFile().getPath(), f[i].getName()};
+                table.addRow(row);
+                LOG.log(Level.INFO, "{0}: {1}", new Object[]{f[i], Arrays.toString(row)});
+            }
         } catch(IOException ex) {
             Logger.getLogger(FileChooserTest.class.getName()).log(Level.SEVERE, null, ex);
         } catch(InstantiationException ex) {

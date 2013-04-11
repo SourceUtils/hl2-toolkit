@@ -35,6 +35,7 @@ public class NativeFileChooser extends BaseFileChooser {
                 .setDirectory(directory)
                 .setFile(file)
                 .setFileMode(fileMode)
+                .setMultiSelectionEnabled(multiSelectionEnabled)
                 .setParent(parent)
                 ;
         
@@ -42,7 +43,7 @@ public class NativeFileChooser extends BaseFileChooser {
     }
 
     @Override
-    public File choose() throws IOException {
+    public File[] choose() throws IOException {
         return getChooser().choose();
     }
 }

@@ -2,7 +2,6 @@ package com.timepath.plaf.x.filechooser;
 
 import com.timepath.plaf.OS;
 import java.awt.FileDialog;
-import java.awt.Frame;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.logging.Logger;
@@ -14,7 +13,7 @@ import java.util.logging.Logger;
 public class AWTFileChooser extends BaseFileChooser {
 
     @Override
-    public File choose() {
+    public File[] choose() {
         if(OS.isMac()) {
             System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(this.isDirectoryMode()));
         }
@@ -40,8 +39,9 @@ public class AWTFileChooser extends BaseFileChooser {
         if(fd.getDirectory() == null || fd.getFile() == null) { // cancelled
             return null;
         }
-        return new File(fd.getDirectory() + File.pathSeparator + fd.getFile());
+        return new File[]{new File(fd.getDirectory() + File.pathSeparator + fd.getFile())};
     }
+
     private static final Logger LOG = Logger.getLogger(AWTFileChooser.class.getName());
-    
+
 }

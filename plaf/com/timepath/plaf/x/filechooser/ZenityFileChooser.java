@@ -2,7 +2,6 @@ package com.timepath.plaf.x.filechooser;
 
 import com.timepath.FileUtils;
 import com.timepath.plaf.OS.WindowToolkit;
-import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,7 +22,7 @@ public class ZenityFileChooser extends BaseFileChooser {
     private static final Logger LOG = Logger.getLogger(ZenityFileChooser.class.getName());
 
     @Override
-    public File choose() throws IOException {
+    public File[] choose() throws IOException {
         ArrayList<String> cmd = new ArrayList<String>();
         cmd.add("zenity");
         cmd.add("--file-selection");
@@ -35,7 +34,11 @@ public class ZenityFileChooser extends BaseFileChooser {
         if(this.isMultiSelectionEnabled()) {
             cmd.add("--multiple");
         }
-        cmd.add(directory != null ? "--filename=" + directory : "");
+        if(file != null) {
+            cmd.add("--filename=" + file.getPath());
+        } else if(directory != null) {
+            cmd.add("--filename=" + directory.getPath() + "/");
+        }
         String windowClass = WindowToolkit.getWindowClass();
         try {
             Toolkit xToolkit = Toolkit.getDefaultToolkit();
@@ -70,10 +73,19 @@ public class ZenityFileChooser extends BaseFileChooser {
         });
         BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String selection = br.readLine();
+//        String selection;
+//        while((selection = br.readLine()) != null) {
+            LOG.log(Level.INFO, "Zenity selection: {0}", selection);
+//        }
         if(selection == null) {
             return null;
         } else {
-            return new File(selection);
+            String[] selected = selection.split("\\|");
+            File[] f = new File[selected.length];
+            for(int i = 0; i < f.length; i++) {
+                f[i] = new File(selected[i]);
+            }
+            return f;
         }
     }
     

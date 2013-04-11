@@ -343,10 +343,11 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         try {
-            File f = new NativeFileChooser().setParent(this).setTitle("Select vbf").choose();
-            if(f == null) {
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select vbf").choose();
+            if(fs == null) {
                 return;
             }
+            File f = fs[0];
             load(f.getPath().replace(".vbf", ""));
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -377,10 +378,11 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
         try {
-            File f = new NativeFileChooser().setParent(this).setTitle("Select save location").setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
-            if(f == null) {
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select save location").setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
+            if(fs == null) {
                 return;
             }
+            File f = fs[0];
             b.save(f);
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);

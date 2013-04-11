@@ -146,5 +146,5 @@ public abstract class BaseFileChooser {
         setDirectory(currentDirectoryPath);
     }
 
-    public abstract File choose() throws IOException;
+    public abstract File[] choose() throws IOException;
 }

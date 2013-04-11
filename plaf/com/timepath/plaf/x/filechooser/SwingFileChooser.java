@@ -10,9 +10,9 @@ import javax.swing.JFileChooser;
  * @author timepath
  */
 public class SwingFileChooser extends BaseFileChooser {
-    
+
     @Override
-    public File choose() {
+    public File[] choose() {
         if(OS.isLinux()) {
 //            UIManager.put("FileChooserUI", "eu.kostia.gtkjfilechooser.ui.GtkFileChooserUI");
         }
@@ -21,15 +21,20 @@ public class SwingFileChooser extends BaseFileChooser {
         fd.setDialogType(this.isSaveDialog() ? JFileChooser.SAVE_DIALOG : JFileChooser.OPEN_DIALOG);
         fd.setSelectedFile(file);
         fd.setFileSelectionMode(this.isDirectoryMode() ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_AND_DIRECTORIES);
-        String selection = null;
+        if(!this.isSaveDialog()) {
+            fd.setMultiSelectionEnabled(multiSelectionEnabled);
+        }
+        File[] selection = null;
         if(fd.showDialog(parent, approveButtonText) == JFileChooser.APPROVE_OPTION) {
-            selection = fd.getSelectedFile().getPath();
+            if(this.multiSelectionEnabled) {
+                selection = fd.getSelectedFiles();
+            } else {
+                selection = new File[]{fd.getSelectedFile()};
+            }
         }
-        if(selection == null) {
-            return null;
-        }
-        return new File(selection);
+        return selection;
     }
+
     private static final Logger LOG = Logger.getLogger(SwingFileChooser.class.getName());
-    
+
 }

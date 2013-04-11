@@ -37,7 +37,9 @@ import javax.swing.tree.TreeSelectionModel;
 public class ArchiveTest extends javax.swing.JFrame {
 
     private ArrayList<GCF> gcfs = new ArrayList<GCF>();
+
     private final DefaultTreeModel tree;
+
     private final DefaultTableModel table;
 
     /**
@@ -233,23 +235,30 @@ public class ArchiveTest extends javax.swing.JFrame {
 
     private void open(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_open
         try {
-            File f = new NativeFileChooser().setParent(this).setTitle("Open archive").setDirectory(SteamUtils.locateSteamAppsDirectory()).choose();
-            if(f == null) {
-                LOG.info("File is null");
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Open archive").setMultiSelectionEnabled(true).setDirectory(SteamUtils.locateSteamAppsDirectory()).choose();
+            if(fs == null) {
                 return;
             }
-            GCF g = GCF.load(f);
-            if(g == null) {
-                LOG.log(Level.WARNING, "Unable to load {0}", f);
-                return;
+            for(int i = 0; i < fs.length; i++) {
+                File f = fs[i];
+
+                if(f == null) {
+                    LOG.info("File is null");
+                    return;
+                }
+                GCF g = GCF.load(f);
+                if(g == null) {
+                    LOG.log(Level.WARNING, "Unable to load {0}", f);
+                    return;
+                }
+                gcfs.add(g);
+                //        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
+                DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
+                DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
+                tree.insertNodeInto(direct, gcf, 0);
+                g.analyze(direct, false);
+                tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
             }
-            gcfs.add(g);
-    //        ((DefaultMutableTreeNode) tree.getRoot()).removeAllChildren();
-            DefaultMutableTreeNode gcf = new DefaultMutableTreeNode(g);
-            DefaultMutableTreeNode direct = new DefaultMutableTreeNode(g.directoryEntries[0]);
-            tree.insertNodeInto(direct, gcf, 0);
-            g.analyze(direct, false);
-            tree.insertNodeInto(gcf, (MutableTreeNode) tree.getRoot(), tree.getChildCount(tree.getRoot()));
             tree.reload();
         } catch(IOException ex) {
             Logger.getLogger(ArchiveTest.class.getName()).log(Level.SEVERE, null, ex);
@@ -280,10 +289,11 @@ public class ArchiveTest extends javax.swing.JFrame {
 
     private void jPopupMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem1ActionPerformed
         try {
-            File out = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").choose();
-            if(out == null) {
+            File[] outs = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").choose();
+            if(outs == null) {
                 return;
             }
+            File out = outs[0];
             for(DirectoryEntry e : toExtract) {
                 try {
                     e.extract(out);
@@ -298,7 +308,7 @@ public class ArchiveTest extends javax.swing.JFrame {
     }//GEN-LAST:event_jPopupMenuItem1ActionPerformed
 
     private GCF selectedGCF;
-    
+
     private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
         if(SwingUtilities.isRightMouseButton(evt)) {
             TreePath clicked = jTree1.getPathForLocation(evt.getX(), evt.getY());
@@ -373,7 +383,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         } else {
             DirectoryEntry last = toExtract.get(toExtract.size() - 1);
             title = last.getName();
-            message = "Entry "+last.index+", " + last.getAbsoluteName() + "\n";
+            message = "Entry " + last.index + ", " + last.getAbsoluteName() + "\n";
         }
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jPopupMenuItem2ActionPerformed
@@ -388,7 +398,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.size(); i++) {
             DirectoryEntry c = children.get(i);
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
+                table.addRow(new Object[]{c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
             }
         }
     }
@@ -402,7 +412,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.length; i++) {
             DirectoryEntry c = children[i];
             if(!c.isDirectory()) {
-                table.addRow(new Object[] {c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
+                table.addRow(new Object[]{c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
             }
         }
     }
@@ -434,5 +444,7 @@ public class ArchiveTest extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+
     private static final Logger LOG = Logger.getLogger(ArchiveTest.class.getName());
+
 }
