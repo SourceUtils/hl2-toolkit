@@ -50,6 +50,9 @@ public abstract class BaseFileChooser {
     }
     
     public BaseFileChooser setDirectory(String directoryPath) {
+        if(directoryPath == null) {
+            this.directory = null;
+        }
         return setDirectory(new File(directoryPath));
     }
     
