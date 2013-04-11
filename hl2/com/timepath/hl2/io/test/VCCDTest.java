@@ -531,7 +531,7 @@ public class VCCDTest extends javax.swing.JFrame {
     }
 
     private class TokenDropdown extends DefaultCellEditor {
-        
+
         private ArrayList<String> tokens = initVals();
 
         private ArrayList<String> initVals() {
@@ -539,23 +539,23 @@ public class VCCDTest extends javax.swing.JFrame {
             Collections.sort(list);
             return list;
         }
-        
+
         private ComboBoxChangeListener dl = new ComboBoxChangeListener();
 
         TokenDropdown() {
             super(new JComboBox()); // <String>
             createComboBox(initVals());
         }
-        
+
         private void createComboBox(ArrayList<String> list) {
             SharedPoolComboBox comboBox = new SharedPoolComboBox(list);
             dl.setField((JTextField) comboBox.getEditor().getEditorComponent());
             super.editorComponent = comboBox;
         }
-        
+
         //<editor-fold defaultstate="collapsed" desc="ComboBox">
         private class SharedPoolComboBox extends JComboBox { // <String>
-            
+
             SharedPoolComboBox(ArrayList<String> list) {
                 DefaultComboBoxModel model = new DefaultComboBoxModel(); // <String>
                 this.setModel(model);
@@ -566,7 +566,7 @@ public class VCCDTest extends javax.swing.JFrame {
             }
         }
         //</editor-fold>
-        
+
         private class ComboBoxChangeListener implements DocumentListener {
 
             String old;
@@ -594,7 +594,7 @@ public class VCCDTest extends javax.swing.JFrame {
                     diff.remove(str);
                 }
 //                createComboBox(diff);
-                
+
                 int erow = jTable1.getEditingRow();
                 if(erow > -1 && erow < jTable1.getRowCount()) {
                     jTable1.getModel().setValueAt(hexFormat(VCCD.takeCRC32(str)), jTable1.convertRowIndexToModel(erow), 0);
@@ -621,6 +621,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 field.getDocument().addDocumentListener(this);
             }
         }
+
     }
 
     private TableCellEditor getKeyEditor() {
@@ -709,22 +710,25 @@ public class VCCDTest extends javax.swing.JFrame {
         HashMap<Integer, String> map = new HashMap<Integer, String>();
         LOG.info("Generating hash codes ...");
         try {
-            GCF gcf = new GCF(new File(SteamUtils.locateSteamAppsDirectory() + "/Team Fortress 2 Content.gcf"));
+            File f = new File(SteamUtils.locateSteamAppsDirectory() + "/Team Fortress 2 Content.gcf");
+            if(f.exists()) {
+                GCF gcf = new GCF(f);
 
-            CRC32 crc = new CRC32();
-            DefaultMutableTreeNode top = new DefaultMutableTreeNode();
-            ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
-            for(DirectoryEntry de : caps) {
-                VDF.analyze(gcf.extract(de, null), top);
-            }
+                CRC32 crc = new CRC32();
+                DefaultMutableTreeNode top = new DefaultMutableTreeNode();
+                ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
+                for(DirectoryEntry de : caps) {
+                    VDF.analyze(gcf.extract(de, null), top);
+                }
 
-            for(int i = 0; i < top.getChildCount(); i++) {
-                String str = top.getChildAt(i).toString();
-                str = str.replaceAll("\"", "").toLowerCase();
-                LOG.fine(str);
-                crc.update(str.getBytes());
-                map.put((int) crc.getValue(), str);
-                crc.reset();
+                for(int i = 0; i < top.getChildCount(); i++) {
+                    String str = top.getChildAt(i).toString();
+                    str = str.replaceAll("\"", "").toLowerCase();
+                    LOG.fine(str);
+                    crc.update(str.getBytes());
+                    map.put((int) crc.getValue(), str);
+                    crc.reset();
+                }
             }
         } catch(IOException ex) {
             LOG.log(Level.WARNING, "Error generating hash codes", ex);
