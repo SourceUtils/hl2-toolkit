@@ -10,6 +10,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -32,6 +33,7 @@ public class VPK implements Archive {
         if(dummy != ((short) 0xFFFF)) {
             LOG.info("Dummy: " + dummy);
         }
+        b.get(new byte[e.preloadBytes]);
     }
 
     private DefaultMutableTreeNode es;
@@ -61,13 +63,13 @@ public class VPK implements Archive {
             }
             int ver = b.getInt();
             // length of directory
-            long treeLength = b.getInt();
+            int treeLength = b.getInt(); // XXX: unsigned
 
 
-            int Unknown1 = 0; // 0 in CSGO
+            int Unknown1 = 0; // 0 in most
             int FooterLength = 0;
-            int Unknown3 = 0; // 48 in CSGO
-            int Unknown4 = 0; // 0 in CSGO
+            int Unknown3 = 0; // 48 in most
+            int Unknown4 = 0; // 296 in most
             if(ver >= 2) {
                 Unknown1 = b.getInt();
                 FooterLength = b.getInt();
@@ -96,34 +98,13 @@ public class VPK implements Archive {
             }
             LOG.info(sb.toString());
 
-            // If the file data is stored in the same file as the directory, its offset is (sizeof(header) + TreeLength)
-            es = new DefaultMutableTreeNode("root");
-            for(;;) {
-                String extension = readString(b);
-                if(extension.length() == 0) {
-                    break;
-                }
-                DefaultMutableTreeNode e = new DefaultMutableTreeNode(extension);
-                es.add(e);
-                for(;;) {
-                    String path = readString(b);
-                    if(path.length() == 0) {
-                        break;
-                    }
-                    DefaultMutableTreeNode p = new DefaultMutableTreeNode(path);
-                    e.add(p);
-                    for(;;) {
-                        String filename = readString(b);
-                        if(filename.length() == 0) {
-                            break;
-                        }
-                        p.add(new DefaultMutableTreeNode(filename));
-                        ReadFileInformationAndPreloadData(b);
-                    }
-                }
-            }
+            parseTree(b);//.get(new byte[treeLength]));
+            b.get(new byte[Unknown1]);
+            b.get(new byte[FooterLength]);
+            b.get(new byte[Unknown3]);
+            parse4(b.get(new byte[Unknown4]));
 
-            // Footer
+            LOG.log(Level.INFO, "Underflow: {0}", (b.remaining()));
 
         } catch(IOException ex) {
             ex.printStackTrace();
@@ -228,5 +209,51 @@ public class VPK implements Archive {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    /**
+     * 0xA0000000
+     *
+     * @param get
+     */
+    private void parse4(ByteBuffer get) {
+    }
+
+    private void parseTree(ByteBuffer b) {
+        int cf = 0;
+        int cd = 0;
+        int cn = 0;
+        // If the file data is stored in the same file as the directory, its offset is (sizeof(header) + TreeLength)
+        es = new DefaultMutableTreeNode("root");
+        for(;;) {
+            String extension = readString(b);
+            if(extension.length() == 0) {
+                break;
+            }
+            cf++;
+            DefaultMutableTreeNode e = new DefaultMutableTreeNode(extension);
+            es.add(e);
+            for(;;) {
+                String path = readString(b);
+                if(path.length() == 0) {
+                    break;
+                }
+                cd++;
+                DefaultMutableTreeNode p = new DefaultMutableTreeNode(path);
+                e.add(p);
+                for(;;) {
+                    String filename = readString(b);
+                    if(filename.length() == 0) {
+                        break;
+                    }
+                    cn++;
+                    p.add(new DefaultMutableTreeNode(filename));
+                    ReadFileInformationAndPreloadData(b);
+                }
+            }
+        }
+        LOG.info("fCount: " + cf);
+        LOG.info("dCount: " + cd);
+        LOG.info("nCount: " + cn);
     }
 }
