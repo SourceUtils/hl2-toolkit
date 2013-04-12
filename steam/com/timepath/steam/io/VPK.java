@@ -1,15 +1,20 @@
 package com.timepath.steam.io;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.logging.Logger;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
- *
+ * Loads _dir.vpk files
  * https://developer.valvesoftware.com/wiki/VPK_File_Format
  *
  * @author timepath
@@ -23,78 +28,131 @@ public class VPK implements Archive {
         e.archiveIndex = b.getShort();
         e.entryOffset = b.getInt();
         e.entryLength = b.getInt();
+        short dummy = b.getShort();
+        if(dummy != ((short) 0xFFFF)) {
+            LOG.info("Dummy: " + dummy);
+        }
     }
+
+    private DefaultMutableTreeNode es;
+
+    private String name;
 
     public InputStream get(int index) {
         return null;
     }
 
-    public static VPK load(String s) {
-        VPK v = new VPK();
+    public VPK() {
+    }
+
+    private static int expectedHeader = 0x55AA1234;
+
+    public VPK load(File file) {
+        this.name = file.getName();
         try {
-            RandomAccessFile rf = new RandomAccessFile(s, "r");
+            RandomAccessFile rf = new RandomAccessFile(file, "r");
             ByteBuffer b = rf.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, rf.length());
             b.order(ByteOrder.LITTLE_ENDIAN);
 
-            int signature = b.getInt();
-            int ver = b.getInt();
-            int treeLength = b.getInt();
 
+            int signature = b.getInt();
+            if(signature != expectedHeader) {
+                return null;
+            }
+            int ver = b.getInt();
+            // length of directory
+            long treeLength = b.getInt();
+
+
+            int Unknown1 = 0; // 0 in CSGO
+            int FooterLength = 0;
+            int Unknown3 = 0; // 48 in CSGO
+            int Unknown4 = 0; // 0 in CSGO
             if(ver >= 2) {
-                int Unknown1 = b.getInt(); // 0 in CSGO
-                int FooterLength = b.getInt();
-                int Unknown3 = b.getInt(); // 48 in CSGO
-                int Unknown4 = b.getInt(); // 0 in CSGO
+                Unknown1 = b.getInt();
+                FooterLength = b.getInt();
+                Unknown3 = b.getInt();
+                Unknown4 = b.getInt();
             }
 
+            entries = new VPKDirectoryEntry[6786];
+
+            Object[][] debug = {
+                //                {"signature = ", Integer.toHexString(signature), ", looking for " + Integer.toHexString(expectedHeader)},
+                {"ver = ", ver},
+                {"length = ", treeLength},
+                {"Unknown1 = ", Unknown1},
+                {"FooterLength = ", FooterLength},
+                {"Unknown3 = ", Unknown3},
+                {"Unknown4 = ", Unknown4}
+            };
+
+            StringBuilder sb = new StringBuilder();
+            for(int l = 0; l < debug.length; l++) {
+                for(int x = 0; x < debug[l].length; x++) {
+                    sb.append(debug[l][x]);
+                }
+                sb.append("\n");
+            }
+            LOG.info(sb.toString());
+
             // If the file data is stored in the same file as the directory, its offset is (sizeof(header) + TreeLength)
+            es = new DefaultMutableTreeNode("root");
             for(;;) {
                 String extension = readString(b);
                 if(extension.length() == 0) {
                     break;
                 }
+                DefaultMutableTreeNode e = new DefaultMutableTreeNode(extension);
+                es.add(e);
                 for(;;) {
                     String path = readString(b);
                     if(path.length() == 0) {
                         break;
                     }
+                    DefaultMutableTreeNode p = new DefaultMutableTreeNode(path);
+                    e.add(p);
                     for(;;) {
                         String filename = readString(b);
                         if(filename.length() == 0) {
                             break;
                         }
+                        p.add(new DefaultMutableTreeNode(filename));
                         ReadFileInformationAndPreloadData(b);
                     }
                 }
             }
-            
+
             // Footer
 
         } catch(IOException ex) {
             ex.printStackTrace();
             return null;
         }
-        return v;
+        return this;
     }
 
     private static String readString(ByteBuffer buf) {
-        String str = "";
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for(;;) {
-            char c = buf.getChar();
-            if(c == 0) {
+            byte b = buf.get();
+            if(b == 0) {
                 break;
             }
-            str += c;
+            baos.write(b);
         }
-        return str;
+//        LOG.info(Arrays.toString(baos.toByteArray()) + "");
+        return Charset.forName("UTF-8").decode(ByteBuffer.wrap(baos.toByteArray())).toString();
     }
+
+    private VPKDirectoryEntry[] entries;
 
     /**
      * If a file contains preload data, the preload data immediately follows the above
      * structure.
      * The entire size of a file is PreloadBytes + EntryLength.
      */
-    static class VPKDirectoryEntry {
+    static class VPKDirectoryEntry implements DirectoryEntry {
 
         /**
          * A 32bit CRC of the file's data.
@@ -105,7 +163,7 @@ public class VPK implements Archive {
          * The number of bytes contained in the index file.
          */
         short preloadBytes;
-        
+
         /**
          * A zero based index of the archive this file's data is contained in.
          * If 0x7fff, the data follows the directory.
@@ -113,7 +171,8 @@ public class VPK implements Archive {
         short archiveIndex;
 
         /**
-         * If ArchiveIndex is 0x7fff, the offset of the file data relative to the end of the directory (see the header for more details).
+         * If ArchiveIndex is 0x7fff, the offset of the file data relative to the end of the
+         * directory (see the header for more details).
          * Otherwise, the offset of the data from the start of the specified archive.
          */
         int entryOffset;
@@ -126,8 +185,48 @@ public class VPK implements Archive {
 
         static int terminator = 0xffff; // short
 
+        public int getItemSize() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public Object getAttributes() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public boolean isDirectory() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public Object getPath() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public Object getGCF() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public boolean isComplete() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
     }
 
     private static final Logger LOG = Logger.getLogger(VPK.class.getName());
 
+    public ArrayList<DirectoryEntry> find(String search) {
+        ArrayList<DirectoryEntry> list = new ArrayList<DirectoryEntry>();
+        return list;
+    }
+
+    public DirectoryEntry getRoot() {
+        return entries[0];
+    }
+
+    public void analyze(DefaultMutableTreeNode top, boolean leaves) {
+        top.add(es);
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

@@ -129,19 +129,19 @@ public class DataTest extends javax.swing.JFrame {
     }//GEN-LAST:event_openVDF
 
     private void appInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appInfo
-        open(new File(SteamUtils.steamApps().getParent() + "/appcache/appinfo.vdf"));
+        open(new File(SteamUtils.getSteamApps().getParent() + "/appcache/appinfo.vdf"));
     }//GEN-LAST:event_appInfo
 
     private void packageInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_packageInfo
-        open(new File(SteamUtils.steamApps().getParent() + "/appcache/packageinfo.vdf"));
+        open(new File(SteamUtils.getSteamApps().getParent() + "/appcache/packageinfo.vdf"));
     }//GEN-LAST:event_packageInfo
 
     private void updateStats(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateStats
-        open(new File(SteamUtils.steamApps().getParent() + "/AppUpdateStats.blob"));
+        open(new File(SteamUtils.getSteamApps().getParent() + "/AppUpdateStats.blob"));
     }//GEN-LAST:event_updateStats
 
     private void clientRegistry(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clientRegistry
-        open(new File(SteamUtils.steamApps().getParent() + "/ClientRegistry.blob"));
+        open(new File(SteamUtils.getSteamApps().getParent() + "/ClientRegistry.blob"));
     }//GEN-LAST:event_clientRegistry
 
     private void open(File f) {

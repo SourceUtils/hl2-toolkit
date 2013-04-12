@@ -3,7 +3,6 @@ package com.timepath.steam.io;
 import com.timepath.DataUtils;
 import com.timepath.EnumFlagUtils;
 import com.timepath.EnumFlags;
-import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.util.ViewableData;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,6 +30,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class GCF implements Archive, ViewableData {
 
     private static final Logger LOG = Logger.getLogger(GCF.class.getName());
+    
+    public GCF() {
+        rf = null;
+    }
 
     //<editor-fold defaultstate="collapsed" desc="Utils">
     public void analyze(DefaultMutableTreeNode top) {
@@ -38,7 +41,7 @@ public class GCF implements Archive, ViewableData {
     }
     
     public void analyze(DefaultMutableTreeNode top, boolean leaves) {
-        DirectoryEntry[] entries = directoryEntries;
+        GCFDirectoryEntry[] entries = directoryEntries;
         analyze(entries[0], top, leaves);
     }
 
@@ -48,8 +51,8 @@ public class GCF implements Archive, ViewableData {
      * @param parent The parent TreeNode to attach to
      * @param leaves Whether nodes with no children should be displayed
      */
-    public void analyze(DirectoryEntry rootEntry, DefaultMutableTreeNode parent, boolean leaves) {
-        DirectoryEntry[] entries = getImmediateChildren(rootEntry);
+    public void analyze(GCFDirectoryEntry rootEntry, DefaultMutableTreeNode parent, boolean leaves) {
+        GCFDirectoryEntry[] entries = getImmediateChildren(rootEntry);
         for(int i = 0; i < entries.length; i++) {
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(entries[i]);
             if(entries[i].firstChildIndex != 0) {
@@ -61,9 +64,9 @@ public class GCF implements Archive, ViewableData {
         }
     }
 
-    public DirectoryEntry[] getImmediateChildren(DirectoryEntry root) {
+    public GCFDirectoryEntry[] getImmediateChildren(GCFDirectoryEntry root) {
         int idx = root.index;
-        DirectoryEntry[] entries = new DirectoryEntry[directoryEntries[idx].itemSize];
+        GCFDirectoryEntry[] entries = new GCFDirectoryEntry[directoryEntries[idx].itemSize];
         int next = directoryEntries[idx].firstChildIndex;
         for(int i = 0; i < entries.length; i++) {
             entries[i] = directoryEntries[next];
@@ -137,7 +140,7 @@ public class GCF implements Archive, ViewableData {
             //<editor-fold defaultstate="collapsed" desc="Extract directory">
             outFile = new File(dest.getPath(), str);
             outFile.mkdirs();
-            DirectoryEntry[] children = this.getImmediateChildren(directoryEntries[index]);
+            GCFDirectoryEntry[] children = this.getImmediateChildren(directoryEntries[index]);
             for(int i = 0; i < children.length; i++) {
                 extract(children[i].index, dest);
             }
@@ -190,7 +193,11 @@ public class GCF implements Archive, ViewableData {
     }
     
     public File extract(DirectoryEntry e, File dest) throws IOException {
-        return this.extract(e.index, dest);
+        if(!(e instanceof GCFDirectoryEntry)) {
+            LOG.log(Level.WARNING, "{0} is not a GCF directory entry", e);
+        }
+        GCFDirectoryEntry gde = (GCFDirectoryEntry) e;
+        return this.extract(gde.index, dest);
     }
     //</editor-fold>
 
@@ -268,9 +275,9 @@ public class GCF implements Archive, ViewableData {
         return file.getName();
     }
     
-    public static GCF load(File file) {
+    public GCF load(File f) {
         try {
-            return new GCF(file);
+            return new GCF(f);
         } catch(IOException e) {
             return null;
         }
@@ -290,9 +297,9 @@ public class GCF implements Archive, ViewableData {
         if(skipManifest) {
             rf.skipBytes(manifestHeader.binarySize - ManifestHeader.SIZE);
         } else {
-            directoryEntries = new DirectoryEntry[manifestHeader.nodeCount];
+            directoryEntries = new GCFDirectoryEntry[manifestHeader.nodeCount];
             for(int i = 0; i < manifestHeader.nodeCount; i++) {
-                directoryEntries[i] = new DirectoryEntry(i);
+                directoryEntries[i] = new GCFDirectoryEntry(i);
             }
 
             ls = DataUtils.readBytes(rf, manifestHeader.nameSize);
@@ -366,7 +373,7 @@ public class GCF implements Archive, ViewableData {
     public InputStream get(final int index) {
         return new InputStream() {
             
-            private DirectoryEntry de = GCF.this.directoryEntries[index];
+            private GCFDirectoryEntry de = GCF.this.directoryEntries[index];
             
             private ByteBuffer buf = createBuffer();
             
@@ -430,6 +437,10 @@ public class GCF implements Archive, ViewableData {
             }
             
         };
+    }
+
+    public DirectoryEntry getRoot() {
+        return directoryEntries[0];
     }
 
     /**
@@ -924,7 +935,7 @@ public class GCF implements Archive, ViewableData {
         }
     }
 
-    public DirectoryEntry[] directoryEntries;
+    public GCFDirectoryEntry[] directoryEntries;
     
     public enum DirectoryEntryAttributes implements EnumFlags<DirectoryEntryAttributes> {
         
@@ -957,7 +968,7 @@ public class GCF implements Archive, ViewableData {
         
     }
 
-    public class DirectoryEntry implements ViewableData {
+    public class GCFDirectoryEntry implements DirectoryEntry, ViewableData {
 
         /**
          * Offset to the directory item name from the end of the directory items
@@ -993,7 +1004,7 @@ public class GCF implements Archive, ViewableData {
 
         public final int index;
 
-        private DirectoryEntry(int index) throws IOException {
+        private GCFDirectoryEntry(int index) throws IOException {
             this.index = index;
             nameOffset = DataUtils.readULEInt(rf);
             itemSize = DataUtils.readULEInt(rf);
@@ -1056,8 +1067,16 @@ public class GCF implements Archive, ViewableData {
             GCF.this.extract(index, out);
         }
 
-        public DirectoryEntry[] getImmediateChildren() {
+        public GCFDirectoryEntry[] getImmediateChildren() {
             return GCF.this.getImmediateChildren(this);
+        }
+
+        public int getItemSize() {
+            return this.itemSize;
+        }
+
+        public Object getAttributes() {
+            return this.attributes;
         }
     }
 

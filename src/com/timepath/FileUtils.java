@@ -20,6 +20,20 @@ public class FileUtils {
         file.setExecutable(true, false);
     }
 
+    /*
+     * Get the extension of a file.
+     */
+    public static String extension(File f) {
+        String ext = null;
+        String s = f.getName();
+        int i = s.lastIndexOf('.');
+
+        if(i > 0 && i < s.length() - 1) {
+            ext = s.substring(i + 1).toLowerCase();
+        }
+        return ext;
+    }
+
     public static String getLinuxStore() {
         String root = System.getenv("XDG_DATA_HOME");
         if(root == null) {
@@ -27,5 +41,4 @@ public class FileUtils {
         }
         return root;
     }
-
 }

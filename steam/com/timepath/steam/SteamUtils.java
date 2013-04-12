@@ -15,11 +15,11 @@ public class SteamUtils {
     private SteamUtils() {
     }
     
-    public static File steamApps() {
+    public static File getSteamApps() {
         return new File(locateSteamAppsDirectory());
     }
 
-    public static String locateSteamAppsDirectory() {
+    private static String locateSteamAppsDirectory() {
         if(OS.isWindows()) {
             String str = System.getenv("PROGRAMFILES(x86)");
             if(str == null) {

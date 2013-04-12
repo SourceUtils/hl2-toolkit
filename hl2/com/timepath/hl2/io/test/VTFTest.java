@@ -75,23 +75,21 @@ public class VTFTest {
                      * Make reasonably sure we have an image format that AWT can
                      * handle so we don't try to draw something silly.
                      */
-                    if((name != null) && name.toLowerCase().endsWith(".vtf")) {
-                        try {
-                            VTF v = VTF.load(new FileInputStream(selection));
-                            if(v == null) {
-                                return;
-                            }
-                            Image i = v.getImage(0);
-                            if(i == null) {
-                                return;
-                            }
-                            f.setIconImage(VTF.load(new FileInputStream(selection)).getThumbImage());
-                            image = (i != null ? i : new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB));
-                            scaleImage();
-                            repaint();
-                        } catch(IOException ex) {
-                            LOG.log(Level.SEVERE, null, ex);
+                    try {
+                        VTF v = VTF.load(new FileInputStream(selection));
+                        if(v == null) {
+                            return;
                         }
+                        Image i = v.getImage(0);
+                        if(i == null) {
+                            return;
+                        }
+                        f.setIconImage(VTF.load(new FileInputStream(selection)).getThumbImage());
+                        image = (i != null ? i : new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB));
+                        scaleImage();
+                        repaint();
+                    } catch(IOException ex) {
+                        LOG.log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -154,9 +152,6 @@ public class VTFTest {
             public boolean accept(File file) {
                 if(file.isDirectory()) {
                     return true;
-                }
-                if(!file.getName().toLowerCase().endsWith(".vtf")) {
-                    return false;
                 }
                 VTF v = null;
                 try {

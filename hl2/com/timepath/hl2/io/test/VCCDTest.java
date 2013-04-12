@@ -3,8 +3,9 @@ package com.timepath.hl2.io.test;
 import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.Entry;
 import com.timepath.steam.SteamUtils;
+import com.timepath.steam.io.Archive.DirectoryEntry;
 import com.timepath.steam.io.GCF;
-import com.timepath.steam.io.GCF.DirectoryEntry;
+import com.timepath.steam.io.GCF.GCFDirectoryEntry;
 import com.timepath.steam.io.VDF;
 import java.awt.Color;
 import java.awt.Component;
@@ -710,7 +711,7 @@ public class VCCDTest extends javax.swing.JFrame {
         HashMap<Integer, String> map = new HashMap<Integer, String>();
         LOG.info("Generating hash codes ...");
         try {
-            File f = new File(SteamUtils.locateSteamAppsDirectory() + "/Team Fortress 2 Content.gcf");
+            File f = new File(SteamUtils.getSteamApps(), "Team Fortress 2 Content.gcf");
             if(f.exists()) {
                 GCF gcf = new GCF(f);
 

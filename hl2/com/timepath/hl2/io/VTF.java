@@ -217,18 +217,20 @@ public class VTF implements ViewableData {
     private ByteBuffer buf;
 
     public static VTF load(InputStream is) throws IOException {
+        if(((is.read()) | (is.read() << 8) | (is.read() << 16) | (is.read() << 24)) != expectedHeader) {
+//            LOG.fine("Invalid VTF file");
+//            cache.put(file, null);
+            return null;
+        }
+        
         VTF vtf = new VTF();
         vtf.stream = is;
         byte[] array = new byte[is.available()/*65*/];
         is.read(array);
         vtf.buf = ByteBuffer.wrap(array);
         vtf.buf.order(ByteOrder.LITTLE_ENDIAN);
-
-        if(vtf.buf.getInt() != expectedHeader) {
-            LOG.severe("Invalid VTF file");
-//            cache.put(file, null);
-            return null;
-        }
+        
+        
         vtf.version = new int[]{vtf.buf.getInt(), vtf.buf.getInt()};
         vtf.headerSize = vtf.buf.getInt();
         vtf.width = vtf.buf.getShort();
@@ -247,7 +249,7 @@ public class VTF implements ViewableData {
         vtf.thumbHeight = vtf.buf.get();
         vtf.depth = vtf.buf.getShort();
 
-        LOG.log(Level.INFO, "Format: {0}", vtf.format);
+        LOG.log(Level.FINE, "Format: {0}", vtf.format);
 
         if(vtf.frameCount > 1) {
             LOG.log(Level.WARNING, "FRAMES = {0}", vtf.frameCount); // zero indexed
@@ -262,7 +264,7 @@ public class VTF implements ViewableData {
         path = new File(path).getAbsolutePath();
         if(mats == null) {
             try {
-                mats = new GCF(new File(SteamUtils.locateSteamAppsDirectory() + "Team Fortress 2 Materials.gcf"));
+                mats = new GCF(new File(SteamUtils.getSteamApps(), "Team Fortress 2 Materials.gcf"));
             } catch(IOException ex) {
                 Logger.getLogger(VTF.class.getName()).log(Level.SEVERE, null, ex);
             }
