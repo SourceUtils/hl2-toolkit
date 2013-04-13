@@ -1068,7 +1068,7 @@ public class GCF implements Archive, ViewableData {
         }
 
         public void extract(File out) throws IOException {
-            GCF.this.extract(index, out);
+            this.getArchive().extract(index, out);
         }
 
         public GCFDirectoryEntry[] getImmediateChildren() {

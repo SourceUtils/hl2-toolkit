@@ -2,6 +2,7 @@ package com.timepath.steam.io.test;
 
 import com.timepath.FileUtils;
 import com.timepath.hl2.io.util.ViewableData;
+import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.Archive;
@@ -158,7 +159,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         jPopupMenu1.add(jPopupMenuItem2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Archive Exploree");
+        setTitle("Archive Explorer");
 
         jSplitPane1.setDividerLocation(200);
         jSplitPane1.setContinuousLayout(true);
@@ -303,7 +304,7 @@ public class ArchiveTest extends javax.swing.JFrame {
 
     private void jPopupMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem1ActionPerformed
         try {
-            File[] outs = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").choose();
+            File[] outs = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").setMultiSelectionEnabled(false).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
             if(outs == null) {
                 return;
             }
