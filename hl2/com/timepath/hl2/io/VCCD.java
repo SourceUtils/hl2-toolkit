@@ -49,8 +49,8 @@ public class VCCD {
 
     private static int expectedVersion = 1;
 
-    public static ArrayList<Entry> load(InputStream is) {
-        ArrayList<Entry> list = new ArrayList<Entry>();
+    public static ArrayList<CaptionEntry> load(InputStream is) {
+        ArrayList<CaptionEntry> list = new ArrayList<CaptionEntry>();
         try {
             byte[] array = new byte[is.available()];
             is.read(array);
@@ -70,9 +70,9 @@ public class VCCD {
             int dataOffset = buf.getInt();
             LOG.log(Level.INFO, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", new Object[]{version, blocks, blockSize, directorySize, dataOffset});
 
-            Entry[] entries = new Entry[directorySize];
+            CaptionEntry[] entries = new CaptionEntry[directorySize];
             for(int i = 0; i < directorySize; i++) {
-                Entry e = new Entry();
+                CaptionEntry e = new CaptionEntry();
                 e.setKey(buf.getInt());
                 e.setBlock(buf.getInt());
                 e.setOffset(buf.getShort());
@@ -104,7 +104,7 @@ public class VCCD {
      * @param file
      * @param entries
      */
-    public static void save(String file, ArrayList<Entry> entries) {
+    public static void save(String file, ArrayList<CaptionEntry> entries) {
         if(file == null) {
             return;
         }
@@ -145,7 +145,7 @@ public class VCCD {
             int currentBlock = 0;
             int firstInBlock = 0;
             for(int i = 0; i < directorySize; i++) {
-                Entry e = entries.get(i);
+                CaptionEntry e = entries.get(i);
                 e.setBlock(0);
                 e.setOffset(0);
 
@@ -179,7 +179,7 @@ public class VCCD {
 
             int lastBlock = 0;
             for(int i = 0; i < directorySize; i++) {
-                Entry e = entries.get(i);
+                CaptionEntry e = entries.get(i);
                 if(e.getBlock() > lastBlock) {
                     lastBlock = e.getBlock();
                     rf.write(new byte[blockSize - (entries.get(i - 1).getOffset() + entries.get(i - 1).getLength())]);
@@ -209,16 +209,16 @@ public class VCCD {
      *
      * @return
      */
-    public static ArrayList<Entry> importFile(String file) {
+    public static ArrayList<CaptionEntry> importFile(String file) {
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
         VDF.analyze(new File(file), tn);
-        ArrayList<Entry> children = new ArrayList<Entry>();
+        ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
         ArrayList<Property> props = ((Element) ((DefaultMutableTreeNode) tn.getChildAt(0).getChildAt(0)).getUserObject()).getProps();
         ArrayList<String> usedKeys = new ArrayList<String>();
         for(int i = props.size() - 1; i >= 0; i--) {
             Property p = props.get(i);
 //            LOG.log(Level.INFO, "Adding {0}", p);
-            Entry e = new Entry();
+            CaptionEntry e = new CaptionEntry();
             String key = p.getKey().replaceAll("\"", "");
             if(key.equals("//") || key.equals("\\n") || usedKeys.contains(key)) {
                 LOG.log(Level.INFO, "Discarding: {0}", key);
@@ -236,9 +236,9 @@ public class VCCD {
     /**
      * Entries are stored alphabetically by original value of hash
      */
-    public static class Entry implements Comparable<Entry> {
+    public static class CaptionEntry implements Comparable<CaptionEntry> {
 
-        public Entry() {
+        public CaptionEntry() {
         }
 
         private long key;
@@ -314,7 +314,7 @@ public class VCCD {
             return new StringBuilder().append("H: ").append(key).append(", b: ").append(block).append(", o: ").append(offset).append(", l: ").append(length).toString();
         }
 
-        public int compareTo(Entry t) {
+        public int compareTo(CaptionEntry t) {
             String e1 = this.getTrueKey();
             if(e1 == null) {
                 e1 = "";

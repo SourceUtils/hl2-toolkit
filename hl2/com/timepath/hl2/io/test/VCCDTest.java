@@ -1,11 +1,10 @@
 package com.timepath.hl2.io.test;
 
 import com.timepath.hl2.io.VCCD;
-import com.timepath.hl2.io.VCCD.Entry;
+import com.timepath.hl2.io.VCCD.CaptionEntry;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.Archive.DirectoryEntry;
 import com.timepath.steam.io.GCF;
-import com.timepath.steam.io.GCF.GCFDirectoryEntry;
 import com.timepath.steam.io.VDF;
 import java.awt.Color;
 import java.awt.Component;
@@ -18,10 +17,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 import java.util.zip.CRC32;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
@@ -29,6 +32,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -70,6 +74,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem11 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem10 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -162,6 +167,14 @@ public class VCCDTest extends javax.swing.JFrame {
             }
         });
         jMenu1.add(jMenuItem3);
+
+        jMenuItem11.setText("Generate hash codes");
+        jMenuItem11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem11ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem11);
 
         jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem2.setMnemonic('S');
@@ -259,7 +272,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            ArrayList<Entry> entries;
+            ArrayList<CaptionEntry> entries;
             try {
                 entries = VCCD.load(new FileInputStream(file));
             } catch(FileNotFoundException ex) {
@@ -309,10 +322,10 @@ public class VCCDTest extends javax.swing.JFrame {
             jTable1.getCellEditor().stopCellEditing();
         }
 
-        ArrayList<Entry> entries = new ArrayList<Entry>();
+        ArrayList<CaptionEntry> entries = new ArrayList<CaptionEntry>();
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         for(int i = 0; i < model.getRowCount(); i++) {
-            Entry e = new VCCD.Entry();
+            CaptionEntry e = new VCCD.CaptionEntry();
             Object crc = model.getValueAt(i, 0);
             if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
                 crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
@@ -347,7 +360,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
         if(returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            ArrayList<Entry> entries = VCCD.importFile(file.getAbsolutePath().toString());
+            ArrayList<CaptionEntry> entries = VCCD.importFile(file.getAbsolutePath().toString());
             LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -427,7 +440,7 @@ public class VCCDTest extends javax.swing.JFrame {
                          + "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n"
                          + "cc_random emits a random caption\n"
                          + "";
-        JOptionPane pane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane pane = new JOptionPane(new JScrollPane(new JLabel(message)), JOptionPane.INFORMATION_MESSAGE);
         JDialog dialog = pane.createDialog(null, "Formatting");
         dialog.setModal(false);
         dialog.setVisible(true);
@@ -482,6 +495,11 @@ public class VCCDTest extends javax.swing.JFrame {
     private void saveCaptionsAs(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveCaptionsAs
         save(true);
     }//GEN-LAST:event_saveCaptionsAs
+
+    private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
+        generateHash();
+    }//GEN-LAST:event_jMenuItem11ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane contentPane;
     private javax.swing.JPanel hashPanel;
@@ -490,6 +508,7 @@ public class VCCDTest extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
@@ -504,11 +523,24 @@ public class VCCDTest extends javax.swing.JFrame {
     private javax.swing.JMenuBar menuBar;
     // End of variables declaration//GEN-END:variables
 
+    private static Preferences prefs = Preferences.userRoot().node("tf2-hud-editor").node("captions");
+
     /**
      * Creates new form CaptionLoaderFrame
      */
     public VCCDTest() {
-        hashmap = generateHash();
+        try {
+            String[] children = prefs.keys();
+            for(int i = 0; i < children.length; i++) {
+                int hash = prefs.getInt(children[i], -1);
+                LOG.log(Level.FINE, "{0} = {1}", new Object[]{children[i], hash});
+                if(hash != -1) {
+                    hashmap.put(hash, children[i]);
+                }
+            }
+        } catch(BackingStoreException ex) {
+            Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         initComponents();
 
@@ -686,55 +718,69 @@ public class VCCDTest extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        final JFrame f = new JFrame("Loading caption editor...");
-        JProgressBar pb = new JProgressBar();
-        pb.setIndeterminate(true);
-        f.add(pb);
-        f.setMinimumSize(new Dimension(300, 50));
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-
-        new Thread(new Runnable() {
+        java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 VCCDTest c = new VCCDTest();
                 c.setLocationRelativeTo(null);
                 c.setVisible(true);
-                f.dispose();
             }
-        }).start();
+        });
     }
     //<editor-fold defaultstate="collapsed" desc="Hash codes">
 
-    private HashMap<Integer, String> hashmap;
+    private HashMap<Integer, String> hashmap = new HashMap<Integer, String>();
 
-    private HashMap<Integer, String> generateHash() {
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        LOG.info("Generating hash codes ...");
-        try {
-            File f = new File(SteamUtils.getSteamApps(), "Team Fortress 2 Content.gcf");
-            if(f.exists()) {
-                GCF gcf = new GCF(f);
+    private void generateHash() {
+        new Thread(new Runnable() {
+            public void run() {
+                final JFrame frame = new JFrame("Generating hash codes...");
+                JProgressBar pb = new JProgressBar();
+                pb.setIndeterminate(true);
+                frame.add(pb);
+                frame.setMinimumSize(new Dimension(300, 50));
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
 
-                CRC32 crc = new CRC32();
-                DefaultMutableTreeNode top = new DefaultMutableTreeNode();
-                ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
-                for(DirectoryEntry de : caps) {
-                    VDF.analyze(gcf.extract(de, null), top);
+                HashMap<Integer, String> map = new HashMap<Integer, String>();
+                LOG.info("Generating hash codes ...");
+                try {
+                    File f = new File(SteamUtils.getSteamApps(), "Team Fortress 2 Content.gcf");
+                    if(f.exists()) {
+                        GCF gcf = new GCF(f);
+
+                        CRC32 crc = new CRC32();
+                        DefaultMutableTreeNode top = new DefaultMutableTreeNode();
+                        ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
+                        pb.setMaximum(caps.size());
+                        pb.setIndeterminate(false);
+                        for(int i = 0; i < caps.size(); i++) {
+                            VDF.analyze(gcf.extract(caps.get(i), null), top);
+                            pb.setValue(i);
+                        }
+
+                        for(int i = 0; i < top.getChildCount(); i++) {
+                            String str = top.getChildAt(i).toString();
+                            str = str.replaceAll("\"", "").toLowerCase();
+                            LOG.fine(str);
+                            crc.update(str.getBytes());
+                            map.put((int) crc.getValue(), str);
+                            crc.reset();
+                        }
+                    }
+                } catch(IOException ex) {
+                    LOG.log(Level.WARNING, "Error generating hash codes", ex);
                 }
 
-                for(int i = 0; i < top.getChildCount(); i++) {
-                    String str = top.getChildAt(i).toString();
-                    str = str.replaceAll("\"", "").toLowerCase();
-                    LOG.fine(str);
-                    crc.update(str.getBytes());
-                    map.put((int) crc.getValue(), str);
-                    crc.reset();
+                for(Entry<Integer, String> entry : map.entrySet()) {
+                    Integer key = entry.getKey();
+                    String value = entry.getValue();
+                    prefs.putInt(value, key);
                 }
+
+                hashmap.putAll(map);
+                frame.dispose();
             }
-        } catch(IOException ex) {
-            LOG.log(Level.WARNING, "Error generating hash codes", ex);
-        }
-        return map;
+        }).start();
     }
 
     private String hexFormat(int in) {
