@@ -42,6 +42,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
@@ -131,6 +132,7 @@ public class VCCDTest extends javax.swing.JFrame {
         jTable1.getColumnModel().getColumn(0).setMaxWidth(85);
         jTable1.getColumnModel().getColumn(1).setPreferredWidth(160);
         jTable1.getColumnModel().getColumn(1).setCellEditor(getKeyEditor());
+        jTable1.getColumnModel().getColumn(1).setCellRenderer(getKeyRenderer());
         jTable1.getColumnModel().getColumn(2).setPreferredWidth(160);
 
         getContentPane().add(contentPane);
@@ -329,10 +331,14 @@ public class VCCDTest extends javax.swing.JFrame {
             if(model.getValueAt(i, 1) != null && !model.getValueAt(i, 1).toString().isEmpty()) {
                 crc = hexFormat(VCCD.takeCRC32(model.getValueAt(i, 1).toString()));
             }
-            e.setKey(Long.parseLong(crc.toString().toLowerCase(), 16));
+            long hash = Long.parseLong(crc.toString().toLowerCase(), 16);
+            String token = model.getValueAt(i, 1).toString();
+            hashmap.put((int) hash, token);
+            e.setKey(hash);
             e.setValue(model.getValueAt(i, 2).toString());
             entries.add(e);
         }
+        persistHashmap(hashmap);
         VCCD.save(saveFile.getAbsolutePath().toString(), entries);
     }
 
@@ -367,14 +373,18 @@ public class VCCDTest extends javax.swing.JFrame {
                 model.removeRow(i);
             }
             for(int i = 0; i < entries.size(); i++) {
+                int hash = entries.get(i).getKey();
+                String token = entries.get(i).getTrueKey();
+                hashmap.put(hash, token);
                 model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), entries.get(i).getTrueKey(), entries.get(i).getValue()});
             }
+            persistHashmap(hashmap);
         }
     }//GEN-LAST:event_importCaptions
 
     private void insertRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertRow
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.addRow(new Object[]{});
+        model.addRow(new Object[]{0, "", ""});
     }//GEN-LAST:event_insertRow
 
     private void deleteRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRow
@@ -395,7 +405,7 @@ public class VCCDTest extends javax.swing.JFrame {
         for(int i = model.getRowCount() - 1; i >= 0; i--) {
             model.removeRow(i);
         }
-        model.addRow(new Object[]{});
+        model.addRow(new Object[]{0, "", ""});
     }//GEN-LAST:event_createNew
 
     private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
@@ -657,7 +667,15 @@ public class VCCDTest extends javax.swing.JFrame {
     }
 
     private TableCellEditor getKeyEditor() {
-        return new TokenDropdown();
+        return new DefaultCellEditor(new JTextField());//new TokenDropdown(); // TODO
+    }
+    
+    private TableCellRenderer getKeyRenderer() {
+        return new KeyRenderer();
+    }
+    
+    private class KeyRenderer extends DefaultTableCellRenderer {
+        
     }
 
     private class EditorPaneRenderer extends JPanel implements TableCellRenderer {
@@ -770,16 +788,22 @@ public class VCCDTest extends javax.swing.JFrame {
                     LOG.log(Level.WARNING, "Error generating hash codes", ex);
                 }
 
-                for(Entry<Integer, String> entry : map.entrySet()) {
-                    Integer key = entry.getKey();
-                    String value = entry.getValue();
-                    prefs.putInt(value, key);
-                }
-
                 hashmap.putAll(map);
+                persistHashmap(hashmap);
                 frame.dispose();
             }
         }).start();
+    }
+
+    private void persistHashmap(HashMap<Integer, String> map) {
+        for(Entry<Integer, String> entry : map.entrySet()) {
+            Integer key = entry.getKey();
+            String value = entry.getValue();
+            if(key == null || value == null) {
+                continue;
+            }
+            prefs.putInt(value, key);
+        }
     }
 
     private String hexFormat(int in) {

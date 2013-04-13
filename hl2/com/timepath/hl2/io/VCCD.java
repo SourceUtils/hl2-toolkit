@@ -135,7 +135,7 @@ public class VCCD {
                 f.createNewFile();
             }
             RandomAccessFile rf = new RandomAccessFile(f, "rw");
-            rf.write(expectedHeader);
+            DataUtils.writeLEInt(rf, expectedHeader);
             DataUtils.writeLEInt(rf, 1);
             DataUtils.writeLEInt(rf, blocks);
             DataUtils.writeLEInt(rf, blockSize);
