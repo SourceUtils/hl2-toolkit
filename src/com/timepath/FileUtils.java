@@ -23,15 +23,18 @@ public class FileUtils {
     /*
      * Get the extension of a file.
      */
-    public static String extension(File f) {
+    public static String extension(String s) {
         String ext = null;
-        String s = f.getName();
         int i = s.lastIndexOf('.');
 
         if(i > 0 && i < s.length() - 1) {
             ext = s.substring(i + 1).toLowerCase();
         }
         return ext;
+    }
+    
+    public static String extension(File f) {
+        return extension(f.getName());
     }
 
     public static String getLinuxStore() {

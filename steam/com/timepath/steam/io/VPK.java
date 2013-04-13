@@ -178,16 +178,36 @@ public class VPK implements Archive {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
-        public Object getPath() {
+        public String getPath() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
-        public Object getGCF() {
+        public Archive getArchive() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
         public boolean isComplete() {
             throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        public String getName() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public String getAbsoluteName() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public DirectoryEntry[] getImmediateChildren() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public int getIndex() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        public void extract(File out) throws IOException {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
 
@@ -231,8 +251,8 @@ public class VPK implements Archive {
                 break;
             }
             cf++;
-            DefaultMutableTreeNode e = new DefaultMutableTreeNode(extension);
-            es.add(e);
+//            DefaultMutableTreeNode e = new DefaultMutableTreeNode(extension);
+//            es.add(e);
             for(;;) {
                 String path = readString(b);
                 if(path.length() == 0) {
@@ -240,14 +260,21 @@ public class VPK implements Archive {
                 }
                 cd++;
                 DefaultMutableTreeNode p = new DefaultMutableTreeNode(path);
-                e.add(p);
+                if(!path.equals(" ")) {
+                    es.add(p);
+                }
                 for(;;) {
                     String filename = readString(b);
                     if(filename.length() == 0) {
                         break;
                     }
                     cn++;
-                    p.add(new DefaultMutableTreeNode(filename));
+                    if(path.equals(" ")) {
+                        LOG.log(Level.FINE, "{0} has no extension", filename);
+                        es.add(new DefaultMutableTreeNode(filename));
+                    } else {
+                        p.add(new DefaultMutableTreeNode(filename + "." + extension));
+                    }
                     ReadFileInformationAndPreloadData(b);
                 }
             }

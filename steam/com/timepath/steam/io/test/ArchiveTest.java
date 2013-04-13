@@ -1,18 +1,17 @@
 package com.timepath.steam.io.test;
 
 import com.timepath.FileUtils;
+import com.timepath.hl2.io.util.ViewableData;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.Archive;
 import com.timepath.steam.io.Archive.DirectoryEntry;
 import com.timepath.steam.io.GCF;
-import com.timepath.steam.io.GCF.GCFDirectoryEntry;
 import com.timepath.steam.io.VPK;
 import com.timepath.swing.DirectoryTreeCellRenderer;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -62,10 +61,10 @@ public class ArchiveTest extends javax.swing.JFrame {
                 if(comp instanceof JLabel) {
                     label = (JLabel) comp;
                     label.setIcon(null);
-                    if(value instanceof GCFDirectoryEntry) {
-                        GCFDirectoryEntry de = (GCFDirectoryEntry) value;
-                        label.setIcon(de.getIcon());
-                        label.setText(de.getName());
+                    if(value instanceof ViewableData) {
+                        ViewableData data = (ViewableData) value;
+                        label.setIcon(data.getIcon());
+                        label.setText(data.toString());
                         return label;
                     }
                 }
@@ -84,8 +83,8 @@ public class ArchiveTest extends javax.swing.JFrame {
         @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             Object val = table.getValueAt(row, 0);
-            if(val instanceof GCFDirectoryEntry) {
-                directoryChanged((GCFDirectoryEntry) val);
+            if(val instanceof DirectoryEntry) {
+                directoryChanged((DirectoryEntry) val);
             }
             return null;
         }
@@ -159,7 +158,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         jPopupMenu1.add(jPopupMenuItem2);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("GCF Viewer");
+        setTitle("Archive Exploree");
 
         jSplitPane1.setDividerLocation(200);
         jSplitPane1.setContinuousLayout(true);
@@ -209,14 +208,14 @@ public class ArchiveTest extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Name", "Size", "Attributes", "Path", "Archive", "Complete"
+                "Name", "Size", "Attributes", "Path", "Extension", "Archive", "Complete"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.Object.class, java.lang.Boolean.class
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Boolean.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -291,12 +290,12 @@ public class ArchiveTest extends javax.swing.JFrame {
             return;
         }
         Object obj = ((DefaultMutableTreeNode) node).getUserObject();
-        if(!(obj instanceof GCFDirectoryEntry)) {
+        if(!(obj instanceof DirectoryEntry)) {
             return;
         }
-        directoryChanged((GCFDirectoryEntry) obj);
+        directoryChanged((DirectoryEntry) obj);
     }//GEN-LAST:event_directoryChanged
-    private ArrayList<GCFDirectoryEntry> toExtract = new ArrayList<GCFDirectoryEntry>();
+    private ArrayList<DirectoryEntry> toExtract = new ArrayList<DirectoryEntry>();
 
     private void extractablesUpdated() {
         jPopupMenuItem1.setEnabled(!toExtract.isEmpty());
@@ -309,7 +308,7 @@ public class ArchiveTest extends javax.swing.JFrame {
                 return;
             }
             File out = outs[0];
-            for(GCFDirectoryEntry e : toExtract) {
+            for(DirectoryEntry e : toExtract) {
                 try {
                     e.extract(out);
                 } catch(IOException ex) {
@@ -322,7 +321,7 @@ public class ArchiveTest extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jPopupMenuItem1ActionPerformed
 
-    private GCF selectedGCF;
+    private Archive selectedArchive;
 
     private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
         if(SwingUtilities.isRightMouseButton(evt)) {
@@ -344,12 +343,12 @@ public class ArchiveTest extends javax.swing.JFrame {
                     return;
                 }
                 Object userObject = ((DefaultMutableTreeNode) p.getLastPathComponent()).getUserObject();
-                if(userObject instanceof GCFDirectoryEntry) {
-                    selectedGCF = null;
-                    toExtract.add((GCFDirectoryEntry) userObject);
-                } else if(userObject instanceof GCF) {
-                    selectedGCF = (GCF) userObject;
-                    toExtract.add(selectedGCF.directoryEntries[0]);
+                if(userObject instanceof DirectoryEntry) {
+                    selectedArchive = null;
+                    toExtract.add((DirectoryEntry) userObject);
+                } else if(userObject instanceof Archive) {
+                    selectedArchive = (Archive) userObject;
+                    toExtract.add(selectedArchive.getRoot());
                 }
             }
             extractablesUpdated();
@@ -372,8 +371,8 @@ public class ArchiveTest extends javax.swing.JFrame {
             int[] selected = jTable1.getSelectedRows();
             for(int r : selected) {
                 Object userObject = table.getValueAt(jTable1.convertRowIndexToModel(r), 0);
-                if(userObject instanceof GCFDirectoryEntry) {
-                    toExtract.add((GCFDirectoryEntry) userObject);
+                if(userObject instanceof DirectoryEntry) {
+                    toExtract.add((DirectoryEntry) userObject);
                 }
             }
             extractablesUpdated();
@@ -391,14 +390,14 @@ public class ArchiveTest extends javax.swing.JFrame {
 
     private void jPopupMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem2ActionPerformed
         String title;
-        String message;
-        if(selectedGCF != null) {
-            title = selectedGCF.toString();
-            message = "V" + selectedGCF.header.applicationVersion + "\n";
+        String message = "";
+        if(selectedArchive != null) {
+            title = selectedArchive.toString();
+//            message = "V" + selectedArchive.header.applicationVersion + "\n";
         } else {
-            GCFDirectoryEntry last = toExtract.get(toExtract.size() - 1);
+            DirectoryEntry last = toExtract.get(toExtract.size() - 1);
             title = last.getName();
-            message = "Entry " + last.index + ", " + last.getAbsoluteName() + "\n";
+            message = "Entry " + last.getIndex() + ", " + last.getAbsoluteName() + "\n";
         }
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jPopupMenuItem2ActionPerformed
@@ -413,21 +412,21 @@ public class ArchiveTest extends javax.swing.JFrame {
         for(int i = 0; i < children.size(); i++) {
             DirectoryEntry c = children.get(i);
             if(!c.isDirectory()) {
-                table.addRow(new Object[]{c, c.getItemSize(), c.getAttributes(), c.getPath(), c.getGCF(), c.isComplete()});
+                table.addRow(new Object[]{c, c.getItemSize(), c.getAttributes(), c.getPath(), FileUtils.extension(c.getName()), c.getArchive(), c.isComplete()});
             }
         }
     }
 
-    private void directoryChanged(GCFDirectoryEntry dir) {
+    private void directoryChanged(DirectoryEntry dir) {
         if(!dir.isDirectory()) {
             return;
         }
-        GCFDirectoryEntry[] children = dir.getImmediateChildren();
+        DirectoryEntry[] children = dir.getImmediateChildren();
         table.setRowCount(0);
         for(int i = 0; i < children.length; i++) {
-            GCFDirectoryEntry c = children[i];
+            DirectoryEntry c = children[i];
             if(!c.isDirectory()) {
-                table.addRow(new Object[]{c, c.itemSize, c.attributes, c.getPath(), c.getGCF(), c.isComplete()});
+                table.addRow(new Object[]{c, c.getItemSize(), c.getAttributes(), c.getPath(), FileUtils.extension(c.getName()), c.getArchive(), c.isComplete()});
             }
         }
     }

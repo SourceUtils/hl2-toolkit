@@ -25,7 +25,7 @@ public class ArchiveOutputStreamTest {
         two.createNewFile();
         GCFDirectoryEntry e = g.directoryEntries[index];
         e.extract(out);
-        InputStream in = e.getGCF().get(e.index);
+        InputStream in = e.getArchive().get(e.index);
         FileOutputStream os = new FileOutputStream(two);
         byte[] buffer = new byte[1024];
         int len;

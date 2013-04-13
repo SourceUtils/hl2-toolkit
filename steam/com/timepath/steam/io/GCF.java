@@ -1004,6 +1004,10 @@ public class GCF implements Archive, ViewableData {
 
         public final int index;
 
+        public int getIndex() {
+            return index;
+        }
+
         private GCFDirectoryEntry(int index) throws IOException {
             this.index = index;
             nameOffset = DataUtils.readULEInt(rf);
@@ -1033,7 +1037,7 @@ public class GCF implements Archive, ViewableData {
             return abs.substring(0, abs.substring(0, abs.length() - 1).lastIndexOf('/'));
         }
 
-        public GCF getGCF() {
+        public GCF getArchive() {
             return GCF.this;
         }
         
@@ -1051,7 +1055,7 @@ public class GCF implements Archive, ViewableData {
         public Icon getIcon() {
             Icon i;
             if(this.index == 0) {
-                return this.getGCF().getIcon();
+                return this.getArchive().getIcon();
             }
             if(!isComplete()) {
                 return UIManager.getIcon("html.missingImage");

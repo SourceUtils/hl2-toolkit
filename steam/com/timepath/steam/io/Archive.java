@@ -1,6 +1,7 @@
 package com.timepath.steam.io;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -27,11 +28,21 @@ public interface Archive {
 
         public boolean isDirectory();
 
-        public Object getPath();
+        public String getPath();
+        
+        public String getName();
+        
+        public String getAbsoluteName();
 
-        public Object getGCF();
+        public Archive getArchive();
 
         public boolean isComplete();
+
+        public DirectoryEntry[] getImmediateChildren();
+
+        public int getIndex();
+
+        public void extract(File out) throws IOException;
         
     }
 
