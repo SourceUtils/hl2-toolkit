@@ -28,16 +28,16 @@ public class ZenityFileChooser extends BaseFileChooser {
         cmd.add("--file-selection");
         if(this.isDirectoryMode()) {
             cmd.add("--directory");
-        } else if(this.isSaveDialog()) {
+        }
+        if(this.isSaveDialog()) {
             cmd.add("--save");
+            cmd.add("--confirm-overwrite");
         }
         if(this.isMultiSelectionEnabled()) {
             cmd.add("--multiple");
         }
-        if(file != null) {
-            cmd.add("--filename=" + file.getPath());
-        } else if(directory != null) {
-            cmd.add("--filename=" + directory.getPath() + "/");
+        if(file != null || directory != null) {
+            cmd.add("--filename=" + (directory != null ? (directory.getPath() + "/") : "") + (file != null ? file : ""));
         }
         String windowClass = WindowToolkit.getWindowClass();
         try {

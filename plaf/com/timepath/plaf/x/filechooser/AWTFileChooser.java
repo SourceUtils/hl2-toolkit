@@ -22,7 +22,7 @@ public class AWTFileChooser extends BaseFileChooser {
             fd.setDirectory(directory.getPath());
         }
         if(file != null) {
-            fd.setFile(file.getPath());
+            fd.setFile(file);
         }
         if(this.isDirectoryMode()) {
             if(!OS.isMac()) {

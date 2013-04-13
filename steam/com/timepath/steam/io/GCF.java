@@ -114,9 +114,10 @@ public class GCF implements Archive, ViewableData {
     }
     
     public ArrayList<DirectoryEntry> find(String search) {
+        search = search.toLowerCase();
         ArrayList<DirectoryEntry> list = new ArrayList<DirectoryEntry>(this.directoryEntries.length);
         for(int i = 0; i < directoryEntries.length; i++) {
-            String str = directoryEntries[i].getName();
+            String str = directoryEntries[i].getName().toLowerCase();
             if(str.contains(search)) {
                 list.add(directoryEntries[i]);
             }

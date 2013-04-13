@@ -19,7 +19,7 @@ public class SwingFileChooser extends BaseFileChooser {
         JFileChooser fd = new JFileChooser(directory);
         fd.setDialogTitle(dialogTitle);
         fd.setDialogType(this.isSaveDialog() ? JFileChooser.SAVE_DIALOG : JFileChooser.OPEN_DIALOG);
-        fd.setSelectedFile(file);
+        fd.setSelectedFile(new File(directory, file));
         fd.setFileSelectionMode(this.isDirectoryMode() ? JFileChooser.DIRECTORIES_ONLY : JFileChooser.FILES_AND_DIRECTORIES);
         if(!this.isSaveDialog()) {
             fd.setMultiSelectionEnabled(multiSelectionEnabled);

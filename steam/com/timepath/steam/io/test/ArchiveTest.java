@@ -304,7 +304,7 @@ public class ArchiveTest extends javax.swing.JFrame {
 
     private void jPopupMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPopupMenuItem1ActionPerformed
         try {
-            File[] outs = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").setMultiSelectionEnabled(false).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
+            File[] outs = new NativeFileChooser().setParent(this).setTitle("Select extraction directory").setMultiSelectionEnabled(false).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).setFileMode(BaseFileChooser.FileMode.DIRECTORIES_ONLY).choose();
             if(outs == null) {
                 return;
             }

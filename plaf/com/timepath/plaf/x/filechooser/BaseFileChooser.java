@@ -56,22 +56,23 @@ public abstract class BaseFileChooser {
         return setDirectory(new File(directoryPath));
     }
     
-    protected File file;
+    protected String file;
 
-    public File getFile() {
+    public BaseFileChooser setFile(String file) {
+        this.file = file;
+        return this;
+    }
+
+    public String getFile() {
         return file;
     }
 
     public BaseFileChooser setFile(File file) {
-        this.file = file;
         if(file != null) {
             setDirectory(file.getParentFile());
+            setFile(file.getName());
         }
         return this;
-    }
-    
-    public BaseFileChooser setFile(String file) {
-        return setFile(new File(file));
     }
     
     protected String approveButtonText;
@@ -108,10 +109,10 @@ public abstract class BaseFileChooser {
         DIRECTORIES_ONLY, FILES_ONLY, FILES_AND_DIRECTORIES
     }
     
-    protected FileMode fileMode;
+    protected FileMode fileMode = FileMode.FILES_ONLY;
 
     public FileMode getFileMode() {
-        return fileMode = FileMode.FILES_ONLY;
+        return fileMode;
     }
 
     public BaseFileChooser setFileMode(FileMode fileMode) {
