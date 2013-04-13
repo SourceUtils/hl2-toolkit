@@ -42,6 +42,10 @@ public class VBFTest extends javax.swing.JFrame {
 
         private final char c;
 
+        public char getC() {
+            return c;
+        }
+
         @Override
         public String toString() {
             Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
@@ -480,6 +484,23 @@ public class VBFTest extends javax.swing.JFrame {
                 return;
             }
             File f = fs[0];
+
+            DefaultTreeModel model = (DefaultTreeModel) this.jTree1.getModel();
+            MutableTreeNode root = (MutableTreeNode) model.getRoot();
+            for(int i = 0; i < root.getChildCount(); i++) {
+                DefaultMutableTreeNode m = (DefaultMutableTreeNode) root.getChildAt(i);
+                BitmapGlyph g = (BitmapGlyph) m.getUserObject();
+                for(int x = 0; x < m.getChildCount(); x++) {
+                    DefaultMutableTreeNode character = (DefaultMutableTreeNode) m.getChildAt(x);
+                    Object obj = character.getUserObject();
+                    if(obj instanceof DisplayableCharacter) {
+                        this.data.getTable()[((DisplayableCharacter) obj).getC()] = g.getIndex();
+                    } else if(obj instanceof DefaultMutableTreeNode) { // XXX: hack
+                        this.data.getTable()[((DisplayableCharacter)(((DefaultMutableTreeNode) obj).getUserObject())).getC()] = g.getIndex();
+                    }
+                }
+            }
+
             data.save(f);
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -502,11 +523,11 @@ public class VBFTest extends javax.swing.JFrame {
         }
         for(int i = 0; i < 256; i++) {
             if(!data.hasGlyph(i)) {
-                g.setIndex(i);
+                g.setIndex((byte) i);
                 break;
             }
             if(i == data.getGlyphs().size()) {
-                g.setIndex(i + 1);
+                g.setIndex((byte) (i + 1));
             }
         }
         data.getGlyphs().add(g);

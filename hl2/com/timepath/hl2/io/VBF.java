@@ -58,13 +58,13 @@ public class VBF {
      * Maps characters to the glyph table
      */
     private byte[] table = new byte[256];
-    
+
     public byte[] getTable() {
         return table;
     }
 
     private ArrayList<BitmapGlyph> glyphs = new ArrayList<BitmapGlyph>();
-    
+
     public ArrayList<BitmapGlyph> getGlyphs() {
         return glyphs;
     }
@@ -100,7 +100,7 @@ public class VBF {
 
         for(int i = 0; i < total; i++) {
             BitmapGlyph g = new BitmapGlyph();
-            g.setIndex(i);
+            g.setIndex((byte) i);
             g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort());
             g.a = buf.getShort();
             g.b = buf.getShort();
@@ -144,7 +144,7 @@ public class VBF {
         //</editor-fold>
         return v;
     }
-    
+
     public boolean hasGlyph(int i) {
         for(BitmapGlyph g : getGlyphs()) {
             if(g.getIndex() == i) {
@@ -160,7 +160,7 @@ public class VBF {
         RandomAccessFile rf = new RandomAccessFile(f, "rw");
         ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
         buf.order(ByteOrder.LITTLE_ENDIAN);
-        
+
         buf.putInt(VBF.expectedHeader);
         buf.putInt(version);
         buf.putShort(width);
@@ -168,6 +168,9 @@ public class VBF {
         short maxcharwidth = 0;
         short maxcharheight = 0;
         for(int i = 0; i < glyphs.size(); i++) {
+            if(glyphs.get(i).getBounds() == null) {
+                glyphs.get(i).setBounds(new Rectangle());
+            }
             Rectangle r = glyphs.get(i).getBounds();
             if((short) r.width > maxcharwidth) {
                 maxcharwidth = (short) r.width;
@@ -181,9 +184,9 @@ public class VBF {
         buf.putShort(flags);
         buf.putShort(ascent);
         buf.putShort((short) glyphs.size());
-        
+
         buf.put(table);
-        
+
         for(BitmapGlyph g : glyphs) {
             Rectangle b = g.bounds;
             buf.putShort((short) b.x);
@@ -194,21 +197,21 @@ public class VBF {
             buf.putShort((short) b.width);//g.b); // XXX: why?
             buf.putShort(g.c);
         }
-        
+
         rf.write(buf.array());
 //        rf.getChannel().close();
 //        rf.close();
     }
-    
-    public static class BitmapGlyph {
-        
-        private int index;
 
-        public void setIndex(int index) {
+    public static class BitmapGlyph {
+
+        private byte index;
+
+        public void setIndex(byte index) {
             this.index = index;
         }
 
-        public int getIndex() {
+        public byte getIndex() {
             return index;
         }
 
@@ -217,7 +220,7 @@ public class VBF {
         public void setBounds(Rectangle bounds) {
             this.bounds = bounds;
         }
-        
+
         public Rectangle getBounds() {
             return bounds;
         }
@@ -226,9 +229,8 @@ public class VBF {
 
         @Override
         public String toString() {
-            return "Glyph " + index;
+            return "#" + index;
         }
-
     }
 
 }
