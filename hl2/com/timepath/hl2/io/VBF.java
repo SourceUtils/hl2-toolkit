@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -56,15 +57,15 @@ public class VBF {
     /**
      * Maps characters to the glyph table
      */
-    private byte[] table;
+    private byte[] table = new byte[256];
     
     public byte[] getTable() {
         return table;
     }
 
-    private BitmapGlyph[] glyphs;
+    private ArrayList<BitmapGlyph> glyphs = new ArrayList<BitmapGlyph>();
     
-    public BitmapGlyph[] getGlyphs() {
+    public ArrayList<BitmapGlyph> getGlyphs() {
         return glyphs;
     }
 
@@ -92,20 +93,19 @@ public class VBF {
          */
         short total = buf.getShort();
 
-        v.table = new byte[256];
         buf.get(v.table);
 
         // BitmapGlyph @ offset 278
-        v.glyphs = new BitmapGlyph[total];
+        v.glyphs.ensureCapacity(total);
 
-        for(int i = 0; i < v.glyphs.length; i++) {
+        for(int i = 0; i < total; i++) {
             BitmapGlyph g = new BitmapGlyph();
-            g.index = i;
+            g.setIndex(i);
             g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort());
             g.a = buf.getShort();
             g.b = buf.getShort();
             g.c = buf.getShort();
-            v.glyphs[i] = g;
+            v.glyphs.add(g);
         }
         //</editor-fold>
 
@@ -144,12 +144,21 @@ public class VBF {
         //</editor-fold>
         return v;
     }
+    
+    public boolean hasGlyph(int i) {
+        for(BitmapGlyph g : getGlyphs()) {
+            if(g.getIndex() == i) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void save(File f) throws IOException {
         f.getParentFile().mkdirs();
         f.createNewFile();
         RandomAccessFile rf = new RandomAccessFile(f, "rw");
-        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.length * 14));
+        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
         buf.order(ByteOrder.LITTLE_ENDIAN);
         
         buf.putInt(VBF.expectedHeader);
@@ -158,8 +167,8 @@ public class VBF {
         buf.putShort(height);
         short maxcharwidth = 0;
         short maxcharheight = 0;
-        for(int i = 0; i < glyphs.length; i++) {
-            Rectangle r = glyphs[i].getBounds();
+        for(int i = 0; i < glyphs.size(); i++) {
+            Rectangle r = glyphs.get(i).getBounds();
             if((short) r.width > maxcharwidth) {
                 maxcharwidth = (short) r.width;
             }
@@ -171,7 +180,7 @@ public class VBF {
         buf.putShort(maxcharheight);
         buf.putShort(flags);
         buf.putShort(ascent);
-        buf.putShort((short) glyphs.length);
+        buf.putShort((short) glyphs.size());
         
         buf.put(table);
         
@@ -195,11 +204,19 @@ public class VBF {
         
         private int index;
 
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
         public int getIndex() {
             return index;
         }
 
         private Rectangle bounds;
+
+        public void setBounds(Rectangle bounds) {
+            this.bounds = bounds;
+        }
         
         public Rectangle getBounds() {
             return bounds;

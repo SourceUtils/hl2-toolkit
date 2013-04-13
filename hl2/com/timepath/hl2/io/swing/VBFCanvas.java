@@ -56,7 +56,7 @@ public class VBFCanvas extends JPanel {
             g.drawImage(img, 0, 0, this);
         }
         if(this.vbf != null) {
-            BitmapGlyph[] glyphs = vbf.getGlyphs();
+            BitmapGlyph[] glyphs = vbf.getGlyphs().toArray(new BitmapGlyph[0]);
             for(int i = 0; i < glyphs.length; i++) {
                 if(glyphs[i] == null) {
                     continue;

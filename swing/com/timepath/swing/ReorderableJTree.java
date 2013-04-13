@@ -33,6 +33,34 @@ public class ReorderableJTree extends JTree {
         setTransferHandler(new TreeTransferHandler());
     }
 
+    private int maxLevel = -1;
+
+    public int getMaxLevel() {
+        return maxLevel;
+    }
+
+    /**
+     * Sets the maximum dropping level
+     * @param maxLevel s
+     */
+    public void setMaxLevel(int maxLevel) {
+        this.maxLevel = maxLevel;
+    }
+    
+    private int minMovable = -1;
+
+    public int getMinMovable() {
+        return minMovable;
+    }
+
+    /**
+     * Sets the minimum level of allowed movable nodes
+     * @param minMovable 
+     */
+    public void setMinMovable(int minMovable) {
+        this.minMovable = minMovable;
+    }
+
     private class TreeTransferHandler extends TransferHandler {
 
         private static final long serialVersionUID = 1L;
@@ -42,10 +70,13 @@ public class ReorderableJTree extends JTree {
         private DataFlavor[] flavors;
 
         private DefaultMutableTreeNode[] nodesToRemove;
-        
+
         //<editor-fold defaultstate="collapsed" desc="Helpers">
         private boolean haveCompleteNode(JTree tree) {
-            int[] selRows = tree.getSelectionRows();
+            int[] selRows = tree.getSelectionRows(); // XXX: bad
+            if(selRows == null) {
+                return true;
+            }
             TreePath path = tree.getPathForRow(selRows[0]);
             DefaultMutableTreeNode first = (DefaultMutableTreeNode) path.getLastPathComponent();
             int childCount = first.getChildCount();
@@ -67,7 +98,7 @@ public class ReorderableJTree extends JTree {
             }
             return true;
         }
-        
+
         /**
          * Defensive copy used in createTransferable.
          */
@@ -75,7 +106,7 @@ public class ReorderableJTree extends JTree {
             return new DefaultMutableTreeNode(node);
         }
         //</editor-fold>
-        
+
         TreeTransferHandler() {
             try {
                 String mimeType = DataFlavor.javaJVMLocalObjectMimeType
@@ -88,13 +119,13 @@ public class ReorderableJTree extends JTree {
                 LOG.log(Level.SEVERE, "ClassNotFound: {0}", e.getMessage());
             }
         }
-        
+
         //<editor-fold defaultstate="collapsed" desc="Export">
         @Override
         public int getSourceActions(JComponent c) {
             return TransferHandler.COPY_OR_MOVE;
         }
-        
+
         @Override
         protected Transferable createTransferable(JComponent c) {
             JTree tree = (JTree) c;
@@ -128,7 +159,7 @@ public class ReorderableJTree extends JTree {
             }
             return null;
         }
-        
+
         @Override
         protected void exportDone(JComponent source, Transferable data, int action) {
             if((action & MOVE) == MOVE) {
@@ -148,9 +179,9 @@ public class ReorderableJTree extends JTree {
             if(!support.isDataFlavorSupported(nodesFlavor)) {
                 return false;
             }
-            
+
             support.setShowDropLocation(true);
-            
+
             // Get drop location info
             JTree tree = (JTree) support.getComponent();
 //            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
@@ -158,8 +189,7 @@ public class ReorderableJTree extends JTree {
 //            int childIndex = dl.getChildIndex();
             TreePath dest = dl.getPath();
             DefaultMutableTreeNode target = (DefaultMutableTreeNode) dest.getLastPathComponent();
-            DefaultMutableTreeNode parent = (DefaultMutableTreeNode) dest.getLastPathComponent();
-            
+
             // Convert nodes to usable format
             DefaultMutableTreeNode[] clodedNodes;
             try {
@@ -171,32 +201,40 @@ public class ReorderableJTree extends JTree {
             for(int i = 0; i < clodedNodes.length; i++) {
                 nodes[i] = (DefaultMutableTreeNode) clodedNodes[i].getUserObject();
             }
-            
+
             // Sanity check
             
+            if(maxLevel > -1 && target.getLevel() > maxLevel) {
+                return false;
+            }
+
             // Do not allow MOVE-action drops if a non-leaf node is
             // selected unless all of its children are also selected.
             if(support.getDropAction() == MOVE && !haveCompleteNode(tree)) {
 //                return false;
             }
-            
+
             for(int i = 0; i < nodes.length; i++) {
-                // Do not allow a drop on the drag source selections
-                if(nodes[i] == parent) {
+                // Do not allow dropping of any node below level
+                if(minMovable > -1 && nodes[i].getLevel() < minMovable) {
                     return false;
                 }
-                // Do not allow a node to be copied or moved onto itself
+                // Do not allow dropping of any node above level
+//                if(maxMovable > -1 && nodes[i].getLevel() > maxMovable) {
+//                    return false;
+//                }
+                // Do not allow a drop on the drag source selections
                 if(nodes[i] == target) {
                     return false;
                 }
-                // Do not allow a node to be copied or moved onto one of its descendants
+                // Do not allow a drop on the drag source's descendants
                 if(nodes[i].isNodeDescendant(target)) {
                     return false;
                 }
             }
             return true;
         }
-        
+
         @Override
         public boolean importData(TransferHandler.TransferSupport support) {
             if(!support.isDrop()) {
@@ -205,14 +243,14 @@ public class ReorderableJTree extends JTree {
             if(!canImport(support)) {
                 return false;
             }
-            
+
             // Get drop location info.
             JTree tree = (JTree) support.getComponent();
             DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
             JTree.DropLocation dl = (JTree.DropLocation) support.getDropLocation();
             int childIndex = dl.getChildIndex();
             TreePath dest = dl.getPath();
-            
+
             // Extract transfer data.
             DefaultMutableTreeNode[] nodes = null;
             try {
@@ -225,16 +263,16 @@ public class ReorderableJTree extends JTree {
             if(nodes == null) {
                 return false;
             }
-            
+
             // Do stuff with data.
             DefaultMutableTreeNode parent = (DefaultMutableTreeNode) dest.getLastPathComponent();
-            
+
             // Configure for drop mode.
             int index = childIndex;    // DropMode.INSERT
             if(childIndex == -1) {     // DropMode.ON
                 index = parent.getChildCount(); // End of list
             }
-            
+
             // Add data to model.
             for(int i = 0; i < nodes.length; i++) {
                 model.insertNodeInto(nodes[i], parent, index++);
