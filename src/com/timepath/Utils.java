@@ -46,25 +46,30 @@ public class Utils {
         return str;
     }
 
-    public static String workingDirectory(Class c) {
-        String ans;
+    public static File currentFile(Class<?> c) {
+        String encoded = c.getProtectionDomain().getCodeSource().getLocation().getPath();
         try {
-            ans = new File(URLDecoder.decode(c.getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8")).getParentFile().getAbsolutePath();
+            return new File(URLDecoder.decode(encoded, "UTF-8"));
         } catch(UnsupportedEncodingException ex) {
             Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
-            ans = System.getProperty("user.dir") + File.separator;
-            String cmd = System.getProperty("sun.java.command");
-            int idx = cmd.lastIndexOf(File.separator);
-            if(idx != -1) {
-                cmd = cmd.substring(0, idx + 1);
-            } else {
-                cmd = "";
-            }
-            ans += cmd;
         }
-        return normalisePath(ans);
+        String ans = System.getProperty("user.dir") + File.separator;
+        String cmd = System.getProperty("sun.java.command");
+        int idx = cmd.lastIndexOf(File.separator);
+        if(idx != -1) {
+            cmd = cmd.substring(0, idx + 1);
+        } else {
+            cmd = "";
+        }
+        ans += cmd;
+//        ans = normalisePath(ans);
+        return new File(ans);
     }
-    
+
+    public static String workingDirectory(Class<?> c) {
+        return currentFile(c).getParentFile().getAbsolutePath();
+    }
+
     public static boolean isMD5(String str) {
         return str.matches("[a-fA-F0-9]{32}");
     }
@@ -80,9 +85,9 @@ public class Utils {
         return md5;
     }
 
-    public static String selfCheck(Class c) {
+    private static String selfCheck(Class<?> c) {
         String md5 = null;
-        String runPath = workingDirectory(c);
+        String runPath = currentFile(c).getName();
         if(runPath.endsWith(".jar")) {
             try {
                 md5 = Utils.takeMD5(Utils.loadFile(new File(runPath)));
@@ -111,7 +116,7 @@ public class Utils {
         System.arraycopy(buff, 0, ret, 0, ret.length);
         return ret;
     }
-    
+
     public static Comparator<File> ALPHA_COMPARATOR = new Comparator<File>() {
         /**
          * Alphabetically sorts directories before files ignoring case.
@@ -126,5 +131,5 @@ public class Utils {
             }
         }
     };
-    
+
 }
