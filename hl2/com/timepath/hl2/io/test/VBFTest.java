@@ -176,15 +176,19 @@ public class VBFTest extends javax.swing.JFrame {
         LOG.log(Level.INFO, "Loading {0}", f);
         VBFCanvas p = this.canvas;
 
-        data = VBF.load(new FileInputStream(f + ".vbf"));
-        p.setVBF(data);
-
-        DefaultTreeModel model = (DefaultTreeModel) this.jTree1.getModel();
-        for(BitmapGlyph g : data.getGlyphs()) {
-            insertGlyph(model, g);
-        }
-
+        File vbf = new File(f + ".vbf");
         File vtf = new File(f + ".vtf");
+        
+        if(vbf.exists()) {
+            data = VBF.load(new FileInputStream(vbf));
+            p.setVBF(data);
+
+            DefaultTreeModel model = (DefaultTreeModel) this.jTree1.getModel();
+            for(BitmapGlyph g : data.getGlyphs()) {
+                insertGlyph(model, g);
+            }
+        }
+        
         if(vtf.exists()) {
             image = VTF.load(new FileInputStream(vtf));
             p.setVTF(image);
@@ -471,7 +475,7 @@ public class VBFTest extends javax.swing.JFrame {
                 return;
             }
             File f = fs[0];
-            load(f.getPath().replace(".vbf", ""));
+            load(f.getPath().replace(".vbf", "").replace(".vtf", ""));
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
@@ -496,7 +500,7 @@ public class VBFTest extends javax.swing.JFrame {
                     if(obj instanceof DisplayableCharacter) {
                         this.data.getTable()[((DisplayableCharacter) obj).getC()] = g.getIndex();
                     } else if(obj instanceof DefaultMutableTreeNode) { // XXX: hack
-                        this.data.getTable()[((DisplayableCharacter)(((DefaultMutableTreeNode) obj).getUserObject())).getC()] = g.getIndex();
+                        this.data.getTable()[((DisplayableCharacter) (((DefaultMutableTreeNode) obj).getUserObject())).getC()] = g.getIndex();
                     }
                 }
             }
