@@ -71,94 +71,97 @@ public class VBFTest extends javax.swing.JFrame {
         jTree1.setDropMode(DropMode.ON);
         jTree2.setDropMode(DropMode.ON);
 
-        boolean spinners = false;
+        final boolean spinners = false;
         //<editor-fold defaultstate="collapsed" desc="Spinners">
-        if(spinners) {
-            jSpinner1.addChangeListener(new ChangeListener() {
-                private int old = 0;
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    if(data == null) {
-                        jSpinner1.setValue(0);
-                        return;
-                    }
-                    int current = ((Number) jSpinner1.getValue()).intValue();
-                    currentGlyph.getBounds().x = current;
-                    doRepaint(Math.min(old, current), ((Number) jSpinner2.getValue()).intValue(), Math.max(old, current) + ((Number) jSpinner7.getValue()).intValue(), ((Number) jSpinner8.getValue()).intValue());
-                    old = current;
-                    int wide = data.getWidth();
-                    if(image != null) {
-                        wide = image.width;
-                    }
-                    SpinnerNumberModel s = ((SpinnerNumberModel) jSpinner7.getModel());
-                    s.setMaximum(wide - ((Number) jSpinner1.getValue()).intValue());
-//                if(s.getNumber() > s.g) {
-//                    s.setNumber(s.getMaximum());
-//                }
-                }
-            });
-            jSpinner7.addChangeListener(new ChangeListener() {
-                private int old = 0;
+        xSpinner.addChangeListener(new ChangeListener() {
+            private int old = 0;
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    if(data == null) {
-                        jSpinner7.setValue(0);
-                        return;
-                    }
-                    int current = ((Number) jSpinner7.getValue()).intValue();
-                    currentGlyph.getBounds().width = current;
-                    doRepaint(((Number) jSpinner1.getValue()).intValue(), ((Number) jSpinner2.getValue()).intValue(), Math.max(old, current), ((Number) jSpinner8.getValue()).intValue());
-                    old = current;
-                    int wide = data.getWidth();
-                    if(image != null) {
-                        wide = image.width;
-                    }
-                    ((SpinnerNumberModel) jSpinner1.getModel()).setMaximum(wide - ((Number) jSpinner7.getValue()).intValue());
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if(data == null) {
+                    xSpinner.setValue(0);
+                    return;
                 }
-            });
-            jSpinner2.addChangeListener(new ChangeListener() {
-                private int old = 0;
+                int current = ((Number) xSpinner.getValue()).intValue();
+                currentGlyph.getBounds().x = current;
+                doRepaint(Math.min(old, current), ((Number) ySpinner.getValue()).intValue(), Math.max(old, current) + ((Number) widthSpinner.getValue()).intValue(), ((Number) heightSpinner.getValue()).intValue());
+                old = current;
+                int wide = data.getWidth();
+                if(image != null) {
+                    wide = image.width;
+                }
+                if(spinners) {
+                    ((SpinnerNumberModel) widthSpinner.getModel()).setMaximum(wide - ((Number) xSpinner.getValue()).intValue());
+                }
+            }
+        });
+        widthSpinner.addChangeListener(new ChangeListener() {
+            private int old = 0;
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    if(data == null) {
-                        jSpinner2.setValue(0);
-                        return;
-                    }
-                    int current = ((Number) jSpinner2.getValue()).intValue();
-                    currentGlyph.getBounds().y = current;
-                    doRepaint(((Number) jSpinner1.getValue()).intValue(), Math.min(old, current), ((Number) jSpinner7.getValue()).intValue(), Math.max(old, current) + ((Number) jSpinner8.getValue()).intValue());
-                    old = current;
-                    int high = data.getHeight();
-                    if(image != null) {
-                        high = image.height;
-                    }
-                    ((SpinnerNumberModel) jSpinner8.getModel()).setMaximum(high - ((Number) jSpinner2.getValue()).intValue());
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if(data == null) {
+                    widthSpinner.setValue(0);
+                    return;
                 }
-            });
-            jSpinner8.addChangeListener(new ChangeListener() {
-                private int old = 0;
+                int current = ((Number) widthSpinner.getValue()).intValue();
+                currentGlyph.getBounds().width = current;
+                doRepaint(((Number) xSpinner.getValue()).intValue(), ((Number) ySpinner.getValue()).intValue(), Math.max(old, current), ((Number) heightSpinner.getValue()).intValue());
+                old = current;
+                int wide = data.getWidth();
+                if(image != null) {
+                    wide = image.width;
+                }
+                if(spinners) {
+                    ((SpinnerNumberModel) xSpinner.getModel()).setMaximum(wide - ((Number) widthSpinner.getValue()).intValue());
+                }
+            }
+        });
+        ySpinner.addChangeListener(new ChangeListener() {
+            private int old = 0;
 
-                @Override
-                public void stateChanged(ChangeEvent e) {
-                    if(data == null) {
-                        jSpinner8.setValue(0);
-                        return;
-                    }
-                    int current = ((Number) jSpinner8.getValue()).intValue();
-                    currentGlyph.getBounds().height = current;
-                    doRepaint(((Number) jSpinner1.getValue()).intValue(), ((Number) jSpinner2.getValue()).intValue(), ((Number) jSpinner7.getValue()).intValue(), Math.max(old, current));
-                    old = current;
-                    int high = data.getHeight();
-                    if(image != null) {
-                        high = image.height;
-                    }
-                    ((SpinnerNumberModel) jSpinner2.getModel()).setMaximum(high - ((Number) jSpinner8.getValue()).intValue());
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if(data == null) {
+                    ySpinner.setValue(0);
+                    return;
                 }
-            });
-        }
+                int current = ((Number) ySpinner.getValue()).intValue();
+                currentGlyph.getBounds().y = current;
+                doRepaint(((Number) xSpinner.getValue()).intValue(), Math.min(old, current), ((Number) widthSpinner.getValue()).intValue(), Math.max(old, current) + ((Number) heightSpinner.getValue()).intValue());
+                old = current;
+                int high = data.getHeight();
+                if(image != null) {
+                    high = image.height;
+                }
+                if(spinners) {
+                    ((SpinnerNumberModel) heightSpinner.getModel()).setMaximum(high - ((Number) ySpinner.getValue()).intValue());
+                }
+            }
+        });
+        heightSpinner.addChangeListener(new ChangeListener() {
+            private int old = 0;
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if(data == null) {
+                    heightSpinner.setValue(0);
+                    return;
+                }
+                int current = ((Number) heightSpinner.getValue()).intValue();
+                currentGlyph.getBounds().height = current;
+                doRepaint(((Number) xSpinner.getValue()).intValue(), ((Number) ySpinner.getValue()).intValue(), ((Number) widthSpinner.getValue()).intValue(), Math.max(old, current));
+                old = current;
+                int high = data.getHeight();
+                if(image != null) {
+                    high = image.height;
+                }
+                if(spinners) {
+                    ((SpinnerNumberModel) ySpinner.getModel()).setMaximum(high - ((Number) heightSpinner.getValue()).intValue());
+                }
+            }
+        });
         //</editor-fold>
     }
 
@@ -178,7 +181,7 @@ public class VBFTest extends javax.swing.JFrame {
 
         File vbf = new File(f + ".vbf");
         File vtf = new File(f + ".vtf");
-        
+
         if(vbf.exists()) {
             data = VBF.load(new FileInputStream(vbf));
             p.setVBF(data);
@@ -188,7 +191,7 @@ public class VBFTest extends javax.swing.JFrame {
                 insertGlyph(model, g);
             }
         }
-        
+
         if(vtf.exists()) {
             image = VTF.load(new FileInputStream(vtf));
             p.setVTF(image);
@@ -237,10 +240,10 @@ public class VBFTest extends javax.swing.JFrame {
             currentGlyph.setBounds(new Rectangle());
         }
         Rectangle r = currentGlyph.getBounds();
-        jSpinner1.setValue(r.x);
-        jSpinner2.setValue(r.y);
-        jSpinner7.setValue(r.width);
-        jSpinner8.setValue(r.height);
+        xSpinner.setValue(r.x);
+        ySpinner.setValue(r.y);
+        widthSpinner.setValue(r.width);
+        heightSpinner.setValue(r.height);
     }
 
     /**
@@ -257,11 +260,11 @@ public class VBFTest extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
-        jSpinner1 = new javax.swing.JSpinner();
-        jSpinner2 = new javax.swing.JSpinner();
+        xSpinner = new javax.swing.JSpinner();
+        ySpinner = new javax.swing.JSpinner();
         jPanel5 = new javax.swing.JPanel();
-        jSpinner7 = new javax.swing.JSpinner();
-        jSpinner8 = new javax.swing.JSpinner();
+        widthSpinner = new javax.swing.JSpinner();
+        heightSpinner = new javax.swing.JSpinner();
         jSplitPane2 = new javax.swing.JSplitPane();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTree1 = new com.timepath.swing.ReorderableJTree();
@@ -287,9 +290,9 @@ public class VBFTest extends javax.swing.JFrame {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Position"));
 
-        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        xSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
 
-        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        ySpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
 
         org.jdesktop.layout.GroupLayout jPanel3Layout = new org.jdesktop.layout.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -297,9 +300,9 @@ public class VBFTest extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jSpinner1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
+                .add(xSpinner, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
                 .add(18, 18, 18)
-                .add(jSpinner2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(ySpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -307,16 +310,16 @@ public class VBFTest extends javax.swing.JFrame {
             .add(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jSpinner1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jSpinner2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(xSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(ySpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Dimensions"));
 
-        jSpinner7.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        widthSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
 
-        jSpinner8.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        heightSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
 
         org.jdesktop.layout.GroupLayout jPanel5Layout = new org.jdesktop.layout.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -324,9 +327,9 @@ public class VBFTest extends javax.swing.JFrame {
             jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jSpinner7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(widthSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .add(18, 18, 18)
-                .add(jSpinner8, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
+                .add(heightSpinner, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -334,8 +337,8 @@ public class VBFTest extends javax.swing.JFrame {
             .add(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(jSpinner7, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jSpinner8, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                    .add(widthSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(heightSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -550,6 +553,7 @@ public class VBFTest extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.timepath.hl2.io.swing.VBFCanvas canvas;
+    private javax.swing.JSpinner heightSpinner;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
@@ -563,13 +567,12 @@ public class VBFTest extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JSpinner jSpinner1;
-    private javax.swing.JSpinner jSpinner2;
-    private javax.swing.JSpinner jSpinner7;
-    private javax.swing.JSpinner jSpinner8;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private com.timepath.swing.ReorderableJTree jTree1;
     private com.timepath.swing.ReorderableJTree jTree2;
+    private javax.swing.JSpinner widthSpinner;
+    private javax.swing.JSpinner xSpinner;
+    private javax.swing.JSpinner ySpinner;
     // End of variables declaration//GEN-END:variables
 }
