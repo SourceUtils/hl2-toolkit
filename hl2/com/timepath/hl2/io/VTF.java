@@ -225,11 +225,11 @@ public class VTF implements ViewableData {
         
         VTF vtf = new VTF();
         vtf.stream = is;
-        byte[] array = new byte[is.available()/*65*/];
-        is.read(array);
+        byte[] array = new byte[4 + is.available()/*65*/];
+        is.read(array, 4, array.length - 4);
         vtf.buf = ByteBuffer.wrap(array);
         vtf.buf.order(ByteOrder.LITTLE_ENDIAN);
-        
+        vtf.buf.position(4);
         
         vtf.version = new int[]{vtf.buf.getInt(), vtf.buf.getInt()};
         vtf.headerSize = vtf.buf.getInt();
