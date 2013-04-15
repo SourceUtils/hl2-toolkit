@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,16 +20,11 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DropMode;
-import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.plaf.IconUIResource;
-import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -77,6 +73,19 @@ public class VBFTest extends javax.swing.JFrame {
 //        UIManager.put("Tree.expandedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/minus.png"))));
 //        UIManager.put("Tree.collapsedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/plus.png"))));
         initComponents();
+        
+        canvas.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                Rectangle r = currentGlyph.getBounds();
+                xSpinner.setValue(r.x);
+                ySpinner.setValue(r.y);
+                widthSpinner.setValue(r.width);
+                heightSpinner.setValue(r.height);
+            }
+            
+        });
 
         jTree2.setModel(jTree1.getModel());
         jTree1.setMinMovable(2);
@@ -247,35 +256,6 @@ public class VBFTest extends javax.swing.JFrame {
         }
     }
 
-    private void treeInteraction(TreeSelectionEvent evt) {
-        TreePath selection = evt.getNewLeadSelectionPath();
-        if(selection == null) {
-            return;
-        }
-        JTree other = evt.getSource() == jTree1 ? jTree2 : evt.getSource() == jTree2 ? jTree1 : null;
-        if(other != null) {
-            other.setSelectionRow(-1);
-        }
-        Object node = selection.getLastPathComponent();
-        if(!(node instanceof DefaultMutableTreeNode)) {
-            return;
-        }
-        Object obj = ((DefaultMutableTreeNode) node).getUserObject();
-        if(!(obj instanceof BitmapGlyph)) {
-            return;
-        }
-        currentGlyph = (BitmapGlyph) obj;
-
-        if(currentGlyph.getBounds() == null) {
-            currentGlyph.setBounds(new Rectangle());
-        }
-        Rectangle r = currentGlyph.getBounds();
-        xSpinner.setValue(r.x);
-        ySpinner.setValue(r.y);
-        widthSpinner.setValue(r.width);
-        heightSpinner.setValue(r.height);
-    }
-
     /**
      * This method is called from within the constructor to
      * initialize the form.
@@ -338,6 +318,11 @@ public class VBFTest extends javax.swing.JFrame {
                 jTree1MouseClicked(evt);
             }
         });
+        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                treeInteraction(evt);
+            }
+        });
         jScrollPane2.setViewportView(jTree1);
 
         jSplitPane2.setLeftComponent(jScrollPane2);
@@ -346,6 +331,11 @@ public class VBFTest extends javax.swing.JFrame {
         jTree2.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jTree2MouseClicked(evt);
+            }
+        });
+        jTree2.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
+            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                treeInteraction(evt);
             }
         });
         jScrollPane3.setViewportView(jTree2);
@@ -567,6 +557,35 @@ public class VBFTest extends javax.swing.JFrame {
     private void jTree2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree2MouseClicked
         mouseClicked(evt);
     }//GEN-LAST:event_jTree2MouseClicked
+
+    private void treeInteraction(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeInteraction
+        TreePath selection = evt.getNewLeadSelectionPath();
+        if(selection == null) {
+            return;
+        }
+        JTree other = evt.getSource() == jTree1 ? jTree2 : evt.getSource() == jTree2 ? jTree1 : null;
+        if(other != null) {
+            other.setSelectionRow(-1);
+        }
+        Object node = selection.getLastPathComponent();
+        if(!(node instanceof DefaultMutableTreeNode)) {
+            return;
+        }
+        Object obj = ((DefaultMutableTreeNode) node).getUserObject();
+        if(!(obj instanceof BitmapGlyph)) {
+            return;
+        }
+        currentGlyph = (BitmapGlyph) obj;
+
+        if(currentGlyph.getBounds() == null) {
+            currentGlyph.setBounds(new Rectangle());
+        }
+        Rectangle r = currentGlyph.getBounds();
+        xSpinner.setValue(r.x);
+        ySpinner.setValue(r.y);
+        widthSpinner.setValue(r.width);
+        heightSpinner.setValue(r.height);
+    }//GEN-LAST:event_treeInteraction
 
     /**
      * @param args the command line arguments
