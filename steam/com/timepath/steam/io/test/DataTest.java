@@ -129,19 +129,19 @@ public class DataTest extends javax.swing.JFrame {
     }//GEN-LAST:event_openVDF
 
     private void appInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appInfo
-        open(new File(SteamUtils.getSteamApps().getParent() + "/appcache/appinfo.vdf"));
+        open(new File(SteamUtils.getSteam() + "/appcache/appinfo.vdf"));
     }//GEN-LAST:event_appInfo
 
     private void packageInfo(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_packageInfo
-        open(new File(SteamUtils.getSteamApps().getParent() + "/appcache/packageinfo.vdf"));
+        open(new File(SteamUtils.getSteam() + "/appcache/packageinfo.vdf"));
     }//GEN-LAST:event_packageInfo
 
     private void updateStats(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateStats
-        open(new File(SteamUtils.getSteamApps().getParent() + "/AppUpdateStats.blob"));
+        open(new File(SteamUtils.getSteam() + "/AppUpdateStats.blob"));
     }//GEN-LAST:event_updateStats
 
     private void clientRegistry(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clientRegistry
-        open(new File(SteamUtils.getSteamApps().getParent() + "/ClientRegistry.blob"));
+        open(new File(SteamUtils.getSteam() + "/ClientRegistry.blob"));
     }//GEN-LAST:event_clientRegistry
 
     private void open(File f) {
@@ -152,7 +152,7 @@ public class DataTest extends javax.swing.JFrame {
             LOG.log(Level.INFO, "File is {0}", f);
         }
         DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
-        
+
         DefaultMutableTreeNode pseudo = new DefaultMutableTreeNode(f.getPath());
         model.setRoot(pseudo);
         DefaultMutableTreeNode n = null;
@@ -169,6 +169,9 @@ public class DataTest extends javax.swing.JFrame {
                     VDF.analyze(f, n);
                     addProperties(n);
                 }
+            } else if(f.getName().toLowerCase().endsWith(".bin")) {
+                n = new DefaultMutableTreeNode("BVDF");
+                BVDF.analyze(f, n);
             }
         } catch(StackOverflowError e) {
             LOG.warning("Stack Overflow");
@@ -180,19 +183,19 @@ public class DataTest extends javax.swing.JFrame {
         }
         model.reload();
     }
-    
+
     private void addProperties(DefaultMutableTreeNode tn) {
         for(int i = 0; i < tn.getChildCount(); i++) {
             addProperties((DefaultMutableTreeNode) tn.getChildAt(i));
         }
         if(tn.getUserObject() instanceof Element) {
-            ArrayList<Property> props = ((Element)tn.getUserObject()).getProps();
+            ArrayList<Property> props = ((Element) tn.getUserObject()).getProps();
             for(int i = 0; i < props.size(); i++) {
                 tn.add(new DefaultMutableTreeNode(props.get(i)));
             }
         }
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -214,5 +217,7 @@ public class DataTest extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
+
     private static final Logger LOG = Logger.getLogger(DataTest.class.getName());
+
 }

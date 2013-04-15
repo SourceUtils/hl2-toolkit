@@ -1,6 +1,9 @@
 package com.timepath.steam;
 
 import com.timepath.plaf.OS;
+import static com.timepath.plaf.OS.Linux;
+import static com.timepath.plaf.OS.OSX;
+import static com.timepath.plaf.OS.Windows;
 import java.io.File;
 import java.util.logging.Logger;
 
@@ -14,27 +17,34 @@ public class SteamUtils {
 
     private SteamUtils() {
     }
-    
-    public static File getSteamApps() {
-        return new File(locateSteamAppsDirectory());
-    }
 
-    private static String locateSteamAppsDirectory() {
-        if(OS.isWindows()) {
-            String str = System.getenv("PROGRAMFILES(x86)");
-            if(str == null) {
-                str = System.getenv("PROGRAMFILES");
-            }
-            return str + "/Steam/steamapps/";
-        } else if(OS.isMac()) {
-            return "~/Library/Application Support/Steam/SteamApps/";
-        } else if(OS.isLinux()) {
-            return System.getenv("HOME") + "/.steam/root/SteamApps/";
-        } else {
-            return null;
+    public static File getSteamApps() {
+        File steam = getSteam();
+        switch(OS.get()) {
+            case Windows:
+                return new File(steam, "steamapps");
+            case OSX:
+            case Linux:
+                return new File(steam, "SteamApps");
+            default:
+                return null;
         }
     }
 
-    
-    
+    public static File getSteam() {
+        switch(OS.get()) {
+            case Windows:
+                String str = System.getenv("PROGRAMFILES(x86)");
+                if(str == null) {
+                    str = System.getenv("PROGRAMFILES");
+                }
+                return new File(str, "Steam");
+            case OSX:
+                return new File("~/Library/Application Support/Steam");
+            case Linux:
+                return new File(System.getenv("HOME") + "/.steam/steam");
+            default:
+                return null;
+        }
+    }
 }
