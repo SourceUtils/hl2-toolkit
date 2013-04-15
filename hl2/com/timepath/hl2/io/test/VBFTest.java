@@ -109,7 +109,7 @@ public class VBFTest extends javax.swing.JFrame {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                if(data == null) {
+                if(data == null || currentGlyph == null) {
                     xSpinner.setValue(0);
                     return;
                 }
@@ -131,7 +131,7 @@ public class VBFTest extends javax.swing.JFrame {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                if(data == null) {
+                if(data == null || currentGlyph == null) {
                     widthSpinner.setValue(0);
                     return;
                 }
@@ -153,7 +153,7 @@ public class VBFTest extends javax.swing.JFrame {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                if(data == null) {
+                if(data == null || currentGlyph == null) {
                     ySpinner.setValue(0);
                     return;
                 }
@@ -175,7 +175,7 @@ public class VBFTest extends javax.swing.JFrame {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                if(data == null) {
+                if(data == null || currentGlyph == null) {
                     heightSpinner.setValue(0);
                     return;
                 }
@@ -333,11 +333,21 @@ public class VBFTest extends javax.swing.JFrame {
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("Glyphs");
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jTree1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTree1MouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(jTree1);
 
         jSplitPane2.setLeftComponent(jScrollPane2);
 
         jTree2.setModel(jTree1.getModel());
+        jTree2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTree2MouseClicked(evt);
+            }
+        });
         jScrollPane3.setViewportView(jTree2);
 
         jSplitPane2.setRightComponent(jScrollPane3);
@@ -549,6 +559,14 @@ public class VBFTest extends javax.swing.JFrame {
         StringSelection selection = new StringSelection(String.valueOf(toCopy));
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
     }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jTree1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree1MouseClicked
+        mouseClicked(evt);
+    }//GEN-LAST:event_jTree1MouseClicked
+
+    private void jTree2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTree2MouseClicked
+        mouseClicked(evt);
+    }//GEN-LAST:event_jTree2MouseClicked
 
     /**
      * @param args the command line arguments

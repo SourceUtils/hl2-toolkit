@@ -188,6 +188,9 @@ public class ReorderableJTree extends JTree {
             JTree.DropLocation dl = (JTree.DropLocation) support.getDropLocation();
 //            int childIndex = dl.getChildIndex();
             TreePath dest = dl.getPath();
+            if(dest == null) {
+                return false;
+            }
             DefaultMutableTreeNode target = (DefaultMutableTreeNode) dest.getLastPathComponent();
 
             // Convert nodes to usable format
