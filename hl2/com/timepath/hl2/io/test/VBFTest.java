@@ -6,22 +6,35 @@ import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.swing.VBFCanvas;
 import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
+import java.awt.Component;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DropMode;
+import javax.swing.ImageIcon;
 import javax.swing.JTree;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
+import javax.swing.plaf.IconUIResource;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -61,6 +74,8 @@ public class VBFTest extends javax.swing.JFrame {
      * Creates new form VBFTest
      */
     public VBFTest() {
+//        UIManager.put("Tree.expandedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/minus.png"))));
+//        UIManager.put("Tree.collapsedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/plus.png"))));
         initComponents();
 
         jTree2.setModel(jTree1.getModel());
@@ -70,7 +85,22 @@ public class VBFTest extends javax.swing.JFrame {
         jTree2.setMaxLevel(1);
         jTree1.setDropMode(DropMode.ON);
         jTree2.setDropMode(DropMode.ON);
+        TreeCellRenderer renderer = new DefaultTreeCellRenderer() {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                return super.getTreeCellRendererComponent(tree, value, sel, expanded, ((TreeNode) value).getParent() != null && ((TreeNode) value).getParent() != tree.getModel().getRoot(), row, hasFocus);
+            }
+            
+            public TreeCellRenderer init() {
+                this.setLeafIcon(null);
+                return this;
+            }
+            
+        }.init();
+        jTree1.setCellRenderer(renderer);
+        jTree2.setCellRenderer(renderer);
         final boolean spinners = false;
         //<editor-fold defaultstate="collapsed" desc="Spinners">
 
@@ -256,8 +286,15 @@ public class VBFTest extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPopupMenu1 = new javax.swing.JPopupMenu();
+        jMenuItem4 = new javax.swing.JMenuItem();
         jSplitPane1 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
+        jSplitPane2 = new javax.swing.JSplitPane();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTree1 = new com.timepath.swing.ReorderableJTree();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTree2 = new com.timepath.swing.ReorderableJTree();
         jPanel2 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
         xSpinner = new javax.swing.JSpinner();
@@ -265,11 +302,6 @@ public class VBFTest extends javax.swing.JFrame {
         jPanel5 = new javax.swing.JPanel();
         widthSpinner = new javax.swing.JSpinner();
         heightSpinner = new javax.swing.JSpinner();
-        jSplitPane2 = new javax.swing.JSplitPane();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jTree1 = new com.timepath.swing.ReorderableJTree();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTree2 = new com.timepath.swing.ReorderableJTree();
         jScrollPane1 = new javax.swing.JScrollPane();
         canvas = new com.timepath.hl2.io.swing.VBFCanvas();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -279,145 +311,106 @@ public class VBFTest extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
 
+        jMenuItem4.setText("Copy");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
+        jPopupMenu1.add(jMenuItem4);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Bitmap Font Editor");
+        setPreferredSize(new java.awt.Dimension(640, 480));
 
-        jSplitPane1.setDividerSize(2);
+        jSplitPane1.setDividerLocation(250);
         jSplitPane1.setContinuousLayout(true);
-        jSplitPane1.setEnabled(false);
-
-        jPanel2.setPreferredSize(new java.awt.Dimension(200, 195));
-
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Position"));
-
-        xSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-
-        ySpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-
-        org.jdesktop.layout.GroupLayout jPanel3Layout = new org.jdesktop.layout.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(xSpinner, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
-                .add(18, 18, 18)
-                .add(ySpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel3Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(xSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(ySpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Dimensions"));
-
-        widthSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-
-        heightSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
-
-        org.jdesktop.layout.GroupLayout jPanel5Layout = new org.jdesktop.layout.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(widthSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 61, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .add(18, 18, 18)
-                .add(heightSpinner, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 61, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel5Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                    .add(widthSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(heightSpinner, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 28, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jPanel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                    .add(jPanel5, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(14, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .add(jPanel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanel5, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(13, Short.MAX_VALUE))
-        );
+        jSplitPane1.setPreferredSize(new java.awt.Dimension(360, 403));
 
         jSplitPane2.setDividerSize(2);
         jSplitPane2.setResizeWeight(0.5);
         jSplitPane2.setEnabled(false);
 
-        jScrollPane3.setBorder(null);
-
-        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("Glyphs");
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        jTree1.setRootVisible(false);
-        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree1ValueChanged(evt);
-            }
-        });
-        jScrollPane3.setViewportView(jTree1);
+        jScrollPane2.setViewportView(jTree1);
 
-        jSplitPane2.setLeftComponent(jScrollPane3);
+        jSplitPane2.setLeftComponent(jScrollPane2);
 
-        jScrollPane4.setBorder(null);
+        jTree2.setModel(jTree1.getModel());
+        jScrollPane3.setViewportView(jTree2);
 
-        treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
-        jTree2.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        jTree2.setRootVisible(false);
-        jTree2.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree2ValueChanged(evt);
-            }
-        });
-        jScrollPane4.setViewportView(jTree2);
+        jSplitPane2.setRightComponent(jScrollPane3);
 
-        jSplitPane2.setRightComponent(jScrollPane4);
+        jPanel2.setPreferredSize(new java.awt.Dimension(200, 195));
+
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Position"));
+        jPanel3.setLayout(new javax.swing.BoxLayout(jPanel3, javax.swing.BoxLayout.LINE_AXIS));
+
+        xSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jPanel3.add(xSpinner);
+
+        ySpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jPanel3.add(ySpinner);
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Dimensions"));
+        jPanel5.setLayout(new javax.swing.BoxLayout(jPanel5, javax.swing.BoxLayout.LINE_AXIS));
+
+        widthSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jPanel5.add(widthSpinner);
+
+        heightSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        jPanel5.add(heightSpinner);
+
+        org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel5, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel3, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(jPanel2Layout.createSequentialGroup()
+                .add(jPanel3, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel5, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(0, 0, Short.MAX_VALUE))
+        );
 
         org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jSplitPane2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .add(jPanel2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 249, Short.MAX_VALUE)
+            .add(jSplitPane2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 249, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(jPanel1Layout.createSequentialGroup()
-                .add(jSplitPane2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+            .add(org.jdesktop.layout.GroupLayout.TRAILING, jPanel1Layout.createSequentialGroup()
+                .add(jSplitPane2, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                .add(jPanel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .add(jPanel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 148, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
         );
 
         jSplitPane1.setLeftComponent(jPanel1);
 
-        jScrollPane1.setBorder(null);
+        org.jdesktop.layout.GroupLayout canvasLayout = new org.jdesktop.layout.GroupLayout(canvas);
+        canvas.setLayout(canvasLayout);
+        canvasLayout.setHorizontalGroup(
+            canvasLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 373, Short.MAX_VALUE)
+        );
+        canvasLayout.setVerticalGroup(
+            canvasLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(0, 449, Short.MAX_VALUE)
+        );
 
-        canvas.setLayout(new java.awt.BorderLayout());
         jScrollPane1.setViewportView(canvas);
 
         jSplitPane1.setRightComponent(jScrollPane1);
+
+        getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         jMenu1.setText("File");
 
@@ -456,17 +449,6 @@ public class VBFTest extends javax.swing.JFrame {
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
-
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jSplitPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(org.jdesktop.layout.GroupLayout.TRAILING, jSplitPane1)
-        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -514,14 +496,6 @@ public class VBFTest extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_save
 
-    private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree1ValueChanged
-        treeInteraction(evt);
-    }//GEN-LAST:event_jTree1ValueChanged
-
-    private void jTree2ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree2ValueChanged
-        treeInteraction(evt);
-    }//GEN-LAST:event_jTree2ValueChanged
-
     private void createGlyph(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createGlyph
         BitmapGlyph g = new BitmapGlyph();
         if(data == null) {
@@ -540,6 +514,41 @@ public class VBFTest extends javax.swing.JFrame {
         data.getGlyphs().add(g);
         this.insertGlyph((DefaultTreeModel) jTree1.getModel(), g);
     }//GEN-LAST:event_createGlyph
+
+    private char toCopy;
+
+    private void mouseClicked(MouseEvent evt) {
+        if(SwingUtilities.isRightMouseButton(evt)) {
+            JTree jTree = ((JTree) evt.getComponent());
+            TreePath clicked = jTree.getPathForLocation(evt.getX(), evt.getY());
+            if(clicked == null) {
+                return;
+            }
+            Object obj = clicked.getLastPathComponent();
+            if(obj instanceof DefaultMutableTreeNode) {
+                obj = ((DefaultMutableTreeNode) obj).getUserObject();
+            }
+            if(jTree.getSelectionPaths() == null || !Arrays.asList(jTree.getSelectionPaths()).contains(clicked)) {
+                jTree.setSelectionPath(clicked);
+            }
+            TreePath[] paths = jTree.getSelectionPaths();
+            for(TreePath p : paths) {
+                if(!(p.getLastPathComponent() instanceof DefaultMutableTreeNode)) {
+                    return;
+                }
+                Object userObject = ((DefaultMutableTreeNode) p.getLastPathComponent()).getUserObject();
+                if(userObject instanceof DisplayableCharacter) {
+                    toCopy = ((DisplayableCharacter) userObject).getC();
+                    jPopupMenu1.show(jTree, evt.getX(), evt.getY());
+                }
+            }
+        }
+    }
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        StringSelection selection = new StringSelection(String.valueOf(toCopy));
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -560,13 +569,15 @@ public class VBFTest extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private com.timepath.swing.ReorderableJTree jTree1;

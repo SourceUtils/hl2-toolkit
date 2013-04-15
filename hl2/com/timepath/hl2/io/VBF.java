@@ -215,7 +215,7 @@ public class VBF {
             return index;
         }
 
-        private Rectangle bounds;
+        private Rectangle bounds = new Rectangle();
 
         public void setBounds(Rectangle bounds) {
             this.bounds = bounds;
