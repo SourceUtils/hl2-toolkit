@@ -3,6 +3,7 @@ package com.timepath.hl2.io.test;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
+import com.jme3.asset.plugins.FileLocator;
 import com.jme3.input.ChaseCamera;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -17,7 +18,10 @@ import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.timepath.hl2.io.MDL;
 import com.timepath.hl2.io.VTF;
+import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import java.awt.Canvas;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -25,8 +29,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
 /**
  *
@@ -37,6 +46,7 @@ public class MDLTest extends SimpleApplication {
     private static final Logger LOG = Logger.getLogger(MDLTest.class.getName());
 
     public static void main(String... args) {
+        Logger.getLogger("com.jme3").setLevel(Level.SEVERE);
         final MDLTest app = new MDLTest();
         app.setPauseOnLostFocus(false);
         app.setShowSettings(true);
@@ -50,6 +60,33 @@ public class MDLTest extends SimpleApplication {
         canvas.setSize(settings.getWidth(), settings.getHeight());
 
         JFrame frame = new JFrame("Test");
+        JMenuBar mb = new JMenuBar();
+        frame.setJMenuBar(mb);
+        JMenu fileMenu = new JMenu("File");
+        mb.add(fileMenu);
+        JMenuItem open = new JMenuItem("Open");
+        open.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                try {
+                    File[] f = new NativeFileChooser().setTitle("Select model").choose();
+                    if(f == null) {
+                        return;
+                    }
+                    app.loadModel(f[0]);
+                } catch(IOException ex) {
+                    Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        fileMenu.add(open);
+        frame.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                app.stop(true);
+            }
+            
+        });
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -61,9 +98,11 @@ public class MDLTest extends SimpleApplication {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        Logger.getLogger("com.jme3").setLevel(Level.INFO);
     }
 
     private void registerLoaders() {
+        this.assetManager.registerLocator("/", FileLocator.class);
         this.assetManager.registerLoader(MDLLoader.class, "mdl");
         this.assetManager.registerLoader(VTFLoader.class, "vtf");
 //        this.assetManager.registerLoader(BSPLoader.class, "bsp");
@@ -75,13 +114,6 @@ public class MDLTest extends SimpleApplication {
         this.setDisplayStatView(false);
         this.setDisplayFps(false);
         initInput();
-        Texture tex = assetManager.loadTexture("tf/materials/models/weapons/v_bonesaw/v_bonesaw.vtf");
-        Geometry mdl = (Geometry) assetManager.loadModel("tf/models/weapons/w_models/w_bonesaw.mdl");
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.White);
-        mat.setTexture("ColorMap", tex);
-        mdl.setMaterial(mat);
-        rootNode.attachChild(mdl);
     }
 
     private void initInput() {
@@ -102,12 +134,21 @@ public class MDLTest extends SimpleApplication {
 
     public static class MDLLoader implements AssetLoader {
 
+        public MDLLoader() {
+        }
+
         private static final Logger LOG = Logger.getLogger(MDLLoader.class.getName());
 
         @Override
         public Object load(AssetInfo info) throws IOException {
             String name = "mdl/" + info.getKey().getName().substring(0, info.getKey().getName().length() - 4);
             System.out.println(new File(name));
+
+            return load(name);
+            //</editor-fold>
+        }
+
+        public Object load(String name) throws IOException {
             MDL m = MDL.load(name);
 
             float[] vertices = m.getVertices();
@@ -125,7 +166,7 @@ public class MDLTest extends SimpleApplication {
             mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
             mesh.setBuffer(VertexBuffer.Type.Tangent, 4, BufferUtils.createFloatBuffer(tangents));
             mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(uv));
-            if (indexes != null) {
+            if(indexes != null) {
                 mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indexes));
             }
 
@@ -135,11 +176,13 @@ public class MDLTest extends SimpleApplication {
 
             Geometry geom = new Geometry(name + "-geom", mesh);
             return geom;
-            //</editor-fold>
         }
     }
 
     public static class VTFLoader implements AssetLoader {
+
+        public VTFLoader() {
+        }
 
         private static final Logger LOG = Logger.getLogger(VTFLoader.class.getName());
 
@@ -147,6 +190,11 @@ public class MDLTest extends SimpleApplication {
         public Object load(AssetInfo info) throws IOException {
             File f = new File("mdl/" + info.getKey().getName());
             LOG.info(f.toString());
+
+            return load(f.getPath());
+        }
+
+        public Object load(String f) throws IOException {
             VTF v = VTF.load(new FileInputStream(f));
             BufferedImage t = (BufferedImage) v.getThumbImage();
             t = (BufferedImage) v.getImage(0);
@@ -154,12 +202,12 @@ public class MDLTest extends SimpleApplication {
             byte[] rawData = new byte[t.getWidth() * t.getHeight() * 4];
 
             int idx = 0;
-            for (int x = 0; x < t.getWidth(); x++) {
-                for (int y = 0; y < t.getHeight(); y++) {
+            for(int x = 0; x < t.getWidth(); x++) {
+                for(int y = 0; y < t.getHeight(); y++) {
                     int d = t.getRGB(x, y);
                     rawData[idx++] = (byte) ((d >> 16) & 0xFF);
                     rawData[idx++] = (byte) ((d >> 8) & 0xFF);
-                    rawData[idx++] = (byte) ((d >> 0) & 0xFF);
+                    rawData[idx++] = (byte) (d & 0xFF);
                 }
             }
 
@@ -174,6 +222,32 @@ public class MDLTest extends SimpleApplication {
             textureImage.setHeight(t.getHeight());
             textureImage.setData(scratch);
             return textureImage;
+        }
+    }
+
+    private void loadModel(final File f) {
+        try {
+//            Object asset = new MDLLoader().load(f.getPath());
+//            Texture tex = assetManager.loadTexture("tf/materials/models/weapons/v_bonesaw/v_bonesaw.vtf");
+            String stripped = f.getPath().substring(0, f.getPath().lastIndexOf('.'));
+            final Geometry mdl = (Geometry) new MDLLoader().load(stripped);
+            if(new File(stripped + ".vtf").exists()) {
+                Texture tex = (Texture) new VTFLoader().load(stripped + ".vtf");
+                Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                mat.setColor("Color", ColorRGBA.White);
+                mat.setTexture("ColorMap", tex);
+                mdl.setMaterial(mat);
+            }
+            //            if(asset instanceof Geometry) {
+            this.enqueue(new Callable() {
+                public Void call() {
+                    rootNode.attachChild(mdl);
+                    return null;
+                }
+            });
+//            }
+        } catch(IOException ex) {
+            Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
