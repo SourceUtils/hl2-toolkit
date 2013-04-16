@@ -1,6 +1,7 @@
 package com.timepath.plaf.x.filechooser;
 
 import com.timepath.plaf.OS;
+import com.timepath.plaf.mac.OSXProps;
 import java.awt.FileDialog;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -15,7 +16,7 @@ public class AWTFileChooser extends BaseFileChooser {
     @Override
     public File[] choose() {
         if(OS.isMac()) {
-            System.setProperty("apple.awt.fileDialogForDirectories", Boolean.toString(this.isDirectoryMode()));
+            OSXProps.fileDialogDirectoryMode(this.isDirectoryMode());
         }
         FileDialog fd = new FileDialog(parent, dialogTitle);
         if(directory != null) {

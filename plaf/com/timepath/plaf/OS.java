@@ -1,8 +1,5 @@
 package com.timepath.plaf;
 
-import com.timepath.plaf.linux.DesktopLauncher;
-import java.awt.Toolkit;
-import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +13,7 @@ public enum OS {
 
     private static final Logger LOG = Logger.getLogger(OS.class.getName());
 
-    private static OS system;
+    private final static OS system;
 
     static {
         //<editor-fold defaultstate="collapsed" desc="OS detection">
@@ -50,46 +47,4 @@ public enum OS {
     public static boolean isLinux() {
         return system == Linux;
     }
-
-    public static class WindowToolkit {
-
-        private static String windowClass;
-
-        public static String getWindowClass() {
-            return WindowToolkit.windowClass;
-        }
-
-        /**
-         * Doesn't seem to work all the time (under Linux)
-         *
-         * @param windowClass
-         */
-        public static void setWindowClass(String windowClass) {
-            WindowToolkit.windowClass = windowClass;
-
-            if(OS.isLinux()) {
-                System.setProperty("jayatana.startupWMClass", windowClass);
-//                boolean force = "Unity".equals(System.getenv("XDG_CURRENT_DESKTOP")); // UBUNTU_MENUPROXY=libappmenu.so
-//                if(force) {
-//                    System.setProperty("jayatana.force", "true");
-//                }
-                try {
-                    Toolkit xToolkit = Toolkit.getDefaultToolkit();
-                    Field awtAppClassNameField = xToolkit.getClass().getDeclaredField("awtAppClassName");
-                    awtAppClassNameField.setAccessible(true);
-                    awtAppClassNameField.set(xToolkit, windowClass);
-                } catch(Exception ex) {
-                    LOG.log(Level.WARNING, null, ex);
-                }
-
-                DesktopLauncher.create(windowClass, "/com/timepath/tf2/hudeditor/resources",
-                                       new String[]{"Icon.png", "Icon.svg"},
-                                       new String[]{windowClass, windowClass});
-            }
-        }
-
-        private WindowToolkit() {
-        }
-    }
-
 }
