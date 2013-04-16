@@ -28,11 +28,19 @@ public class VBF {
 
     private short width;
 
+    public void setWidth(int width) {
+        this.width = (short) width;
+    }
+
     public short getWidth() {
         return width;
     }
 
     private short height;
+
+    public void setHeight(int height) {
+        this.height = (short) height;
+    }
 
     public short getHeight() {
         return height;

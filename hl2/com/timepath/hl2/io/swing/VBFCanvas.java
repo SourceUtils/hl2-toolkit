@@ -120,6 +120,8 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void setVTF(VTF t) {
         this.vtf = t;
+        this.vbf.setWidth(vtf.width);
+        this.vbf.setHeight(vtf.height);
         this.repaint();
     }
 
