@@ -55,6 +55,14 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     private ArrayList<BitmapGlyph> selected = new ArrayList<BitmapGlyph>();
 
+    public void select(BitmapGlyph g) {
+        selected.clear();
+        if(g != null) {
+            selected.add(g);
+            this.repaint(g.getBounds());
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics graphics) {
         Graphics2D g = (Graphics2D) graphics;
@@ -198,5 +206,12 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public void mouseMoved(MouseEvent me) {
+    }
+
+    public BitmapGlyph getSelected() {
+        if(this.selected.isEmpty()) {
+            return null;
+        }
+        return this.selected.get(0);
     }
 }

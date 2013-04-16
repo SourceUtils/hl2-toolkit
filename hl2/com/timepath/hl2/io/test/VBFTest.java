@@ -73,18 +73,40 @@ public class VBFTest extends javax.swing.JFrame {
 //        UIManager.put("Tree.expandedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/minus.png"))));
 //        UIManager.put("Tree.collapsedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/plus.png"))));
         initComponents();
-        
+
         canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                JTree which = jTree1;
+                if(jTree2.getSelectionRows() != null) {
+                    which = jTree2;
+                }
+                jTree1.setSelectionRow(-1);
+                jTree2.setSelectionRow(-1);
+                BitmapGlyph seek = canvas.getSelected();
+                if(seek == null) {
+                    return;
+                }
+                for(int i = 0; i < which.getModel().getChildCount(which.getModel().getRoot()); i++) {
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) which.getModel().getChild(which.getModel().getRoot(), i);
+                    if(((BitmapGlyph) node.getUserObject()) == seek) {
+                        which.setSelectionRow(node.getParent().getIndex(node) + 1);
+                        break;
+                    }
+                }
+            }
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if(currentGlyph == null) {
+                    return;
+                }
                 Rectangle r = currentGlyph.getBounds();
                 xSpinner.setValue(r.x);
                 ySpinner.setValue(r.y);
                 widthSpinner.setValue(r.width);
                 heightSpinner.setValue(r.height);
             }
-            
         });
 
         jTree2.setModel(jTree1.getModel());
@@ -101,12 +123,11 @@ public class VBFTest extends javax.swing.JFrame {
             public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
                 return super.getTreeCellRendererComponent(tree, value, sel, expanded, ((TreeNode) value).getParent() != null && ((TreeNode) value).getParent() != tree.getModel().getRoot(), row, hasFocus);
             }
-            
+
             public TreeCellRenderer init() {
                 this.setLeafIcon(null);
                 return this;
             }
-            
         }.init();
         jTree1.setCellRenderer(renderer);
         jTree2.setCellRenderer(renderer);
@@ -576,7 +597,7 @@ public class VBFTest extends javax.swing.JFrame {
             return;
         }
         currentGlyph = (BitmapGlyph) obj;
-
+        canvas.select(currentGlyph);
         if(currentGlyph.getBounds() == null) {
             currentGlyph.setBounds(new Rectangle());
         }
