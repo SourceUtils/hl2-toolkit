@@ -1,4 +1,4 @@
-
+package uimanager;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -56,7 +57,6 @@ import javax.swing.table.TableCellRenderer;
  * This programs uses the information found in the UIManager
  * to create a table of key/value pairs for each Swing component.
  */
-@SuppressWarnings("rawtypes")
 public class UIManagerDefaults implements ActionListener, ItemListener {
 
     private final static String[] COLUMN_NAMES = {"Key", "Value", "Sample"};
@@ -170,7 +170,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
         buildItemsMap();
 
         Vector<String> comboBoxItems = new Vector<String>(50);
-		Iterator keys = items.keySet().iterator();
+        Iterator<String> keys = items.keySet().iterator();
 
         while(keys.hasNext()) {
             Object key = keys.next();
@@ -230,7 +230,6 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      */
     private String getItemName(String key, Object value) {
         //  Seems like this is an old check required for JDK1.4.2
-
         if(key.startsWith("class") || key.startsWith("javax")) {
             return null;
         }
@@ -250,7 +249,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
 
         String componentName;
 
-        int pos = key.indexOf(".");
+        int pos = key.indexOf('.');
 
         if(pos != -1) {
             componentName = key.substring(0, pos);
@@ -305,12 +304,12 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      * Create menu bar
      */
     private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
+        JMenuBar mb = new JMenuBar();
 
-        menuBar.add(createFileMenu());
-        menuBar.add(createLAFMenu());
+        mb.add(createFileMenu());
+        mb.add(createLAFMenu());
 
-        return menuBar;
+        return mb;
     }
 
     /**
@@ -391,12 +390,8 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
         //  and add the attributes of the item to the model
 
         model = new DefaultTableModel(COLUMN_NAMES, 0);
-        Map attributes = (Map) items.get(itemName);
-
-        Iterator ai = attributes.keySet().iterator();
-
-        while(ai.hasNext()) {
-            String attribute = (String) ai.next();
+        Map<String, Object> attributes = items.get(itemName);
+        for(String attribute : attributes.keySet()) {
             Object value = attributes.get(attribute);
 
             Vector<Object> row = new Vector<Object>(3);
@@ -459,13 +454,13 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      * In subsequent calls the ImageIcon is used.
      *
      */
-    public static class SafeIcon implements Icon {
+    private static class SafeIcon implements Icon {
 
         private Icon wrappee;
 
         private Icon standIn;
 
-        public SafeIcon(Icon wrappee) {
+        SafeIcon(Icon wrappee) {
             this.wrappee = wrappee;
         }
 
@@ -523,7 +518,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
          * @throws IllegalAccessException
          */
         @SuppressWarnings("serial")
-		private JComponent getSubstitute(Class<?> clazz) throws IllegalAccessException {
+        private JComponent getSubstitute(Class<?> clazz) throws IllegalAccessException {
             JComponent standInComponent;
 
             try {
@@ -538,7 +533,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
 
         private Class<?> getClass(ClassCastException e) throws ClassNotFoundException {
             String className = e.getMessage();
-            className = className.substring(className.lastIndexOf(" ") + 1);
+            className = className.substring(className.lastIndexOf(' ') + 1);
             return Class.forName(className);
 
         }
@@ -550,21 +545,20 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
         }
     }
 
-
     @SuppressWarnings("serial")
-	/*
+    /*
      * Render the value based on its class.
      */
-    class SampleRenderer extends JLabel implements TableCellRenderer {
+    private class SampleRenderer extends JLabel implements TableCellRenderer {
 
-        public SampleRenderer() {
+        SampleRenderer() {
             super();
             setHorizontalAlignment(SwingConstants.CENTER);
             setOpaque(true);
         }
 
         public Component getTableCellRendererComponent(
-            JTable table, Object sample, boolean isSelected, boolean hasFocus, int row, int column) {
+                JTable table, Object sample, boolean isSelected, boolean hasFocus, int row, int column) {
             setBackground(null);
             setBorder(null);
             setIcon(null);
@@ -589,6 +583,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
          * shared by other items. This code will catch the
          * ClassCastException that is thrown.
          */
+        @Override
         public void paint(Graphics g) {
             try {
                 super.paint(g);
@@ -604,7 +599,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      * of the new LAF are correctly displayed.
      */
     @SuppressWarnings("serial")
-	class ChangeLookAndFeelAction extends AbstractAction {
+    private class ChangeLookAndFeelAction extends AbstractAction {
 
         private UIManagerDefaults defaults;
 
@@ -641,8 +636,7 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
 
                 frame.setVisible(true);
             } catch(Exception ex) {
-                System.out.println("Failed loading L&F: " + laf);
-                System.out.println(ex);
+                LOG.log(Level.WARNING, "Failed loading L&F: " + laf, ex);
             }
         }
     }
@@ -651,9 +645,9 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
      * Close the frame
      */
     @SuppressWarnings("serial")
-	class ExitAction extends AbstractAction {
+    private class ExitAction extends AbstractAction {
 
-        public ExitAction() {
+        ExitAction() {
             putValue(Action.NAME, "Exit");
             putValue(Action.SHORT_DESCRIPTION, getValue(Action.NAME));
             putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
@@ -692,5 +686,6 @@ public class UIManagerDefaults implements ActionListener, ItemListener {
     }
 
     @SuppressWarnings("unused")
-	private static final Logger LOG = Logger.getLogger(UIManagerDefaults.class.getName());
+    private static final Logger LOG = Logger.getLogger(UIManagerDefaults.class.getName());
+
 }

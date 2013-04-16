@@ -1,6 +1,12 @@
-package com.timepath.plaf.x.filechooser;
+package com.timepath.plaf.x.filechooser.test;
 
+import com.timepath.plaf.x.filechooser.AWTFileChooser;
+import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.BaseFileChooser.FileMode;
+import com.timepath.plaf.x.filechooser.NativeFileChooser;
+import com.timepath.plaf.x.filechooser.SwingFileChooser;
+import com.timepath.plaf.x.filechooser.XFileDialogFileChooser;
+import com.timepath.plaf.x.filechooser.ZenityFileChooser;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;

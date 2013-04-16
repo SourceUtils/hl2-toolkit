@@ -14,11 +14,11 @@ public class JarClassLoader extends ClassLoader {
 
     private static final Logger LOG = Logger.getLogger(JarClassLoader.class.getName());
 
-    JarClassLoader() {
+    public JarClassLoader() {
         this(ClassLoader.getSystemClassLoader());
     }
 
-    JarClassLoader(ClassLoader parent) {
+    public JarClassLoader(ClassLoader parent) {
         super(parent);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {

@@ -25,7 +25,7 @@ public class DesktopLauncher {
     }
 
     private static void createLauncher(String desktop, String icon) {
-        File destFile = new File(FileUtils.getLinuxStore()+ "applications/" + desktop + ".desktop");
+        File destFile = new File(LinuxUtils.getLinuxStore() + "applications/" + desktop + ".desktop");
         LOG.log(Level.INFO, "Linux .desktop file: {0}", destFile);
 
         StringBuilder sb = new StringBuilder();
@@ -90,7 +90,7 @@ public class DesktopLauncher {
         }
         for(int i = 0; i < icons.length; i++) {
             try {
-                File destFile = new File(FileUtils.getLinuxStore() + "icons/" + iconFiles[i] + icons[i].substring(icons[i].lastIndexOf('.') > 0 ? icons[i].lastIndexOf('.') : icons[i].length()));
+                File destFile = new File(LinuxUtils.getLinuxStore() + "icons/" + iconFiles[i] + icons[i].substring(icons[i].lastIndexOf('.') > 0 ? icons[i].lastIndexOf('.') : icons[i].length()));
 
                 if(!destFile.getParentFile().exists()) {
                     destFile.getParentFile().mkdirs();
@@ -104,7 +104,6 @@ public class DesktopLauncher {
                     continue;
                 }
                 FileOutputStream out = new FileOutputStream(destFile);
-
                 try {
                     byte[] buf = new byte[1024];
                     int len;
@@ -112,12 +111,8 @@ public class DesktopLauncher {
                         out.write(buf, 0, len);
                     }
                 } finally {
-                    if(in != null) {
-                        in.close();
-                    }
-                    if(out != null) {
-                        out.close();
-                    }
+                    in.close();
+                    out.close();
                     destFile.setExecutable(false);
                 }
             } catch(IOException ex) {

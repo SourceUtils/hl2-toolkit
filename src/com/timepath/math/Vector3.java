@@ -1,5 +1,7 @@
 package com.timepath.math;
 
+import java.util.logging.Logger;
+
 /**
  *
  * @author timepath
@@ -48,7 +50,7 @@ public class Vector3 {
     }
 
     public Vector3 add(Vector3 v) {
-        return add(v.x, v.y, v.z);
+        return add(v.getX(), v.getY(), v.getZ());
     }
 
     public Vector3 add(float x, float y, float z) {
@@ -56,7 +58,7 @@ public class Vector3 {
     }
 
     public Vector3 addLocal(Vector3 v) {
-        return addLocal(v.x, v.y, v.z);
+        return addLocal(v.getX(), v.getY(), v.getZ());
     }
 
     public Vector3 addLocal(float x, float y, float z) {
@@ -71,7 +73,7 @@ public class Vector3 {
     }
 
     public float magnitudeSquared() {
-        return x*x + y*y + z*z;
+        return x * x + y * y + z * z;
     }
 
     public float distance(Vector3 o) {
@@ -79,17 +81,17 @@ public class Vector3 {
     }
 
     public float distanceSquared(Vector3 o) {
-        return new Vector3(o.x - x, o.y - y, o.z - z).magnitudeSquared();
+        return new Vector3(o.getX() - x, o.getY() - y, o.getZ() - z).magnitudeSquared();
     }
 
     public Vector3 normalize() {
-        return new Vector3(x/magnitude(), y/magnitude(), z/magnitude());
+        return new Vector3(x / magnitude(), y / magnitude(), z / magnitude());
     }
 
     public void set(Vector3 v) {
-        this.x = v.x;
-        this.y = v.y;
-        this.z = v.z;
+        this.x = v.getX();
+        this.y = v.getY();
+        this.z = v.getZ();
     }
 
     public Vector3 mult(float f) {
@@ -99,5 +101,7 @@ public class Vector3 {
     public Vector3 transform(int i, int i0, int i1) {
         return new Vector3(x * i, y * i0, z * i1);
     }
+
+    private static final Logger LOG = Logger.getLogger(Vector3.class.getName());
 
 }

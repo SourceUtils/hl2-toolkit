@@ -18,19 +18,16 @@ public class DNDHelper extends javax.swing.JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    Canvas c = Canvas.create();
-
     /**
      * Creates new form Main
      */
     public DNDHelper() {
         initComponents();
-        jSplitPane1.setRightComponent(c);
         for(int i = 0; i < 10; i++) {
             Entity e = new Entity();
             e.setName("Name: " + i);
             e.setLocation(new Vector3(DiceRoll.roll(50), DiceRoll.roll(50), DiceRoll.roll(50)));
-            c.addEntity(e);
+            canvas.addEntity(e);
         }
     }
 
@@ -45,6 +42,7 @@ public class DNDHelper extends javax.swing.JFrame {
     private void initComponents() {
 
         jSplitPane1 = new JSplitPane();
+        canvas = new Canvas();
         jMenuBar1 = new JMenuBar();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -55,6 +53,21 @@ public class DNDHelper extends javax.swing.JFrame {
         jSplitPane1.setResizeWeight(0.2);
         jSplitPane1.setToolTipText(bundle.getString("DNDHelper.jSplitPane1.toolTipText")); // NOI18N
         jSplitPane1.setName("jSplitPane1"); // NOI18N
+
+        canvas.setName("canvas"); // NOI18N
+
+        GroupLayout canvasLayout = new GroupLayout(canvas);
+        canvas.setLayout(canvasLayout);
+        canvasLayout.setHorizontalGroup(
+            canvasLayout.createParallelGroup(Alignment.LEADING)
+            .addGap(0, 256, Short.MAX_VALUE)
+        );
+        canvasLayout.setVerticalGroup(
+            canvasLayout.createParallelGroup(Alignment.LEADING)
+            .addGap(0, 296, Short.MAX_VALUE)
+        );
+
+        jSplitPane1.setRightComponent(canvas);
 
         jMenuBar1.setName("jMenuBar1"); // NOI18N
         setJMenuBar(jMenuBar1);
@@ -67,7 +80,7 @@ public class DNDHelper extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(Alignment.LEADING)
-            .addComponent(jSplitPane1, GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE)
+            .addComponent(jSplitPane1)
         );
 
         pack();
@@ -114,6 +127,7 @@ public class DNDHelper extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private Canvas canvas;
     private JMenuBar jMenuBar1;
     private JSplitPane jSplitPane1;
     // End of variables declaration//GEN-END:variables

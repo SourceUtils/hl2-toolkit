@@ -1,6 +1,7 @@
 package com.timepath.math;
 
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  *
@@ -13,5 +14,10 @@ public class DiceRoll {
     public static int roll(int d) {
         return r.nextInt(d);
     }
+
+    private DiceRoll() {
+    }
+
+    private static final Logger LOG = Logger.getLogger(DiceRoll.class.getName());
 
 }

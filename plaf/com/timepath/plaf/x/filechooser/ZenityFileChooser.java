@@ -1,7 +1,7 @@
 package com.timepath.plaf.x.filechooser;
 
-import com.timepath.FileUtils;
 import com.timepath.plaf.OS.WindowToolkit;
+import com.timepath.plaf.linux.LinuxUtils;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,7 +53,7 @@ public class ZenityFileChooser extends BaseFileChooser {
         cmd.add("--class=" + windowClass);
 //        cmd.add("--name=" + Main.projectName + " ");
         if(WindowToolkit.getWindowClass() != null) {
-            cmd.add("--window-icon=" + FileUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
+            cmd.add("--window-icon=" + LinuxUtils.getLinuxStore() + "icons/" + WindowToolkit.getWindowClass() + ".png");
         }
         cmd.add("--title=" + this.getTitle());
         if(this.getApproveButtonText() != null) {

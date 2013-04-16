@@ -1,5 +1,6 @@
-package com.timepath.plaf.linux;
+package com.timepath.plaf.linux.test;
 
+import com.timepath.plaf.linux.GtkFixer;
 import java.awt.Dimension;
 import java.util.logging.Logger;
 import javax.swing.JFrame;

@@ -32,16 +32,8 @@ public class FileUtils {
         }
         return ext;
     }
-    
+
     public static String extension(File f) {
         return extension(f.getName());
-    }
-
-    public static String getLinuxStore() {
-        String root = System.getenv("XDG_DATA_HOME");
-        if(root == null) {
-            root = System.getenv("HOME") + "/.local/share/";
-        }
-        return root;
     }
 }

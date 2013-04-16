@@ -2,6 +2,7 @@ package com.timepath.swing.test;
 
 import com.timepath.swing.ReorderableJTree;
 import com.timepath.swing.TreeUtils;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -29,5 +30,7 @@ public class TreeDragAndDrop {
         f.setLocationRelativeTo(null);
         f.setVisible(true);
     }
+
+    private static final Logger LOG = Logger.getLogger(TreeDragAndDrop.class.getName());
 
 }

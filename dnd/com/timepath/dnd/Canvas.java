@@ -5,9 +5,11 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -17,7 +19,7 @@ import javax.swing.SwingUtilities;
  *
  * @author timepath
  */
-public class Canvas extends JPanel {
+public class Canvas extends JPanel implements MouseListener, MouseWheelListener, MouseMotionListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,38 +29,10 @@ public class Canvas extends JPanel {
         entities.add(e);
     }
 
-    private Canvas() {
-    }
-
-    public static Canvas create() {
-        final Canvas c = new Canvas();
-        MouseAdapter ma = new MouseAdapter() {
-
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                c.mouseMoved(e);
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                c.mousePressed(e);
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                c.mouseDragged(e);
-            }
-
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-                c.mouseWheelMoved(e);
-            }
-
-        };
-        c.addMouseListener(ma);
-        c.addMouseMotionListener(ma);
-        c.addMouseWheelListener(ma);
-        return c;
+    public Canvas() {
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
+        this.addMouseWheelListener(this);
     }
 
     @Override
@@ -86,7 +60,7 @@ public class Canvas extends JPanel {
 
             Vector3 scr = toScreen(e.getLocation());
             g.setColor(Color.YELLOW);
-            g.drawLine((int)scr.getX(), (int)scr.getY(), (int)(scr.getX() + (e.getDirection().getX() * e.getSize().getX() * focus.getZ())), (int)(scr.getY() + (e.getDirection().getY() * e.getSize().getY() * focus.getZ())));
+            g.drawLine((int) scr.getX(), (int) scr.getY(), (int) (scr.getX() + (e.getDirection().getX() * e.getSize().getX() * focus.getZ())), (int) (scr.getY() + (e.getDirection().getY() * e.getSize().getY() * focus.getZ())));
             String n = e.getName();
             if(n != null) {
                 g.setColor(Color.BLACK);
@@ -119,11 +93,11 @@ public class Canvas extends JPanel {
 
     private Point initialDragPoint = new Point();
 
-    private void mousePressed(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {
         initialDragPoint = e.getPoint();
     }
 
-    private void mouseDragged(MouseEvent e) {
+    public void mouseDragged(MouseEvent e) {
         e.translatePoint(-initialDragPoint.x, -initialDragPoint.y);
         if(SwingUtilities.isMiddleMouseButton(e)) {
             focus.addLocal(-e.getX(), -e.getY(), 0);
@@ -135,7 +109,7 @@ public class Canvas extends JPanel {
 
     private static final Logger LOG = Logger.getLogger(Canvas.class.getName());
 
-    private void mouseWheelMoved(MouseWheelEvent e) {
+    public void mouseWheelMoved(MouseWheelEvent e) {
         focus.addLocal(0, 0, -e.getWheelRotation());
         if(focus.getZ() < 1) {
             focus.setZ(1);
@@ -143,7 +117,7 @@ public class Canvas extends JPanel {
         this.repaint();
     }
 
-    private void mouseMoved(MouseEvent e) {
+    public void mouseMoved(MouseEvent e) {
         Vector3 p = new Vector3(e.getX(), e.getY(), 0);
         boolean change = false;
         hovered.clear();
@@ -156,5 +130,17 @@ public class Canvas extends JPanel {
             }
         }
         this.repaint();
+    }
+
+    public void mouseClicked(MouseEvent me) {
+    }
+
+    public void mouseReleased(MouseEvent me) {
+    }
+
+    public void mouseEntered(MouseEvent me) {
+    }
+
+    public void mouseExited(MouseEvent me) {
     }
 }

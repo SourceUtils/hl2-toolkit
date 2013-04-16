@@ -33,33 +33,55 @@ public class ReorderableJTree extends JTree {
         setTransferHandler(new TreeTransferHandler());
     }
 
-    private int maxLevel = -1;
-
-    public int getMaxLevel() {
-        return maxLevel;
-    }
-
-    /**
-     * Sets the maximum dropping level
-     * @param maxLevel s
-     */
-    public void setMaxLevel(int maxLevel) {
-        this.maxLevel = maxLevel;
+    //<editor-fold defaultstate="collapsed" desc="Drag levels">
+    private int minDropLevel = -1;
+    
+    public int getMinDropLevel() {
+        return minDropLevel;
     }
     
-    private int minMovable = -1;
-
-    public int getMinMovable() {
-        return minMovable;
+    public void setMinDropLevel(int minDropLevel) {
+        this.minDropLevel = minDropLevel;
     }
-
+    
+    private int maxDropLevel = -1;
+    
+    public int getMaxDropLevel() {
+        return maxDropLevel;
+    }
+    
+    /**
+     * Sets the maximum dropping level
+     * @param maxDropLevel s
+     */
+    public void setMaxDropLevel(int maxDropLevel) {
+        this.maxDropLevel = maxDropLevel;
+    }
+    
+    private int minDragLevel = -1;
+    
+    public int getMinDragLevel() {
+        return minDragLevel;
+    }
+    
     /**
      * Sets the minimum level of allowed movable nodes
-     * @param minMovable 
+     * @param minDragLevel
      */
-    public void setMinMovable(int minMovable) {
-        this.minMovable = minMovable;
+    public void setMinDragLevel(int minDragLevel) {
+        this.minDragLevel = minDragLevel;
     }
+    
+    private int maxDragLevel = -1;
+    
+    public int getMaxDragLevel() {
+        return maxDragLevel;
+    }
+    
+    public void setMaxDragLevel(int maxDragLevel) {
+        this.maxDragLevel = maxDragLevel;
+    }
+    //</editor-fold>
 
     private class TreeTransferHandler extends TransferHandler {
 
@@ -207,7 +229,7 @@ public class ReorderableJTree extends JTree {
 
             // Sanity check
             
-            if(maxLevel > -1 && target.getLevel() > maxLevel) {
+            if((maxDropLevel > -1 && target.getLevel() > maxDropLevel) || (minDropLevel > -1 && target.getLevel() < minDropLevel)) {
                 return false;
             }
 
@@ -218,14 +240,9 @@ public class ReorderableJTree extends JTree {
             }
 
             for(int i = 0; i < nodes.length; i++) {
-                // Do not allow dropping of any node below level
-                if(minMovable > -1 && nodes[i].getLevel() < minMovable) {
+                if((minDragLevel > -1 && nodes[i].getLevel() < minDragLevel) || (maxDragLevel > -1 && nodes[i].getLevel() > maxDragLevel)) {
                     return false;
                 }
-                // Do not allow dropping of any node above level
-//                if(maxMovable > -1 && nodes[i].getLevel() > maxMovable) {
-//                    return false;
-//                }
                 // Do not allow a drop on the drag source selections
                 if(nodes[i] == target) {
                     return false;
