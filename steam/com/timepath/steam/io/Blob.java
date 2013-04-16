@@ -41,10 +41,10 @@ public class Blob {
         }
 
         private ByteBuffer descriptor;
-
-        private NodeType type;
-
-        private boolean meta;
+        
+        public boolean isMeta() {
+            return header != null;
+        }
 
         public void setDescriptor(ByteBuffer nameBuffer) {
             this.descriptor = nameBuffer;
@@ -135,13 +135,13 @@ public class Blob {
         }
     }
 
-    private static enum FileType {
+    private static enum DataType {
 
         TEXT(0x00),
         DWORD(0x01),
         RAW(0x02);
 
-        FileType(int i) {
+        DataType(int i) {
             this.i = i;
         }
 
@@ -151,8 +151,8 @@ public class Blob {
             return i;
         }
 
-        public static FileType get(int i) {
-            for(FileType t : FileType.values()) {
+        public static DataType get(int i) {
+            for(DataType t : DataType.values()) {
                 if(t.ID() == i) {
                     return t;
                 }
@@ -231,13 +231,13 @@ public class Blob {
         return mbb;
     }
 
-    private static boolean verbose = true;
+    private static boolean verbose = false;
 
     private static void recurse(BlobNode bn, DefaultMutableTreeNode parent) {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode(bn);
         parent.add(node);
         for(BlobNode c : bn.children) {
-            if(c.meta && !verbose) {
+            if(c.isMeta() && !verbose) {
                 for(BlobNode c2 : c.children) {
                     recurse(c2, node);
                 }
@@ -266,6 +266,22 @@ public class Blob {
     }
 
     private static void parse(ByteBuffer buf, BlobNode parent) throws BufferUnderflowException {
+        if(parent.isMeta()) {
+            switch(parent.getHeader()) {
+                case FOLDER: // Data type
+                    int i = parent.getPayload().getInt();
+                    parent.getPayload().position(0);
+                    DataType dt = DataType.get(i);
+                    if(dt == null) {
+                        break;
+                    }
+                    parent.addChild(new BlobNode(dt.name()));
+                    return;
+//                case FILE: // Data
+//
+//                    return;
+            }
+        }
         int kindNum = buf.get();
         NodeType kind = NodeType.get(kindNum);
         if(kind == null) {
@@ -273,11 +289,14 @@ public class Blob {
             buf.position(0);
             return;
         }
-        parent.type = kind;
         LOG.log(Level.FINE, "Data kind {0}", kind);
         switch(kind) {
             case FOLDER: // 01
                 int typeNum = buf.get();
+                if(typeNum == 0) {
+                    buf.get(new byte[2]);
+                    parent.addChild(new BlobNode(getText(getSlice(buf))));
+                }
                 FolderType type = FolderType.get(typeNum);
                 if(type == null) {
 //                    LOG.log(Level.WARNING, "Unknown folder type {0}", Integer.toHexString(typeNum));
@@ -294,7 +313,14 @@ public class Blob {
                         padding = 0;
                         buf.limit((buf.position() - 10) + totalLen + padding); // 10 = padding (4) + totalLen (4) + header (2)
                         ByteBuffer nodes = readSlice(buf, buf.remaining() - padding);
-                        parseDecompressed(nodes, parent);
+                        int c = 0;
+                        while(nodes.remaining() > 0) {
+                            c++;
+                            BlobNode node = parseNode(nodes);
+                            parse(node.getPayload(), node);
+                            parent.addChild(node);
+                        }
+                        parent.setName(parent.getName() + " (" + c + ")");
                         if(buf.remaining() != padding) {
                             LOG.log(Level.WARNING, "** Bytes missed: {0}", buf.remaining() - padding);
                         }
@@ -305,7 +331,11 @@ public class Blob {
                 }
                 break;
             case FILE:
-                parent.addChild(new BlobNode(getText(getSlice(buf))));
+                int fileTypeNum = buf.get();
+//                if(fileTypeNum == 0) {
+//                    buf.get(new byte[2]);
+//                    parent.addChild(new BlobNode(getText(getSlice(buf))));
+//                }
                 break;
             default:
                 LOG.log(Level.WARNING, "** Unexpected data kind {0}", Integer.toHexString(kindNum));
@@ -322,20 +352,13 @@ public class Blob {
         node.setDescriptor(readSlice(buf, descriptorLen));
         node.setPayload(readSlice(buf, payloadLen));
 
+        node.getDescriptor().position(0);
+        int descInt = node.getDescriptor().get();
+        node.setHeader(NodeType.get(descInt));
+        node.getDescriptor().position(0);
         node.setName(getText(node.getDescriptor()).replaceAll("\1", "<Folder>").replaceAll("\2", "<File>"));
-        node.getDescriptor().position(0);
-        node.meta = NodeType.get(node.getDescriptor().get()) != null;
-        node.getDescriptor().position(0);
 
         return node;
-    }
-
-    private static void parseDecompressed(ByteBuffer buf, BlobNode parent) {
-        while(buf.remaining() > 0) {
-            BlobNode node = parseNode(buf);
-            parent.addChild(node);
-            parse(node.getPayload(), node);
-        }
     }
 
     /**
