@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -80,7 +81,7 @@ public class Blob {
         parsePayload(buf, bn, false);
 //        root.add(bn);
         @SuppressWarnings("unchecked")
-        Enumeration<BlobNode> e = bn.children();
+        Enumeration<MutableTreeNode> e = bn.children();
         while(e.hasMoreElements()) {
             root.add(e.nextElement());
         }
