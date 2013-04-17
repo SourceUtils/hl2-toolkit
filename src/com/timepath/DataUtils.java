@@ -1,7 +1,14 @@
 package com.timepath;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
 /**
@@ -22,6 +29,65 @@ public class DataUtils {
      */
     private static final Logger LOG = Logger.getLogger(DataUtils.class.getName());
 
+    /**
+     * Defensive copy
+     *
+     * @param source
+     *
+     * @return
+     */
+    public static ByteBuffer getSlice(ByteBuffer source) {
+        return getSlice(source, source.remaining());
+    }
+
+    /**
+     * Reads length bytes ahead, turns them into a ByteBuffer, and then jumps there
+     *
+     * @param source
+     * @param length
+     *
+     * @return
+     */
+    public static ByteBuffer getSlice(ByteBuffer source, int length) {
+        int originalLimit = source.limit();
+        source.limit(source.position() + length);
+        ByteBuffer sub = source.slice();
+        source.position(source.limit());
+        source.limit(originalLimit);
+        sub.order(ByteOrder.LITTLE_ENDIAN);
+        return sub;
+    }
+
+    public static ByteBuffer mapFile(File f) throws IOException {
+        FileInputStream fis = new FileInputStream(f);
+        FileChannel fc = fis.getChannel();
+        MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, f.length());
+        mbb.order(ByteOrder.LITTLE_ENDIAN);
+        return mbb;
+    }
+    
+    public static String getText(ByteBuffer source) {
+        return getText(source, false);
+    }
+
+    public static String getText(ByteBuffer source, boolean terminatorCheck) {
+        int pos = source.position();
+        int end = source.limit();
+        if(terminatorCheck) {
+            while(source.remaining() > 0) {
+                if(source.get() == 0x00) { // Check for null terminator
+                    end = source.position() - 1;
+                    break;
+                }
+            }
+        }
+        source.position(pos);
+        source.limit(end);
+
+        return Charset.forName("UTF-8").decode(source).toString();
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Old stuff">
     public static byte readByte(RandomAccessFile f) throws IOException {
         byte b = f.readByte();
         return b;
@@ -101,10 +167,10 @@ public class DataUtils {
     }
 
     public static void writeLEInt(RandomAccessFile f, int value) throws IOException {
-//        ByteBuffer buffer = ByteBuffer.allocate(1000);
-//        buffer.order(ByteOrder.LITTLE_ENDIAN);
-//        buffer.putInt(i);
-//        f.write(buffer.array());
+        //        ByteBuffer buffer = ByteBuffer.allocate(1000);
+        //        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        //        buffer.putInt(i);
+        //        f.write(buffer.array());
         f.writeByte(value & 0xFF);
         f.writeByte((value >> 8) & 0xFF);
         f.writeByte((value >> 16) & 0xFF);
@@ -132,6 +198,7 @@ public class DataUtils {
         int intBits = readUByte(f) + (readUByte(f) << 8) + (readUByte(f) << 16) + (readUByte(f) << 24);
         return Float.intBitsToFloat(intBits);
     }
+    //</editor-fold>
 
     public static String toBinaryString(short n) {
         return toBinaryString(n, 16);

@@ -7,6 +7,7 @@ import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.BVDF;
 import com.timepath.steam.io.Blob;
 import com.timepath.steam.io.VDF;
+import com.timepath.swing.TreeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -173,6 +174,7 @@ public class DataTest extends javax.swing.JFrame {
                 n = new DefaultMutableTreeNode("BVDF");
                 BVDF.analyze(f, n);
             }
+            TreeUtils.expand(this.jTree1);
         } catch(StackOverflowError e) {
             LOG.warning("Stack Overflow");
         } catch(Exception e) {
