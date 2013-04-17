@@ -10,12 +10,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
 
 /**
  * See also:
@@ -35,7 +33,6 @@ public class BVDF {
         DataNode dn = new DataNode("root");
         ByteBuffer buf = DataUtils.mapFile(f);
         parse(buf, dn);
-//        root.add(dn);
         TreeUtils.moveChildren(dn, root);
     }
 
@@ -45,10 +42,10 @@ public class BVDF {
         if(magic == 0x07564426) {
             //<editor-fold defaultstate="collapsed" desc="AppInfo">
             int universe = buf.getInt();
-            dn.add(new DataNode("universe", universe));
+            dn.add(new DataNode("universe", Universe.getName(universe)));
             for(;;) {
                 int appID = buf.getInt();
-                if(appID == 0x0000) {
+                if(appID == 0) {
                     break;
                 }
                 DataNode c = new DataNode("#" + appID);
@@ -57,13 +54,60 @@ public class BVDF {
                 int size = buf.getInt(); // skip this many bytes to reach the next entry
                 c.add(new DataNode("size", size));
 
-                parseAppEntry(DataUtils.getSlice(buf, size), c);
+                int appPosition = buf.position();
+                int appError = appID;
+
+                ByteBuffer entrySlice = DataUtils.getSlice(buf, size);
+
+                int appInfoState = entrySlice.getInt();
+                c.add(new DataNode("state", AppInfoState.getName(appInfoState)));
+
+                long lastUpdated = entrySlice.getInt();
+                DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+                df.setTimeZone(TimeZone.getTimeZone("GMT"));
+                String formattedDate = df.format(new Date(lastUpdated * 1000));
+                DataNode lu = new DataNode("lastUpdated", lastUpdated);
+                lu.add(new DataNode("formatted", formattedDate));
+                c.add(lu);
+
+                long token = entrySlice.getLong();
+                c.add(new DataNode("token", token));
+
+                byte[] sha = new byte[20];
+                entrySlice.get(sha);
+                c.add(new DataNode("sha", Arrays.toString(sha)));
+
+                int changeNumber = entrySlice.getInt();
+                c.add(new DataNode("changeNumber", changeNumber));
+
+                DataNode sections = new DataNode("Sections");
+                c.add(sections);
+                for(;;) {
+                    byte section = entrySlice.get();
+                    if(section == 0) {
+                        break;
+                    }
+                    DataNode sectionNode = new DataNode(Section.get(section));
+                    sections.add(sectionNode);
+                    int sectionPosition = entrySlice.position();
+                    DataNode binarySlice = parseBinaryData(entrySlice);
+                    if(binarySlice != null) {
+                        TreeUtils.moveChildren(binarySlice, sectionNode);
+                        c.removeFromParent(); // TEMP
+                    } else {
+                        entrySlice.position(binaryFailurePosition);
+                        int doubleCheck = entrySlice.get();
+                        Object[] vars = new Object[]{binaryFailureByte, appPosition + sectionPosition, appPosition + binaryFailurePosition, appError};
+                        LOG.log(Level.WARNING, "{3} err: {0}, sec: {1}, secoff: {2}", vars);
+                        break;
+                    }
+                }
             }
             //</editor-fold>
         } else if(magic == 0x06565527) {
             //<editor-fold defaultstate="collapsed" desc="PackageInfo">
             int universe = buf.getInt();
-            dn.add(new DataNode("universe", universe));
+            dn.add(new DataNode("universe", Universe.getName(universe)));
             for(;;) {
                 int appID = buf.getInt();
                 if(appID == 0xFFFFFFFF || appID == -1) { // same thing
@@ -81,8 +125,8 @@ public class BVDF {
 
                 DataNode bin = new DataNode();
                 bin.name = "Binary Data";
-                c.add(bin);
                 TreeUtils.moveChildren(parseBinaryData(buf), bin);
+                c.add(bin);
             }
             //</editor-fold>
         } else {
@@ -91,41 +135,7 @@ public class BVDF {
         }
     }
 
-    private static void parseAppEntry(ByteBuffer buf, DataNode c) {
-        int appInfoState = buf.getInt();
-        c.add(new DataNode("state", appInfoState));
-
-        long lastUpdated = buf.getInt();
-        DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        String formattedDate = df.format(new Date(lastUpdated * 1000));
-        DataNode lu = new DataNode("lastUpdated", lastUpdated);
-        lu.add(new DataNode("formatted", formattedDate));
-        c.add(lu);
-
-        long token = buf.getLong();
-        c.add(new DataNode("token", token));
-
-        byte[] sha = new byte[20];
-        buf.get(sha);
-        c.add(new DataNode("sha", Arrays.toString(sha)));
-
-        int changeNumber = buf.getInt();
-        c.add(new DataNode("changeNumber", changeNumber));
-
-        DataNode sections = new DataNode("Sections");
-        c.add(sections);
-        for(;;) {
-            byte section = buf.get();
-            if(section == 0x00) {
-                break;
-            }
-            DataNode sectionNode = new DataNode("#", section);
-            sections.add(sectionNode);
-            
-            TreeUtils.moveChildren(parseBinaryData(buf), sections);
-        }
-    }
+    private static int binaryFailurePosition, binaryFailureByte;
 
     private static int KEYVALUES_TOKEN_SIZE = 1024;
 
@@ -146,11 +156,13 @@ public class BVDF {
         parent.name = "<joiner>";
         for(;;) {
             DataNode dat = new DataNode();
-            ValueType type = ValueType.get(buffer.get());
+            int typeNum = buffer.get();
+            ValueType type = ValueType.get(typeNum);
             LOG.log(Level.FINE, "Type : {0}", type);
             if(type == null) {
-                LOG.log(Level.SEVERE, "Something went horribly wrong in my code");
-                return parent;
+                binaryFailureByte = typeNum;
+                binaryFailurePosition = buffer.position() - 1;
+                return null;
             }
 
             if(type == ValueType.TYPE_NUMTYPES) {
@@ -167,7 +179,11 @@ public class BVDF {
             switch(type) {
                 case TYPE_NONE:
                     LOG.log(Level.FINE, "Node has children");
-                    TreeUtils.moveChildren(parseBinaryData(buffer), dat);
+                    DataNode recur = parseBinaryData(buffer);
+                    if(recur == null) {
+                        return null;
+                    }
+                    TreeUtils.moveChildren(recur, dat);
                     break;
 
                 case TYPE_STRING:
@@ -210,7 +226,7 @@ public class BVDF {
                     LOG.log(Level.SEVERE, "Unhandled data type {0}", type);
                     break;
             }
-            
+
             parent.add(dat);
         }
         return parent;
@@ -228,7 +244,7 @@ public class BVDF {
         }
 
         private String name;
-        
+
         private Object value;
 
         private ValueType type;
@@ -239,7 +255,7 @@ public class BVDF {
             if(name != null && value != null) {
                 splitComp = ": ";
             }
-            return (name == null ? "" : name) + splitComp + (value == null ? "" : value + " ["+value.getClass().getSimpleName()+"]");
+            return (name == null ? "" : name) + splitComp + (value == null ? "" : value + " [" + value.getClass().getSimpleName() + "]");
         }
 
         DataNode() {
@@ -247,40 +263,6 @@ public class BVDF {
     }
 
     //<editor-fold defaultstate="collapsed" desc="Enums">
-    private enum ControlCharacter {
-
-        NULL(0),
-        HEADING_START(1),
-        TEXT_START(2),
-        EXTENDED(3),
-        DEPOTS(7),
-        TERMINATOR(8);
-
-        ControlCharacter(int i) {
-            this.i = i;
-        }
-
-        private int i;
-
-        public int ID() {
-            return i;
-        }
-
-        public static int get(ControlCharacter c) {
-            return c.ID();
-        }
-
-        public static String get(int i) {
-            ControlCharacter[] search = ControlCharacter.values();
-            for(int s = 0; s < search.length; s++) {
-                if(search[s].ID() == i) {
-                    return search[s].name();
-                }
-            }
-            return "UNKNOWN (" + i + ")";
-        }
-    }
-
     private enum Universe {
 
         INVALID(0),
@@ -299,7 +281,7 @@ public class BVDF {
             return id;
         }
 
-        public static String get(int i) {
+        public static String getName(int i) {
             Universe[] search = Universe.values();
             for(int s = 0; s < search.length; s++) {
                 if(search[s].ID() == i) {
@@ -325,13 +307,14 @@ public class BVDF {
             return id;
         }
 
-        public static String get(int i) {
+        public static String getName(int i) {
             AppInfoState[] search = AppInfoState.values();
             for(int s = 0; s < search.length; s++) {
                 if(search[s].ID() == i) {
                     return search[s].name();
                 }
             }
+            LOG.log(Level.WARNING, "Unknown {0}: {1}", new Object[]{AppInfoState.class.getSimpleName(), i});
             return "UNKNOWN (" + i + ")";
         }
     }
@@ -481,7 +464,6 @@ public class BVDF {
                     return s;
                 }
             }
-            LOG.log(Level.WARNING, "No {0} for {1}", new Object[]{ValueType.class.getSimpleName(), i});
             return null;
         }
 

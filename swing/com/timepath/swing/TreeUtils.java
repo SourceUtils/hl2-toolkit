@@ -26,11 +26,23 @@ public class TreeUtils {
         }
     }
 
+    /**
+     * Sometimes this doesn't work. TODO: find out why
+     * @param source
+     * @param dest 
+     */
     public static void moveChildren(DefaultMutableTreeNode source, DefaultMutableTreeNode dest) {
-        @SuppressWarnings("unchecked")
-        Enumeration<DefaultMutableTreeNode> e = source.children();
-        while(e.hasMoreElements()) {
-            dest.add(e.nextElement());
+        boolean safe = true;
+        if(safe) {
+            dest.add(source);
+        } else {
+            @SuppressWarnings("unchecked")
+            Enumeration<DefaultMutableTreeNode> e = source.children();
+            while(e.hasMoreElements()) {
+                DefaultMutableTreeNode node = e.nextElement();
+                node.removeFromParent();
+                dest.add(node);
+            }
         }
     }
     
