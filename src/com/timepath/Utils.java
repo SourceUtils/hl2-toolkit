@@ -24,6 +24,14 @@ public class Utils {
     private Utils() {
     }
 
+    public static String hex(byte[] a) {
+        StringBuilder sb = new StringBuilder();
+        for(byte b : a) {
+            sb.append(String.format("%02x", b & 0xff)).append(" ");
+        }
+        return sb.toString().toUpperCase().trim();
+    }
+
     public static String normalisePath(String str) {
         LOG.log(Level.INFO, "Normalising {0}", str);
 //        try {

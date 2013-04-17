@@ -76,8 +76,12 @@ public class DataUtils {
     public static String getText(ByteBuffer source) {
         return getText(source, false);
     }
+    
+    public static String getText(ByteBuffer source, boolean terminator) {
+        return Charset.forName("UTF-8").decode(getTextBuffer(source, terminator)).toString();
+    }
 
-    public static String getText(ByteBuffer source, boolean terminatorCheck) {
+    public static ByteBuffer getTextBuffer(ByteBuffer source, boolean terminatorCheck) {
         int pos = source.position();
         int end = source.limit();
         if(terminatorCheck) {
@@ -91,9 +95,9 @@ public class DataUtils {
         source.position(pos);
         source.limit(end);
 
-        return Charset.forName("UTF-8").decode(source).toString();
+        return source;
     }
-
+    
     //<editor-fold defaultstate="collapsed" desc="Old stuff">
     public static byte readByte(RandomAccessFile f) throws IOException {
         byte b = f.readByte();

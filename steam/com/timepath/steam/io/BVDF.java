@@ -1,11 +1,13 @@
 package com.timepath.steam.io;
 
 import com.timepath.DataUtils;
+import com.timepath.Utils;
 import com.timepath.swing.TreeUtils;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -97,7 +99,7 @@ public class BVDF {
                     } else {
                         entrySlice.position(binaryFailurePosition);
                         int doubleCheck = entrySlice.get();
-                        Object[] vars = new Object[]{binaryFailureByte, appPosition + sectionPosition, appPosition + binaryFailurePosition, appError};
+                        Object[] vars = new Object[]{Integer.toHexString(binaryFailureByte), appPosition + sectionPosition, appPosition + binaryFailurePosition, appError};
                         LOG.log(Level.WARNING, "{3} err: {0}, sec: {1}, secoff: {2}", vars);
                         break;
                     }
@@ -130,8 +132,16 @@ public class BVDF {
             }
             //</editor-fold>
         } else {
+            //<editor-fold defaultstate="collapsed" desc="Generic .bin">
             buf.position(0);
-            TreeUtils.moveChildren(parseBinaryData(buf), dn);
+            DataNode bvdf = parseBinaryData(buf);
+            if(bvdf != null) {
+                TreeUtils.moveChildren(bvdf, dn);
+            } else {
+                Object[] vars = new Object[]{Integer.toHexString(binaryFailureByte), binaryFailurePosition};
+                LOG.log(Level.WARNING, "err: {0}, off: {1}", vars);
+            }
+            //</editor-fold>
         }
     }
 
@@ -155,11 +165,11 @@ public class BVDF {
         DataNode parent = new DataNode();
         parent.name = "<joiner>";
         for(;;) {
-            DataNode dat = new DataNode();
             int typeNum = buffer.get();
             ValueType type = ValueType.get(typeNum);
             LOG.log(Level.FINE, "Type : {0}", type);
-            if(type == null) {
+
+            if(type == null) { // parsing error
                 binaryFailureByte = typeNum;
                 binaryFailurePosition = buffer.position() - 1;
                 return null;
@@ -169,13 +179,13 @@ public class BVDF {
                 LOG.log(Level.FINE, "No more peers");
                 break;
             }
+
+            DataNode dat = new DataNode();
             dat.type = type;
-            int originalPosition = buffer.position();
-            String token = DataUtils.getText(DataUtils.getSafeSlice(buffer, KEYVALUES_TOKEN_SIZE - 1), true);
-            buffer.position(originalPosition + token.length() + 1);
-            LOG.log(Level.FINE, "Token: {0}", Arrays.toString(token.getBytes()));
+            String token = getString(buffer);
             dat.name = token;
 
+            //<editor-fold defaultstate="collapsed" desc="Different cases">
             switch(type) {
                 case TYPE_NONE:
                     LOG.log(Level.FINE, "Node has children");
@@ -187,9 +197,7 @@ public class BVDF {
                     break;
 
                 case TYPE_STRING:
-                    int originalPosition2 = buffer.position();
-                    String stringValue = DataUtils.getText(DataUtils.getSafeSlice(buffer, KEYVALUES_TOKEN_SIZE - 1), true);
-                    buffer.position(originalPosition2 + stringValue.length() + 1);
+                    String stringValue = getString(buffer);
                     dat.value = (stringValue);
                     LOG.log(Level.FINE, "String value: {0}", Arrays.toString(stringValue.getBytes()));
                     break;
@@ -226,10 +234,21 @@ public class BVDF {
                     LOG.log(Level.SEVERE, "Unhandled data type {0}", type);
                     break;
             }
+            //</editor-fold>
 
             parent.add(dat);
         }
         return parent;
+    }
+    
+    private static String getString(ByteBuffer buffer) {
+        int originalPosition = buffer.position();
+        ByteBuffer textBuffer = DataUtils.getTextBuffer(DataUtils.getSafeSlice(buffer, KEYVALUES_TOKEN_SIZE - 1), true);
+        int length = textBuffer.remaining();
+        buffer.position(originalPosition + length + 1);
+        String token = Charset.forName("UTF-8").decode(textBuffer).toString();
+        LOG.log(Level.FINE, "Token {0} = {1}", new Object[]{token, Utils.hex(token.getBytes())});
+        return token;
     }
 
     private static class DataNode extends DefaultMutableTreeNode {
