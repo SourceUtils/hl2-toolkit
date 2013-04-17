@@ -1,19 +1,18 @@
 package com.timepath.steam.io;
 
 import com.timepath.DataUtils;
+import com.timepath.swing.TreeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Calendar;
-import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -80,11 +79,7 @@ public class Blob {
         ByteBuffer buf = DataUtils.mapFile(f);
         parsePayload(buf, bn, false);
 //        root.add(bn);
-        @SuppressWarnings("unchecked")
-        Enumeration<MutableTreeNode> e = bn.children();
-        while(e.hasMoreElements()) {
-            root.add(e.nextElement());
-        }
+        TreeUtils.moveChildren(bn, root);
     }
 
     @SuppressWarnings("fallthrough")

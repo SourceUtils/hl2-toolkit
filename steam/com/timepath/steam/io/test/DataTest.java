@@ -55,6 +55,7 @@ public class DataTest extends javax.swing.JFrame {
 
         javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("root");
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jTree1.setEditable(true);
         jTree1.setLargeModel(true);
         jTree1.setRootVisible(false);
         jScrollPane1.setViewportView(jTree1);

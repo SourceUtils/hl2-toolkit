@@ -57,6 +57,13 @@ public class DataUtils {
         sub.order(ByteOrder.LITTLE_ENDIAN);
         return sub;
     }
+    
+    public static ByteBuffer getSafeSlice(ByteBuffer source, int length) {
+        if(length > source.remaining()) {
+            length = source.remaining();
+        }
+        return getSlice(source, length);
+    }
 
     public static ByteBuffer mapFile(File f) throws IOException {
         FileInputStream fis = new FileInputStream(f);
