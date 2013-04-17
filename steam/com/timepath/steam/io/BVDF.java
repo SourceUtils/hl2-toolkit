@@ -57,7 +57,6 @@ public class BVDF {
                 c.add(new DataNode("size", size));
 
                 int appPosition = buf.position();
-                int appError = appID;
 
                 ByteBuffer entrySlice = DataUtils.getSlice(buf, size);
 
@@ -95,12 +94,10 @@ public class BVDF {
                     DataNode binarySlice = parseBinaryData(entrySlice);
                     if(binarySlice != null) {
                         TreeUtils.moveChildren(binarySlice, sectionNode);
-                        c.removeFromParent(); // TEMP
+//                        c.removeFromParent(); // TEMP
                     } else {
-                        entrySlice.position(binaryFailurePosition);
-                        int doubleCheck = entrySlice.get();
-                        Object[] vars = new Object[]{Integer.toHexString(binaryFailureByte), appPosition + sectionPosition, appPosition + binaryFailurePosition, appError};
-                        LOG.log(Level.WARNING, "{3} err: {0}, sec: {1}, secoff: {2}", vars);
+                        Object[] vars = new Object[]{appID, Integer.toHexString(binaryFailureByte), Section.get(section), appPosition + sectionPosition, appPosition + binaryFailurePosition};
+                        LOG.log(Level.WARNING, "app: {0} byte: {1}, sec: {2}, secoff: {3} totaloff: {4}", vars);
                         break;
                     }
                 }
@@ -243,11 +240,13 @@ public class BVDF {
     
     private static String getString(ByteBuffer buffer) {
         int originalPosition = buffer.position();
-        ByteBuffer textBuffer = DataUtils.getTextBuffer(DataUtils.getSafeSlice(buffer, KEYVALUES_TOKEN_SIZE - 1), true);
+        int size = KEYVALUES_TOKEN_SIZE - 1;
+        size = buffer.remaining(); // Source's buffer isn't big enough for some CDR entries
+        ByteBuffer textBuffer = DataUtils.getTextBuffer(DataUtils.getSafeSlice(buffer, size), true);
         int length = textBuffer.remaining();
         buffer.position(originalPosition + length + 1);
         String token = Charset.forName("UTF-8").decode(textBuffer).toString();
-        LOG.log(Level.FINE, "Token {0} = {1}", new Object[]{token, Utils.hex(token.getBytes())});
+        LOG.log(Level.FINER, "Token {0} = {1}", new Object[]{token, Utils.hex(token.getBytes())});
         return token;
     }
 
