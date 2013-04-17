@@ -30,6 +30,11 @@ public class ThemeSelector extends JComboBox {
 
         String lafId = UIManager.getLookAndFeel().getClass().getName();
         for(UIManager.LookAndFeelInfo lafInfo : UIManager.getInstalledLookAndFeels()) {
+            try {
+                Class.forName(lafInfo.getClassName());
+            } catch(ClassNotFoundException ex) {
+                continue;
+            }
             String name = lafInfo.getName();
             model.addElement(name);
             if(lafInfo.getClassName().equals(lafId)) {
