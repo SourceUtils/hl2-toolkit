@@ -7,6 +7,7 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Calendar;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
@@ -33,6 +34,13 @@ public class Blob {
         BlobNode(Object obj) {
             this.setUserObject(obj);
         }
+        
+        BlobNode(String name, Object obj) {
+            this.name = name;
+            this.setUserObject(obj);
+        }
+        
+        private String name;
 
         private int dataType = -1;
 
@@ -44,7 +52,7 @@ public class Blob {
             } else if(o instanceof String) {
                 return (String) o;
             } else {
-                return o.getClass().getSimpleName() + ": " + o;
+                return (name != null ? name : o.getClass().getSimpleName()) + ": " + o;
             }
         }
 
@@ -68,14 +76,14 @@ public class Blob {
 
     public static void analyze(File f, DefaultMutableTreeNode root) throws IOException {
         BlobNode bn = new BlobNode("root");
-        root.add(bn);
         ByteBuffer buf = DataUtils.mapFile(f);
         parsePayload(buf, bn, false);
-//        @SuppressWarnings("unchecked")
-//        Enumeration<BlobNode> e = bn.depthFirstEnumeration();
-//        while(e.hasMoreElements()) {
-//            root.add(e.nextElement());
-//        }
+//        root.add(bn);
+        @SuppressWarnings("unchecked")
+        Enumeration<BlobNode> e = bn.children();
+        while(e.hasMoreElements()) {
+            root.add(e.nextElement());
+        }
     }
 
     @SuppressWarnings("fallthrough")
@@ -89,10 +97,9 @@ public class Blob {
         if(parent.getMeta() == 2) {
             int dataType = ((BlobNode) parent.getPreviousSibling()).dataType;
             if(dataType != -1) {
-                String str = null;
                 switch(dataType) {
                     case 0: // Text
-                        str = DataUtils.getText(buf, true);
+                        String str = DataUtils.getText(buf, true);
                         Calendar cal;
                         try {
                             cal = DatatypeConverter.parseDateTime(str);
@@ -132,9 +139,9 @@ public class Blob {
             case 0x5001:
                 parent.add(d);
                 int length = buf.getInt();
-                d.add(new BlobNode(length));
+                d.add(new BlobNode("length", length));
                 int padding = buf.getInt();
-                d.add(new BlobNode(padding));
+                d.add(new BlobNode("padding", padding));
                 buf.limit((buf.position() - 10) + length + padding); // 10 because is relative to when this section started
                 ByteBuffer payload = DataUtils.getSlice(buf);
                 //<editor-fold defaultstate="collapsed" desc="Payload">
@@ -146,9 +153,9 @@ public class Blob {
                     BlobNode child = new BlobNode();
                     children.add(child);
                     short descLength = payload.getShort();
-                    child.add(new BlobNode(descLength));
+                    child.add(new BlobNode("nameLength", descLength));
                     int payloadLength = payload.getInt();
-                    child.add(new BlobNode(payloadLength));
+                    child.add(new BlobNode("payloadLength", payloadLength));
                     ByteBuffer childDesc = DataUtils.getSlice(payload, descLength);
                     String name = DataUtils.getText(childDesc);
                     if(name.equals("\1\0\0\0") || name.equals("\2\0\0\0")) {
@@ -157,7 +164,7 @@ public class Blob {
                     }
                     name = name.replaceAll("\1\0\0\0", "<Folder>");
                     name = name.replaceAll("\2\0\0\0", "<File>");
-                    child.add(new BlobNode("String: " + name));
+                    child.add(new BlobNode("name", name));
                     child.setUserObject(name);
                     ByteBuffer childPayload = DataUtils.getSlice(payload, payloadLength);
                     parsePayload(childPayload, child, false);
@@ -178,7 +185,7 @@ public class Blob {
                 break;
         }
     }
-    
+
     /**
      * Compressed header: int compressed + 20 (size of header neglecting initial
      * short) int dummy1 int decompressed int dummy2 short dummy3
