@@ -1,9 +1,6 @@
 package com.timepath.steam;
 
 import com.timepath.plaf.OS;
-import static com.timepath.plaf.OS.Linux;
-import static com.timepath.plaf.OS.OSX;
-import static com.timepath.plaf.OS.Windows;
 import java.io.File;
 import java.util.logging.Logger;
 

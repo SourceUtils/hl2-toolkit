@@ -150,16 +150,18 @@ public class CVarTest extends javax.swing.JFrame {
         jLabel5.setText("0");
         statusBar1.add(jLabel5);
 
-        jLabel3.setText("Filter:");
+        jLabel3.setText("Find:");
 
-        regexCheckBox.setText("regex");
+        regexCheckBox.setMnemonic('R');
+        regexCheckBox.setText("Regular Expression");
         regexCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 regexCheckBoxActionPerformed(evt);
             }
         });
 
-        caseSensitiveCheckBox.setText("Case sensitive");
+        caseSensitiveCheckBox.setMnemonic('M');
+        caseSensitiveCheckBox.setText("Match Case");
         caseSensitiveCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 caseSensitiveCheckBoxActionPerformed(evt);

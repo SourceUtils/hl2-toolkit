@@ -159,12 +159,13 @@
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel3">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Filter:"/>
+            <Property name="text" type="java.lang.String" value="Find:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JCheckBox" name="regexCheckBox">
           <Properties>
-            <Property name="text" type="java.lang.String" value="regex"/>
+            <Property name="mnemonic" type="int" value="82"/>
+            <Property name="text" type="java.lang.String" value="Regular Expression"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="regexCheckBoxActionPerformed"/>
@@ -172,7 +173,8 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="caseSensitiveCheckBox">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Case sensitive"/>
+            <Property name="mnemonic" type="int" value="77"/>
+            <Property name="text" type="java.lang.String" value="Match Case"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="caseSensitiveCheckBoxActionPerformed"/>
