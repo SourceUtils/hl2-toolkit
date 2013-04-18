@@ -3,21 +3,11 @@
     <type>org.netbeans.modules.java.j2seproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
-            <name>TimePath Commons</name>
+            <name>HL2 Toolkit</name>
             <source-roots>
-                <root id="src.productivity.dir" name="Productivity"/>
-                <root id="src.borrowed.dir" name="Borrowed Code"/>
-                <root id="src.dir" name="Other"/>
-                <root id="src.dnd.dir" name="DnD"/>
-                <root id="src.ftp.dir" name="FTP Server"/>
-                <root id="src.hl22.dir" name="Source Engine"/>
+                <root id="src.src.dir" name="Source Packages"/>
+                <root id="src.steam.dir" name="Steam"/>
                 <root id="src.hl2scores2.dir" name="External Scoreboard"/>
-                <root id="src.image.dir" name="Image Loaders"/>
-                <root id="src.plaf.dir" name="Platform Integration"/>
-                <root id="src.reddit.dir"/>
-                <root id="src.steam.dir" name="Steam Tools"/>
-                <root id="src.swing.dir" name="Swing Components"/>
-                <root id="src.web.dir" name="Web Tools"/>
             </source-roots>
             <test-roots>
                 <root id="test.src.dir"/>
@@ -26,5 +16,15 @@
         <libraries xmlns="http://www.netbeans.org/ns/ant-project-libraries/1">
             <definitions>./lib/nblibraries.properties</definitions>
         </libraries>
+        <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
+            <reference>
+                <foreign-project>TimePath_Commons</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+        </references>
     </configuration>
 </project>
