@@ -5,17 +5,12 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>HL2 Toolkit</name>
             <source-roots>
-                <root id="src.src.dir" name="Source Packages"/>
-                <root id="src.steam.dir" name="Steam"/>
-                <root id="src.hl2scores2.dir" name="External Scoreboard"/>
+                <root id="src.src2.dir" name="Source Packages"/>
+                <root id="src.steam.dir" name="Steam Packages"/>
+                <root id="src.hl2scores2.dir" name="Steam"/>
             </source-roots>
-            <test-roots>
-                <root id="test.src.dir"/>
-            </test-roots>
+            <test-roots/>
         </data>
-        <libraries xmlns="http://www.netbeans.org/ns/ant-project-libraries/1">
-            <definitions>./lib/nblibraries.properties</definitions>
-        </libraries>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
                 <foreign-project>TimePath_Commons</foreign-project>

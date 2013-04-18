@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="TimePath_Commons" default="default" basedir=".">
-    <description>Builds, tests, and runs the project TimePath Commons.</description>
+<project name="HL2_Toolkit" default="default" basedir=".">
+    <description>Builds the library.</description>
     <import file="nbproject/build-impl.xml"/>
     
     <target name="-pre-jar">
+        <echo message="Unpacking all direct libraries into build directory"/>
         <unjar dest="${build.classes.dir}">
             <fileset dir="lib">
                 <include name="**/*.jar"/>
             </fileset>
             <patternset>
                 <exclude name="META-INF/**"/>
-                <exclude name="/*"/>
+                <!--<exclude name="/*"/>-->
             </patternset>
         </unjar>
-    </target>
-    
-    <target name="-post-jar">
-        <zip destfile="${dist.jar}.jar" level="9">
-            <zipfileset src="${dist.jar}"/>
-        </zip>
     </target>
     
 </project>
