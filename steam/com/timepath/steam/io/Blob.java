@@ -4,7 +4,6 @@ import com.timepath.DataUtils;
 import com.timepath.Utils;
 import com.timepath.swing.TreeUtils;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -89,50 +88,51 @@ public class Blob {
         BlobNode d = new BlobNode("Payload: 0x" + Integer.toHexString(id));
         switch(id) {
             case 0x4301:
-                parent.add(d);
                 ByteBuffer decompressed = decompress(buf);
-                
-//                int stride = 40;
-//                byte[] data = new byte[stride];
-//                System.out.println(decompressed.remaining() + ":");
-//                File f = new File("/home/timepath/Desktop/binout.blob");
-//                RandomAccessFile rf = null;
-//                try {
-//                    f.createNewFile();
-//                    rf = new RandomAccessFile(f, "rw");
-//                } catch(IOException ex) {
-//                    Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//                for(int i = 0; i < data.length; i++) {
-//                    decompressed.get(data, 0, Math.min(decompressed.remaining(), stride));
-//                    if(rf != null) {
-//                        try {
-//                            rf.write(data);
-//                        } catch(IOException ex) {
-//                            Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-//                    }
-//                    System.out.println(Utils.hex(data));
-//                }
-//                decompressed.position(0);
-                
+
+                int stride = 20;
+                byte[] data = new byte[stride];
+                File f = new File("binout.blob");
+                RandomAccessFile rf = null;
+                if(f != null) {
+                    try {
+                        f.createNewFile();
+                        rf = new RandomAccessFile(f, "rw");
+                    } catch(IOException ex) {
+                        Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                LOG.log(Level.INFO, "{0}:", decompressed.remaining());
+                for(int i = 0; i < data.length; i++) {
+                    decompressed.get(data, 0, Math.min(decompressed.remaining(), stride));
+                    if(rf != null) {
+                        try {
+                            rf.write(data);
+                        } catch(IOException ex) {
+                            Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    LOG.info(Utils.hex(data));
+                }
+                decompressed.position(0);
+
 //                parsePayload(decompressed, d, false);
                 break;
             case 0x5001:
-                parent.add(d);
                 int length = buf.getInt();
 //                d.add(new BlobNode("length", length));
                 int padding = buf.getInt();
 //                d.add(new BlobNode("padding", padding));
                 int limit = Math.min((buf.position() - 10) + length + padding, buf.position() + buf.remaining()); // workaround for decompressed
-                LOG.log(Level.INFO, "limit: {0}", limit);
+                LOG.log(Level.FINE, "limit: {0}", limit);
                 buf.limit(limit); // 10 because is relative to when this section started
                 ByteBuffer payload = DataUtils.getSlice(buf);
                 //<editor-fold defaultstate="collapsed" desc="Payload">
-                BlobNode children = new BlobNode("Children");
-                if(payload.remaining() > padding) {
-                    d.add(children);
-                }
+                BlobNode children = d;
+//                BlobNode children = new BlobNode("Children");
+//                if(payload.remaining() > padding) {
+//                    d.add(children);
+//                }
                 while(payload.remaining() > padding) {
                     BlobNode child = new BlobNode();
                     children.add(child);
@@ -168,6 +168,8 @@ public class Blob {
                 }
                 break;
         }
+        TreeUtils.moveChildren(d, parent, false);
+//        parent.add(d);
     }
 
     /**

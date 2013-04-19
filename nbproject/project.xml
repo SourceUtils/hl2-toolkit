@@ -7,7 +7,7 @@
             <source-roots>
                 <root id="src.src2.dir" name="Source Packages"/>
                 <root id="src.steam.dir" name="Steam Packages"/>
-                <root id="src.hl2scores2.dir" name="Steam"/>
+                <root id="src.hl2scores2.dir" name="External Scoreboard"/>
             </source-roots>
             <test-roots/>
         </data>

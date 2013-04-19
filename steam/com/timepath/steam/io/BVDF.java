@@ -54,7 +54,7 @@ public class BVDF {
                 dn.add(c);
 
                 int size = buf.getInt(); // skip this many bytes to reach the next entry
-                c.add(new DataNode("size", size));
+//                c.add(new DataNode("size", size));
 
                 int appPosition = buf.position();
 
@@ -68,8 +68,10 @@ public class BVDF {
                 df.setTimeZone(TimeZone.getTimeZone("GMT"));
                 String formattedDate = df.format(new Date(lastUpdated * 1000));
                 DataNode lu = new DataNode("lastUpdated", lastUpdated);
-                lu.add(new DataNode("formatted", formattedDate));
-                c.add(lu);
+                DataNode dateNode = new DataNode("lastUpdated", formattedDate);
+                c.add(dateNode);
+//                lu.add(dateNode);
+//                c.add(lu);
 
                 long token = entrySlice.getLong();
                 c.add(new DataNode("token", token));
