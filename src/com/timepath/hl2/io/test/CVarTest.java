@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -64,6 +65,8 @@ public class CVarTest extends javax.swing.JFrame {
         });
     }
 
+    private Map<String, CVar> map;
+
     private void newFilter() {
         jLabel1.setText(Integer.toString(sorter.getModelRowCount()));
         try {
@@ -74,7 +77,7 @@ public class CVarTest extends javax.swing.JFrame {
             if(!caseSensitiveCheckBox.isSelected()) {
                 str = "(?i)" + str;
             }
-            RowFilter<TableModel, Object> rf = RowFilter.regexFilter(str, new int[]{0, 1, 2, 3, 4});
+            RowFilter<TableModel, Object> rf = RowFilter.regexFilter(str, new int[]{0, 1, 2, 3, 4, 5, 6});
             sorter.setRowFilter(rf);
             jLabel5.setText(Integer.toString(sorter.getViewRowCount()));
             jTextField1.setForeground(Color.BLACK);
@@ -87,9 +90,10 @@ public class CVarTest extends javax.swing.JFrame {
 
     private void insertRows(Map<String, CVar> map) {
         DefaultTableModel m = (DefaultTableModel) jTable1.getModel();
+        m.setNumRows(0);
         for(Entry<String, CVar> entry : map.entrySet()) {
             CVar var = entry.getValue();
-            m.addRow(new Object[]{var.getName(), var.getValue(), null, Arrays.toString(var.getTags().toArray(new String[0])), var.getDesc()});
+            m.addRow(new Object[]{var.getName(), var.getValue(), var.getDefaultValue(), var.getMinimum(), var.getMaximum(), Arrays.toString(var.getTags().toArray(new String[0])), var.getDesc()});
         }
         newFilter();
     }
@@ -130,7 +134,7 @@ public class CVarTest extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Name", "Value", "Default", "Tags", "Description"
+                "Name", "Value", "Default", "Min", "Max", "Tags", "Description"
             }
         ));
         jScrollPane1.setViewportView(jTable1);
@@ -235,7 +239,8 @@ public class CVarTest extends javax.swing.JFrame {
         try {
             File f[] = new NativeFileChooser().setTitle("Select cvarlist").choose();
             if(f != null) {
-                insertRows(CVarList.analyze(f[0]));
+                map = CVarList.analyzeList(f[0], new HashMap<String, CVar>());
+                insertRows(map);
             }
         } catch(IOException ex) {
             Logger.getLogger(CVarTest.class.getName()).log(Level.SEVERE, null, ex);
