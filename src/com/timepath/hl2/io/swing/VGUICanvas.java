@@ -120,8 +120,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     private Image background;
 
-    public void setBackgroundImage(URL u) {
-        this.background = new ImageIcon(u).getImage();
+    public void setBackgroundImage(Image background) {
+        this.background = background;
         this.prepareImage(background, this);
         this.repaint();
     }

@@ -239,7 +239,7 @@ public class MDLTest extends SimpleApplication {
                 mdl.setMaterial(mat);
             }
             //            if(asset instanceof Geometry) {
-            this.enqueue(new Callable() {
+            this.enqueue(new Callable<Void>() {
                 public Void call() {
                     rootNode.attachChild(mdl);
                     return null;
