@@ -1,5 +1,6 @@
 package com.timepath.steam.io.test;
 
+import com.timepath.backports.javax.swing.SwingWorker;
 import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Property;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
@@ -11,6 +12,7 @@ import com.timepath.swing.TreeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -147,45 +149,63 @@ public class DataTest extends javax.swing.JFrame {
         open(new File(SteamUtils.getSteam() + "/ClientRegistry.blob"));
     }//GEN-LAST:event_clientRegistry
 
-    private void open(File f) {
+    private void open(final File f) {
         if(f == null) {
             LOG.info("File is null");
             return;
         } else {
             LOG.log(Level.INFO, "File is {0}", f);
         }
-        DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
-
-        DefaultMutableTreeNode pseudo = new DefaultMutableTreeNode(f.getPath());
+        final DefaultTreeModel model = ((DefaultTreeModel) jTree1.getModel());
+        final DefaultMutableTreeNode pseudo = new DefaultMutableTreeNode(f.getPath());
         model.setRoot(pseudo);
-        DefaultMutableTreeNode n = null;
-        try {
-            if(f.getName().toLowerCase().endsWith(".blob")) {
-                n = new DefaultMutableTreeNode("Blob");
-                Blob.analyze(f, n);
-            } else if(f.getName().toLowerCase().endsWith(".vdf")) {
-                if(VDF.isBinary(f)) {
-                    n = new DefaultMutableTreeNode("BVDF");
-                    BVDF.analyze(f, n);
-                } else {
-                    n = new DefaultMutableTreeNode("VDF");
-                    VDF.analyze(f, n);
-                    addProperties(n);
+
+        new SwingWorker<DefaultMutableTreeNode, Void>() {
+            @Override
+            protected DefaultMutableTreeNode doInBackground() throws Exception {
+                DefaultMutableTreeNode n = null;
+                try {
+                    if(f.getName().toLowerCase().endsWith(".blob")) {
+                        n = new DefaultMutableTreeNode("Blob");
+                        Blob.analyze(f, n);
+                    } else if(f.getName().toLowerCase().endsWith(".vdf")) {
+                        if(VDF.isBinary(f)) {
+                            n = new DefaultMutableTreeNode("BVDF");
+                            BVDF.analyze(f, n);
+                        } else {
+                            n = new DefaultMutableTreeNode("VDF");
+                            VDF.analyze(f, n);
+                            addProperties(n);
+                        }
+                    } else if(f.getName().toLowerCase().endsWith(".bin")) {
+                        n = new DefaultMutableTreeNode("BVDF");
+                        BVDF.analyze(f, n);
+                    }
+                } catch(StackOverflowError e) {
+                    LOG.warning("Stack Overflow");
+                } catch(Exception e) {
+                    e.printStackTrace();
                 }
-            } else if(f.getName().toLowerCase().endsWith(".bin")) {
-                n = new DefaultMutableTreeNode("BVDF");
-                BVDF.analyze(f, n);
+                return n;
             }
-            TreeUtils.expand(this.jTree1);
-        } catch(StackOverflowError e) {
-            LOG.warning("Stack Overflow");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        if(n != null) {
-            pseudo.add(n);
-        }
-        model.reload();
+
+            @Override
+            protected void done() {
+                try {
+                    DefaultMutableTreeNode n = get();
+                    if(n != null) {
+                        pseudo.add(n);
+                    }
+                    model.reload();
+                    TreeUtils.expand(DataTest.this.jTree1);
+                } catch(InterruptedException ex) {
+                    Logger.getLogger(DataTest.class.getName()).log(Level.SEVERE, null, ex);
+                } catch(ExecutionException ex) {
+                    Logger.getLogger(DataTest.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }.execute();
+
     }
 
     private void addProperties(DefaultMutableTreeNode tn) {
