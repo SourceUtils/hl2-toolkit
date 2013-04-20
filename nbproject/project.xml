@@ -9,7 +9,9 @@
                 <root id="src.steam.dir" name="Steam Packages"/>
                 <root id="src.hl2scores2.dir" name="External Scoreboard"/>
             </source-roots>
-            <test-roots/>
+            <test-roots>
+                <root id="test.test.dir" name="Test Packages"/>
+            </test-roots>
         </data>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>

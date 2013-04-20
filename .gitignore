@@ -2,3 +2,5 @@
 /dist/
 /nbproject/private/
 /binout.blob
+/liblwjgl.so
+/libopenal.so
