@@ -197,7 +197,7 @@ public class DataTest extends javax.swing.JFrame {
                         pseudo.add(n);
                     }
                     model.reload();
-                    TreeUtils.expand(DataTest.this.jTree1);
+//                    TreeUtils.expand(DataTest.this.jTree1);
                 } catch(InterruptedException ex) {
                     Logger.getLogger(DataTest.class.getName()).log(Level.SEVERE, null, ex);
                 } catch(ExecutionException ex) {

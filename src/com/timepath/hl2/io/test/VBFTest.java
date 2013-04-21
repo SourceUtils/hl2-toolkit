@@ -35,6 +35,8 @@ import javax.swing.tree.TreePath;
 
 /**
  *
+ * If one of the dimensions is 0, then do not use it to calculate the maxcharwidth/height
+ * 
  * @author timepath
  */
 public class VBFTest extends javax.swing.JFrame {
