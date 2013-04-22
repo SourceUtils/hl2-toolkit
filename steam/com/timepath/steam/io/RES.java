@@ -2,11 +2,11 @@ package com.timepath.steam.io;
 
 import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.HudFont;
-import com.timepath.hl2.io.util.Property;
+import com.timepath.steam.io.util.VDFNode;
+import com.timepath.swing.TreeUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -41,21 +41,23 @@ public class RES extends VDF {
         this.hudFolder = hudFolder;
     }
 
-    public static HashMap<String, HudFont> fonts = new HashMap<String, HudFont>();
+    public static final HashMap<String, HudFont> fonts = new HashMap<String, HudFont>();
 
     // TODO: Special exceptions for *scheme.res, hudlayout.res,
     public static void analyze(final File file, final DefaultMutableTreeNode top) {
         if(file.isDirectory()) {
             return;
         }
+        
+        VDFNode pseudo = new VDFNode();
 
         Scanner s = null;
         try {
             RandomAccessFile rf = new RandomAccessFile(file.getPath(), "r");
             s = new Scanner(rf.getChannel());
-            processAnalyze(s, top, new ArrayList<Property>(), file);
+            processAnalyze(s, pseudo, file);
             if(file.getName().equalsIgnoreCase("ClientScheme.res")) {
-                clientScheme(top);
+//                clientScheme(pseudo);
             }
         } catch(FileNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -64,29 +66,38 @@ public class RES extends VDF {
                 s.close();
             }
         }
+        
+        TreeUtils.moveChildren(pseudo, top);
     }
 
     private static void clientScheme(DefaultMutableTreeNode props) {
         LOG.info("Found clientscheme");
-        TreeNode fontNode = null;
-        for(int i = 0; i < props.getChildCount(); i++) {
-            DefaultMutableTreeNode c = ((DefaultMutableTreeNode)props.getChildAt(0).getChildAt(i));
-            LOG.log(Level.INFO, "Checking: {0}", ((Element)c.getUserObject()).getName());
-            if(((Element)c.getUserObject()).getName().equalsIgnoreCase("Font")) {
-                fontNode = c;
-                LOG.log(Level.INFO, "Found font node: {0}", fontNode);
-                break;
-            }
-        }
-        if(fontNode == null) {
+        if(!(props instanceof VDFNode)) {
+            LOG.log(Level.WARNING, "TreeNode not instanceof VDFNode", props);
             return;
         }
-        for(int i = 0; i < fontNode.getChildCount(); i++) {
-            TreeNode font = fontNode.getChildAt(i);
-            TreeNode detailFont = font.getChildAt(0); // XXX: hardcoded detail level
-            Element fontElement = (Element) ((DefaultMutableTreeNode) detailFont).getUserObject();
-            String fontName = font.toString().replaceAll("\"", ""); // Some use quotes.. oh well
-            fonts.put(fontName, new HudFont(fontName, fontElement));
+        VDFNode root = ((VDFNode) props).get("Scheme").get("Fonts");
+        for(int i = 0; i < root.getChildCount(); i++) {
+            TreeNode node = root.getChildAt(i);
+            if(!(node instanceof VDFNode)) {
+                continue;
+            }
+            VDFNode fontNode = (VDFNode) node;
+            VDFNode detailNode = null;
+            for(int j = 0; j < fontNode.getChildCount(); j++) {
+                TreeNode detail = fontNode.getChildAt(j);
+                if(!(detail instanceof VDFNode)) {
+                    continue;
+                }
+                detailNode = (VDFNode) detail;
+                break; // XXX: hardcoded detail level (the first one)
+            }
+            if(detailNode == null) {
+                continue;
+            }
+            String fontName = fontNode.getKey();
+//            fonts.put(fontName, new HudFont(fontName, detailFont));
+            LOG.log(Level.INFO, "TODO: Load font {0}", fontName);
         }
         LOG.info("Loaded clientscheme");
     }

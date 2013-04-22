@@ -2,6 +2,8 @@ package com.timepath.hl2.io.test;
 
 import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.CaptionEntry;
+import com.timepath.plaf.x.filechooser.BaseFileChooser.ExtensionFilter;
+import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.Archive.DirectoryEntry;
 import com.timepath.steam.io.GCF;
@@ -29,9 +31,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -41,7 +41,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -255,27 +254,19 @@ public class VCCDTest extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loadCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadCaptions
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Open");
+        try {
+            NativeFileChooser fc = new NativeFileChooser();
+            fc.setTitle("Open");
 
-        FileFilter filter = new FileFilter() {
-            public boolean accept(File file) {
-                return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
+            fc.addFilter(new ExtensionFilter("VCCD Binary Files", "dat"));
+            fc.setParent(this);
+            File[] files = fc.choose();
+            if(files == null) {
+                return;
             }
-
-            public String getDescription() {
-                return "VCCD Files (.dat)";
-            }
-        };
-        fc.setFileFilter(filter);
-
-        int returnVal = fc.showOpenDialog(this);
-
-        if(returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
             ArrayList<CaptionEntry> entries;
             try {
-                entries = VCCD.load(new FileInputStream(file));
+                entries = VCCD.load(new FileInputStream(files[0]));
             } catch(FileNotFoundException ex) {
                 Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
                 return;
@@ -289,32 +280,30 @@ public class VCCDTest extends javax.swing.JFrame {
             for(int i = 0; i < entries.size(); i++) {
                 model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), attemptDecode(entries.get(i).getKey()), entries.get(i).getValue()});
             }
-            saveFile = file;
+            saveFile = files[0];
+        } catch(IOException ex) {
+            Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_loadCaptions
     private File saveFile;
 
     private void save(boolean flag) {
-        if(saveFile == null || flag) { // save as
-            JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Save");
+        if(saveFile == null || flag) {
+            try {
+                // save as
+                NativeFileChooser fc = new NativeFileChooser();
+                fc.setTitle("Save");
+                fc.setParent(this);
 
-            FileFilter filter = new FileFilter() {
-                public boolean accept(File file) {
-                    return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".dat"))) || file.isDirectory();
+                fc.addFilter(new ExtensionFilter("closecaption_<language>", "dat"));
+
+                File[] fs = fc.choose();
+                if(fs == null) {
+                    return;
                 }
-
-                public String getDescription() {
-                    return "VCCD Files (.dat)";
-                }
-            };
-            fc.setFileFilter(filter);
-
-            int returnVal = fc.showSaveDialog(this);
-
-            if(returnVal == JFileChooser.APPROVE_OPTION) {
-                saveFile = fc.getSelectedFile();
-            } else {
+                saveFile = fs[0];
+            } catch(IOException ex) {
+                Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }
         }
@@ -347,25 +336,17 @@ public class VCCDTest extends javax.swing.JFrame {
     }//GEN-LAST:event_saveCaptions
 
     private void importCaptions(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importCaptions
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Import");
+        try {
+            NativeFileChooser fc = new NativeFileChooser();
+            fc.setTitle("Import");
+            fc.setParent(this);
+            fc.addFilter(new ExtensionFilter("VCCD Source Files", "txt"));
 
-        FileFilter filter = new FileFilter() {
-            public boolean accept(File file) {
-                return (file.getName().startsWith("closecaption_") && (file.getName().endsWith(".txt"))) || file.isDirectory();
+            File[] files = fc.choose();
+            if(files == null) {
+                return;
             }
-
-            public String getDescription() {
-                return "VCCD Source Files (.txt)";
-            }
-        };
-        fc.setFileFilter(filter);
-
-        int returnVal = fc.showOpenDialog(this);
-
-        if(returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            ArrayList<CaptionEntry> entries = VCCD.importFile(file.getAbsolutePath().toString());
+            ArrayList<CaptionEntry> entries = VCCD.importFile(files[0].getAbsolutePath().toString());
             LOG.log(Level.INFO, "Entries: {0}", entries.size());
 
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -379,6 +360,8 @@ public class VCCDTest extends javax.swing.JFrame {
                 model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), entries.get(i).getTrueKey(), entries.get(i).getValue()});
             }
             persistHashmap(hashmap);
+        } catch(IOException ex) {
+            Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_importCaptions
 
@@ -412,34 +395,34 @@ public class VCCDTest extends javax.swing.JFrame {
         String message = "Main:\n"
                          + "Avoid using spaces immediately after opening tags.\n"
                          + "<clr:r,g,b>\n"
-                         + "\tSets the color of the caption using an RGB color; 0 is no color, 255 is full color.\n"
-                         + "\tFor example, <clr:255,100,100> would be red.\n"
-                         + "\t<clr> with no arguments should restore the previous color for the next phrase, but doesn't?\n"
+                         + "  Sets the color of the caption using an RGB color; 0 is no color, 255 is full color.\n"
+                         + "  For example, <clr:255,100,100> would be red.\n"
+                         + "  <clr> with no arguments should restore the previous color for the next phrase, but doesn't?\n"
                          + "<B>\n"
-                         + "\tToggles bold text for the next phrase.\n"
+                         + "  Toggles bold text for the next phrase.\n"
                          + "<I>\n"
-                         + "\tToggles italicised text for the next phrase.\n"
+                         + "  Toggles italicised text for the next phrase.\n"
                          + "<U>\n"
-                         + "\tToggles underlined text for the next phrase.\n"
+                         + "  Toggles underlined text for the next phrase.\n"
                          + "<cr>\n"
-                         + "\tGo to new line for next phrase.\n"
+                         + "  Go to new line for next phrase.\n"
                          + "Other:\n"
                          + "<sfx>\n"
-                         + "\tMarks a line as a sound effect that will only be displayed with full closed captioning.\n"
-                         + "\tIf the user has cc_subtitles 1, it will not display these lines.\n"
+                         + "  Marks a line as a sound effect that will only be displayed with full closed captioning.\n"
+                         + "  If the user has cc_subtitles 1, it will not display these lines.\n"
                          + "<delay:#>\n"
-                         + "\tSets a pre-display delay. The sfx tag overrides this. This tag should come before all others. Can take a decimal value.\n"
+                         + "  Sets a pre-display delay. The sfx tag overrides this. This tag should come before all others. Can take a decimal value.\n"
                          + "\nUnknown:\n"
                          + "<sameline>\n"
-                         + "\tDon't go to new line for next phrase.\n"
+                         + "  Don't go to new line for next phrase.\n"
                          + "<linger:#> / <persist:#> / <len:#>\n"
-                         + "\tIndicates how much longer than usual the caption should appear on the screen.\n"
+                         + "  Indicates how much longer than usual the caption should appear on the screen.\n"
                          + "<position:where>\n"
-                         + "\tI don't know how this one works, but from the documentation:\n"
-                         + "\tDraw caption at special location ??? needed.\n"
+                         + "  I don't know how this one works, but from the sdk comments:\n"
+                         + "  Draw caption at special location ??? needed.\n"
                          + "<norepeat:#>\n"
-                         + "\tSets how long until the caption can appear again. Useful for frequent sounds.\n"
-                         + "\tSee also: cc_sentencecaptionnorepeat\n"
+                         + "  Sets how long until the caption can appear again. Useful for frequent sounds.\n"
+                         + "  See also: cc_sentencecaptionnorepeat\n"
                          + "<playerclr:playerRed,playerGreen,playerBlue:npcRed,npcGreen,npcBlue>\n"
                          + "\n"
                          + "closecaption 1 enables the captions\n"
@@ -449,7 +432,7 @@ public class VCCDTest extends javax.swing.JFrame {
                          + "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n"
                          + "cc_random emits a random caption\n"
                          + "";
-        JOptionPane pane = new JOptionPane(new JScrollPane(new JLabel(message)), JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane pane = new JOptionPane(new JScrollPane(new JTextArea(message)), JOptionPane.INFORMATION_MESSAGE);
         JDialog dialog = pane.createDialog(null, "Formatting");
         dialog.setModal(false);
         dialog.setVisible(true);
@@ -669,13 +652,12 @@ public class VCCDTest extends javax.swing.JFrame {
     private TableCellEditor getKeyEditor() {
         return new DefaultCellEditor(new JTextField());//new TokenDropdown(); // TODO
     }
-    
+
     private TableCellRenderer getKeyRenderer() {
         return new KeyRenderer();
     }
-    
+
     private class KeyRenderer extends DefaultTableCellRenderer {
-        
     }
 
     private class EditorPaneRenderer extends JPanel implements TableCellRenderer {

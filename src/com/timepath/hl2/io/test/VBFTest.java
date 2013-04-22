@@ -5,6 +5,7 @@ import com.timepath.hl2.io.VBF.BitmapGlyph;
 import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.swing.VBFCanvas;
 import com.timepath.plaf.x.filechooser.BaseFileChooser;
+import com.timepath.plaf.x.filechooser.BaseFileChooser.ExtensionFilter;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import java.awt.Component;
 import java.awt.Rectangle;
@@ -13,6 +14,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,6 +23,8 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DropMode;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
@@ -36,7 +41,7 @@ import javax.swing.tree.TreePath;
 /**
  *
  * If one of the dimensions is 0, then do not use it to calculate the maxcharwidth/height
- * 
+ *
  * @author timepath
  */
 public class VBFTest extends javax.swing.JFrame {
@@ -72,9 +77,21 @@ public class VBFTest extends javax.swing.JFrame {
      * Creates new form VBFTest
      */
     public VBFTest() {
-//        UIManager.put("Tree.expandedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/minus.png"))));
-//        UIManager.put("Tree.collapsedIcon", new IconUIResource(new ImageIcon(getClass().getResource("/com/timepath/swing/icons/plus.png"))));
         initComponents();
+        
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        this.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent we) {
+                int choice = JOptionPane.showInternalConfirmDialog(VBFTest.this.getContentPane(), "Do you really want to quit?");
+                if(choice == JOptionPane.YES_OPTION) {
+                    VBFTest.this.dispose();
+                }
+            }
+            
+        });
 
         canvas.addMouseListener(new MouseAdapter() {
             @Override
@@ -478,7 +495,7 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void open(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_open
         try {
-            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select vbf").choose();
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select vbf").addFilter(new ExtensionFilter("Valve Bitmap Font", "vbf")).choose();
             if(fs == null) {
                 return;
             }

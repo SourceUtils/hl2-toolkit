@@ -1,9 +1,9 @@
 package com.timepath.hl2.io;
 
 import com.timepath.DataUtils;
-import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Property;
 import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.util.VDFNode;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -213,7 +213,7 @@ public class VCCD {
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
         VDF.analyze(new File(file), tn);
         ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
-        ArrayList<Property> props = ((Element) ((DefaultMutableTreeNode) tn.getChildAt(0).getChildAt(0)).getUserObject()).getProps();
+        ArrayList<Property> props = ((VDFNode)(tn.getChildAt(0).getChildAt(0))).getProperties();
         ArrayList<String> usedKeys = new ArrayList<String>();
         for(int i = props.size() - 1; i >= 0; i--) {
             Property p = props.get(i);

@@ -2,12 +2,12 @@ package com.timepath.hl2.io.util;
 
 import com.timepath.hl2.io.VTF;
 import com.timepath.steam.io.RES;
+import com.timepath.steam.io.util.VDFNode;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +21,26 @@ import javax.swing.UIManager;
  *
  * @author timepath
  */
-public class Element implements ViewableData {
+public class Element extends VDFNode implements ViewableData {
 
     private static final Logger LOG = Logger.getLogger(Element.class.getName());
 
     public static Map<String, Element> areas = new HashMap<String, Element>();
+
+    public static Element importVdf(VDFNode vdf) {
+        Element e = new Element();
+        e.ps = vdf.getProperties();
+        e.setFile(vdf.getFile());
+        e.validateLoad();
+        return e;
+    }
+
+    public Element() {
+    }
+
+    public Element(String name) {
+        this.name = name;
+    }
 
     public Element(String name, String info) {
         this.name = name;
@@ -41,8 +56,7 @@ public class Element implements ViewableData {
     public String save() {
         String str = "";
         // preceding header
-        for(int i = 0; i < this.propMap.size(); i++) {
-            Property p = this.propMap.get(i);
+        for(Property p : this.getProps()) {
             if(p.getValue().length() == 0) {
                 if(p.getKey().equals("\\n")) {
                     str += "\n";
@@ -54,8 +68,7 @@ public class Element implements ViewableData {
         }
         str += this.name + "\n";
         str += "{\n";
-        for(int i = 0; i < this.propMap.size(); i++) {
-            Property p = this.propMap.get(i);
+        for(Property p : this.getProps()) {
             if(p.getValue().length() != 0) {
                 if(p.getKey().equals("\\n")) {
                     str += "\t    \n";
@@ -76,44 +89,7 @@ public class Element implements ViewableData {
 
     private String info;
 
-    private ArrayList<Property> propMap = new ArrayList<Property>();
-
-    public ArrayList<Property> getProps() {
-        return propMap;
-    }
-
-    public void addProp(Property p) {
-        LOG.log(Level.FINE, "Adding prop: {0} to: {1}", new Object[]{p, this});
-        propMap.add(p);
-    }
-
-    public void addProps(ArrayList<Property> p) {
-        for(int i = 0; i < p.size(); i++) {
-            addProp(p.get(i));
-        }
-        p.clear();
-    }
-
     private Element parent;
-
-    public ArrayList<Element> children = new ArrayList<Element>();
-
-    public void addChild(Element e) {
-        if(e == this || e == this.getParent()) {
-            LOG.log(Level.INFO, "Cannot add element {0} to {1}", new Object[]{e, this});
-        }
-        if(!children.contains(e)) {
-            e.validateLoad();
-            children.add(e);
-            e.setParent(this);
-        }
-    }
-
-    public void removeAllChildren() {
-        for(int i = 0; i < children.size(); i++) {
-            children.remove(i);
-        }
-    }
 
     // Extra stuff
     public int getSize() { // works well unless they are exactly the same size
@@ -146,7 +122,7 @@ public class Element implements ViewableData {
     }
 
     public int getX() {
-        if(parent == null || parent.name.replaceAll("\"", "").endsWith(".res")) {
+        if(getParent() == null || getParent().name.replaceAll("\"", "").endsWith(".res")) {
             if(this.getXAlignment() == Alignment.Center) {
                 return (getLocalX() + Math.round(internal.width / 2));
             } else if(this.getXAlignment() == Alignment.Right) {
@@ -157,13 +133,13 @@ public class Element implements ViewableData {
         } else {
             int x;
             if(this.getXAlignment() == Alignment.Center) {
-                x = (parent.getWidth() / 2) + getLocalX();
+                x = (getParent().getWidth() / 2) + getLocalX();
             } else if(this.getXAlignment() == Alignment.Right) {
-                x = (parent.getWidth()) - getLocalX();
+                x = (getParent().getWidth()) - getLocalX();
             } else {
                 x = getLocalX();
             }
-            return x + parent.getX();
+            return x + getParent().getX();
         }
     }
 
@@ -178,7 +154,7 @@ public class Element implements ViewableData {
     }
 
     public int getY() {
-        if(parent == null || parent.name.replaceAll("\"", "").endsWith(".res")) {
+        if(getParent() == null || getParent().name.replaceAll("\"", "").endsWith(".res")) {
             if(this.getYAlignment() == Alignment.Center) {
                 return (getLocalY() + Math.round(internal.height / 2));
             } else if(this.getYAlignment() == Alignment.Right) {
@@ -189,13 +165,13 @@ public class Element implements ViewableData {
         }
         int y;
         if(this.getYAlignment() == Alignment.Center) {
-            y = (parent.getHeight() / 2) + getLocalY();
+            y = (getParent().getHeight() / 2) + getLocalY();
         } else if(this.getYAlignment() == Alignment.Right) {
-            y = parent.getHeight() - getLocalY();
+            y = getParent().getHeight() - getLocalY();
         } else {
             y = getLocalY();
         }
-        return y + parent.getY();
+        return y + getParent().getY();
     }
 
     // > 0 = out of screen
@@ -221,8 +197,8 @@ public class Element implements ViewableData {
 
     public int getWidth() {
         if(this.getWidthMode() == DimensionMode.Mode2) {
-//            if(this.parent !hudRes= null) {
-//                return this.parent.getWidth() - wide;
+//            if(this.getParent().!hudRes= null) {
+//                return this.getParent().getWidth() - wide;
 //            } else {
             return internal.width - wide;
 //            }
@@ -252,7 +228,7 @@ public class Element implements ViewableData {
     }
 
     public int getHeight() {
-        return (this.getHeightMode() == DimensionMode.Mode2 ? (this.parent != null ? this.parent.getHeight() - tall : internal.height - tall) : tall);
+        return (this.getHeightMode() == DimensionMode.Mode2 ? (this.getParent() != null ? this.getParent().getHeight() - tall : internal.height - tall) : tall);
     }
 
     private DimensionMode _tallMode = DimensionMode.Mode1;
@@ -310,15 +286,15 @@ public class Element implements ViewableData {
         for(int n = 0; n < this.getProps().size(); n++) {
             Property entry = this.getProps().get(n);
             String k = entry.getKey().toLowerCase();
-            if(k != null && k.contains("\"")) { // assumes one set of quotes
-                k = k.substring(1, k.length() - 1);
-                k = k.replaceAll("\"", "").trim();
-            }
+//            if(k != null && k.contains("\"")) { // assumes one set of quotes
+//                k = k.substring(1, k.length() - 1);
+//                k = k.replaceAll("\"", "").trim();
+//            }
             String v = entry.getValue();
-            if(v != null && v.contains("\"")) {
-                v = v.substring(1, v.length() - 1);
-                v = v.replaceAll("\"", "").trim();
-            }
+//            if(v != null && v.contains("\"")) {
+//                v = v.substring(1, v.length() - 1);
+//                v = v.replaceAll("\"", "").trim();
+//            }
 //            String i = entry.getInfo();
 //            if(i != null && i.contains("\"")) {
 //                i = i.substring(1, i.length() - 1);
@@ -570,10 +546,15 @@ public class Element implements ViewableData {
         }
     }
 
+    private ArrayList<Property> ps = new ArrayList<Property>();
+
+    public ArrayList<Property> getProps() {
+        return ps;
+    }
+
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
     public void validateDisplay() {
-        for(int n = 0; n < propMap.size(); n++) {
-            Property entry = propMap.get(n);
+        for(Property entry : this.getProps()) {
             String k = entry.getKey();
             if(k == null) {
                 continue;
@@ -625,20 +606,6 @@ public class Element implements ViewableData {
 
     public String getControlName() {
         return controlName;
-    }
-
-    private String fileName;
-
-    public void setParentFile(File file) { // todo: case insensitivity
-        if(file.getName().contains(".")) {
-            this.fileName = file.getName().split("\\.")[0];
-        } else {
-            this.fileName = file.getName();
-        }
-    }
-
-    public String getFile() {
-        return fileName;
     }
 
     private Alignment _xAlignment = Alignment.Left;
@@ -698,10 +665,13 @@ public class Element implements ViewableData {
     public enum Alignment {
 
         Left, Center, Right
+
     }
 
     public enum DimensionMode {
 
         Mode1, Mode2
+
     }
+
 }

@@ -7,8 +7,8 @@ import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.BVDF;
 import com.timepath.steam.io.Blob;
+import com.timepath.steam.io.RES;
 import com.timepath.steam.io.VDF;
-import com.timepath.swing.TreeUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -168,14 +168,17 @@ public class DataTest extends javax.swing.JFrame {
                     if(f.getName().toLowerCase().endsWith(".blob")) {
                         n = new DefaultMutableTreeNode("Blob");
                         Blob.analyze(f, n);
-                    } else if(f.getName().toLowerCase().endsWith(".vdf")) {
-                        if(VDF.isBinary(f)) {
-                            n = new DefaultMutableTreeNode("BVDF");
-                            BVDF.analyze(f, n);
-                        } else {
+                    } else if(f.getName().toLowerCase().endsWith(".vdf") || f.getName().toLowerCase().endsWith(".res")) {
+                        if(f.getName().toLowerCase().endsWith(".res")) {
+                            n = new DefaultMutableTreeNode("RES");
+                            RES.analyze(f, n);
+                        } else if(!VDF.isBinary(f)) {
                             n = new DefaultMutableTreeNode("VDF");
                             VDF.analyze(f, n);
-                            addProperties(n);
+//                            addProperties(n);
+                        } else {
+                            n = new DefaultMutableTreeNode("BVDF");
+                            BVDF.analyze(f, n);
                         }
                     } else if(f.getName().toLowerCase().endsWith(".bin")) {
                         n = new DefaultMutableTreeNode("BVDF");

@@ -24,8 +24,6 @@ public class VBF {
 
     private static int expectedVersion = 3;
 
-    private int version;
-
     private short width;
 
     public void setWidth(int width) {
@@ -89,7 +87,8 @@ public class VBF {
 
         //<editor-fold defaultstate="collapsed" desc="Parse">
         int header = buf.getInt();
-        v.version = buf.getInt();
+        int version = buf.getInt();
+        
         v.width = buf.getShort();
         v.height = buf.getShort();
         short maxcharwidth = buf.getShort();
@@ -120,7 +119,7 @@ public class VBF {
         //<editor-fold defaultstate="collapsed" desc="Debug">
         Object[][] dbg = {
             {"Header = ", header},
-            {"Version = ", v.version},
+            {"Version = ", version},
             {"Width = ", v.width},
             {"Height = ", v.height},
             {"MaxCharWidth = ", maxcharwidth},
@@ -170,7 +169,7 @@ public class VBF {
         buf.order(ByteOrder.LITTLE_ENDIAN);
 
         buf.putInt(VBF.expectedHeader);
-        buf.putInt(version);
+        buf.putInt(VBF.expectedVersion);
         buf.putShort(width);
         buf.putShort(height);
         short maxcharwidth = 0;
@@ -180,6 +179,9 @@ public class VBF {
                 glyphs.get(i).setBounds(new Rectangle());
             }
             Rectangle r = glyphs.get(i).getBounds();
+            if(r.width == 0 || r.height == 0) {
+                continue;
+            }
             if((short) r.width > maxcharwidth) {
                 maxcharwidth = (short) r.width;
             }

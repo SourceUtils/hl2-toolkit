@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.util;
 
 import java.util.logging.Logger;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -8,7 +9,7 @@ import java.util.logging.Logger;
  *
  * @author timepath
  */
-public class Property {
+public class Property extends DefaultMutableTreeNode {
 
     private String key;
 

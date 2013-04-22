@@ -30,7 +30,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class GCF implements Archive, ViewableData {
 
     private static final Logger LOG = Logger.getLogger(GCF.class.getName());
-    
+
     public GCF() {
         rf = null;
     }
@@ -39,17 +39,17 @@ public class GCF implements Archive, ViewableData {
     public void analyze(DefaultMutableTreeNode top) {
         analyze(top, true);
     }
-    
+
     public void analyze(DefaultMutableTreeNode top, boolean leaves) {
         GCFDirectoryEntry[] entries = directoryEntries;
         analyze(entries[0], top, leaves);
     }
 
     /**
-     * 
+     *
      * @param rootEntry The root DirectoryEntry to analyze
-     * @param parent The parent TreeNode to attach to
-     * @param leaves Whether nodes with no children should be displayed
+     * @param parent    The parent TreeNode to attach to
+     * @param leaves    Whether nodes with no children should be displayed
      */
     public void analyze(GCFDirectoryEntry rootEntry, DefaultMutableTreeNode parent, boolean leaves) {
         GCFDirectoryEntry[] entries = getImmediateChildren(rootEntry);
@@ -112,7 +112,7 @@ public class GCF implements Archive, ViewableData {
         }
         return str;
     }
-    
+
     public ArrayList<DirectoryEntry> find(String search) {
         search = search.toLowerCase();
         ArrayList<DirectoryEntry> list = new ArrayList<DirectoryEntry>(this.directoryEntries.length);
@@ -124,15 +124,17 @@ public class GCF implements Archive, ViewableData {
         }
         return list;
     }
-    
+
     /**
-     * 
+     *
      * TODO: fast directory extraction
-     * 
+     *
      * @param index
      * @param dest
+     *
      * @return
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public File extract(int index, File dest) throws IOException {
         String str = nameForDirectoryIndexRecursive(index);
@@ -175,7 +177,7 @@ public class GCF implements Archive, ViewableData {
                 } else {
                     out.write(buf);
                 }
-                
+
                 dataIdx = this.getEntry(dataIdx).nextClusterIndex;
                 LOG.log(Level.FINE, "next dataIdx: {0}", dataIdx);
                 if(dataIdx == 0xFFFF || dataIdx == -1) {
@@ -192,7 +194,7 @@ public class GCF implements Archive, ViewableData {
         }
         return outFile;
     }
-    
+
     public File extract(DirectoryEntry e, File dest) throws IOException {
         if(!(e instanceof GCFDirectoryEntry)) {
             LOG.log(Level.WARNING, "{0} is not a GCF directory entry", e);
@@ -258,7 +260,7 @@ public class GCF implements Archive, ViewableData {
         rf.seek(pos);
         byte[] buf = new byte[dataBlockHeader.blockSize];
         if(block.fileDataOffset != 0) {
-             LOG.log(Level.INFO, "off = {0}", block.fileDataOffset);
+            LOG.log(Level.INFO, "off = {0}", block.fileDataOffset);
         }
         rf.read(buf);
         return buf;
@@ -275,7 +277,7 @@ public class GCF implements Archive, ViewableData {
     public String toString() {
         return file.getName();
     }
-    
+
     public GCF load(File f) {
         try {
             return new GCF(f);
@@ -373,16 +375,15 @@ public class GCF implements Archive, ViewableData {
 
     public InputStream get(final int index) {
         return new InputStream() {
-            
             private GCFDirectoryEntry de = GCF.this.directoryEntries[index];
-            
+
             private ByteBuffer buf = createBuffer();
-            
+
             private ByteBuffer createBuffer() {
                 byte[] data = new byte[de.itemSize];
                 ByteBuffer b = ByteBuffer.wrap(data);
                 b.order(ByteOrder.LITTLE_ENDIAN);
-                
+
                 int idx = GCF.this.directoryMapEntries(index).firstBlockIndex;
                 if(idx >= blocks.length) {
                     LOG.log(Level.WARNING, "Block out of range for item {0}. Is the size 0?", index);
@@ -398,13 +399,13 @@ public class GCF implements Archive, ViewableData {
                 }
                 return b;
             }
-            
+
             private BlockAllocationTableEntry block;
-            
+
             private int dataIdx;
-            
+
             private byte[] data;
-            
+
             private void fill(ByteBuffer buf) throws IOException {
                 for(;;) {
                     if(dataIdx == 0xFFFF || dataIdx == -1) {
@@ -421,7 +422,7 @@ public class GCF implements Archive, ViewableData {
                 }
                 data = buf.array();
             }
-            
+
             private int pointer;
 
             @Override
@@ -436,7 +437,6 @@ public class GCF implements Archive, ViewableData {
                 }
                 return data[pointer++];
             }
-            
         };
     }
 
@@ -937,9 +937,9 @@ public class GCF implements Archive, ViewableData {
     }
 
     public GCFDirectoryEntry[] directoryEntries;
-    
+
     public enum DirectoryEntryAttributes implements EnumFlags<DirectoryEntryAttributes> {
-        
+
         Unknown_4(0x8000),
         File(0x4000),
         Unknown_3(0x2000),
@@ -956,17 +956,16 @@ public class GCF implements Archive, ViewableData {
         Launch_File(0x2),
         Configuration_File(0x1),
         Directory(0);
-        
+
         private final int id;
-        
+
         DirectoryEntryAttributes(int id) {
             this.id = id;
         }
-        
+
         public int getId() {
             return id;
         }
-        
     }
 
     public class GCFDirectoryEntry implements DirectoryEntry, ViewableData {
@@ -977,7 +976,7 @@ public class GCF implements Archive, ViewableData {
         public final int nameOffset;
 
         /**
-         * Size of the item.  (If file, file size.  If folder, num items.)
+         * Size of the item. (If file, file size. If folder, num items.)
          */
         public final int itemSize;
 
@@ -989,17 +988,17 @@ public class GCF implements Archive, ViewableData {
         public final EnumSet<DirectoryEntryAttributes> attributes;
 
         /**
-         * Index of the parent directory item.  (0xFFFFFFFF == None).
+         * Index of the parent directory item. (0xFFFFFFFF == None).
          */
         public final int parentIndex;
 
         /**
-         * Index of the next directory item.  (0x00000000 == None).
+         * Index of the next directory item. (0x00000000 == None).
          */
         public final int nextIndex;
 
         /**
-         * Index of the first directory item.  (0x00000000 == None).
+         * Index of the first directory item. (0x00000000 == None).
          */
         public final int firstChildIndex;
 
@@ -1024,15 +1023,15 @@ public class GCF implements Archive, ViewableData {
         public String toString() {
             return getName();
         }
-        
+
         public String getAbsoluteName() {
             return nameForDirectoryIndexRecursive(index);
         }
-        
+
         public String getName() {
             return nameForDirectoryIndex(index);
         }
-        
+
         public String getPath() {
             String abs = getAbsoluteName();
             return abs.substring(0, abs.substring(0, abs.length() - 1).lastIndexOf('/'));
@@ -1041,11 +1040,11 @@ public class GCF implements Archive, ViewableData {
         public GCF getArchive() {
             return GCF.this;
         }
-        
+
         public boolean isDirectory() {
             return this.attributes.contains(DirectoryEntryAttributes.Directory);
         }
-        
+
         public boolean isComplete() {
             if(GCF.this.directoryMapEntries(index).firstBlockIndex >= blocks.length && this.itemSize != 0) {
                 return false;
@@ -1058,13 +1057,12 @@ public class GCF implements Archive, ViewableData {
             if(this.index == 0) {
                 return this.getArchive().getIcon();
             }
-            if(!isComplete()) {
-                return UIManager.getIcon("html.missingImage");
-            }
             if(this.isDirectory()) {
                 return UIManager.getIcon("FileView.directoryIcon");
-            } else {
+            } else if(isComplete()) {
                 return UIManager.getIcon("FileView.fileIcon");
+            } else {
+                return UIManager.getIcon("html.missingImage");
             }
         }
 

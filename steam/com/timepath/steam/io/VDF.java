@@ -1,7 +1,6 @@
 package com.timepath.steam.io;
 
-import com.timepath.hl2.io.util.Element;
-import com.timepath.hl2.io.util.Property;
+import com.timepath.steam.io.util.VDFNode;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,22 +27,18 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class VDF {
 
     private static final Logger LOG = Logger.getLogger(VDF.class.getName());
-    
+
     public VDF() {
-        
     }
 
-    public VDF(String file) {
-    }
-    
     public static boolean isBinary(File f) {
         try {
             RandomAccessFile rf = new RandomAccessFile(f, "r");
             rf.seek(2);
             return (rf.read() == 0x56);
-        } catch (FileNotFoundException ex) {
+        } catch(FileNotFoundException ex) {
             Logger.getLogger(VDF.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             Logger.getLogger(VDF.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
@@ -58,9 +53,9 @@ public class VDF {
         try {
             RandomAccessFile rf = new RandomAccessFile(file.getPath(), "r");
             s = new Scanner(rf.getChannel());
-            processAnalyze(s, top, new ArrayList<Property>(), file);
+            processAnalyze(s, top, file);
         } catch(StackOverflowError ex) {
-            LOG.log(Level.WARNING, "Taking too long on {0}", file);
+            LOG.log(Level.WARNING, "{0} is too deep (Stack overflowed)", file);
         } catch(FileNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
         } finally {
@@ -70,130 +65,80 @@ public class VDF {
         }
     }
 
-    static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, ArrayList<Property> carried, File file) {
+    private static final Pattern quoteRegex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"");
+
+    private static final Pattern platformRegex = Pattern.compile("(?:\\[(!)?\\$)(.*)(?:\\])");
+
+    protected static void processAnalyze(Scanner scanner, DefaultMutableTreeNode parent, File file) {
         while(scanner.hasNext()) {
             String line = scanner.nextLine().trim();
+            if(line.length() == 0) {
+                continue;
+            }
+            String comment = null;
+            int cIndex = line.indexOf("//");
+            if(cIndex != -1) {
+                comment = line.substring(cIndex);
+                line = line.substring(0, cIndex);
+            }
 
             List<String> matchList = new ArrayList<String>();
-            
-            // http://gskinner.com/RegExr/
-            // Regex: Quotes with escapes, single line comments, braces, unquoted words
-            // "(\\[\S]|[^"])*+"|(//.*[\S]*+)|(\{|\}[\S]*+)|([a-zA-Z\d\.]+)
-            // TODO: Scheme{Colors{ in Broeselhud
-            Pattern regex = Pattern.compile("\"(\\\\[\\S]|[^\"])*+\"|(//.*[\\S]*+)|(\\{|\\}[\\S]*+)|([a-zA-Z\\d\\.]+)");
-            Matcher regexMatcher = regex.matcher(line);
+            Matcher regexMatcher = quoteRegex.matcher(line);
             while(regexMatcher.find()) {
-//                if(regexMatcher.group(1) != null) { // Add double-quoted string without the quotes
-//                    matchList.add(regexMatcher.group(1));
-//                } else { // Add unquoted word
+                if(regexMatcher.group(1) != null) {
+                    // Add double-quoted string without the quotes
+                    matchList.add(regexMatcher.group(1));
+                } else {
+                    // Add unquoted word
                     matchList.add(regexMatcher.group());
-//                }
-            }
-            
-            String[] args = matchList.toArray(new String[0]);
-            
-//            System.out.println(Arrays.toString(args));
-            
-            if(args.length > 3) {
-//                LOG.log(Level.WARNING, "More than 3 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
-            } else {
-                LOG.log(Level.FINE, "{0}:{1}", new Object[]{args.length, Arrays.toString(args)});
-            }
-            
-            if(args.length == 0) {
-                LOG.log(Level.FINE, "Carrying new line");
-                carried.add(new Property("\\n", "", ""));
-                continue;
-            }
-            
-            String key = args[0];
-            String val = "";
-            String info = null;
-            if(args.length > 1) {
-                val = args[1];
-            }
-            if(args.length > 2) {
-                info = args[2];
-            }
-            if(args.length > 3) {
-                info = line;
-            }
-            
-            if(line.equals("{")) { // just a { on its own line
-                continue;
-            }
-            
-            if(val.length() == 0 && !key.equals("}")) { // very good assumption
-                val = "{";
-            }
-            
-            if(line.equals("}")) { // for returning out of recursion: analyze: processAnalyze > processAnalyze < break < break
-                Object obj = parent.getUserObject();
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addProps(carried);
-//                    e.validate(); // TODO: Thread safety. oops
                 }
+            }
+            if(matchList.isEmpty()) {
+                if(comment != null && comment.trim().length() > 0) {
+                    LOG.log(Level.FINE, "Carrying extra: [{0}]", comment);
+                    parent.add(new DefaultMutableTreeNode(comment));
+                }
+                continue;
+            }
+            String[] args = matchList.toArray(new String[0]);
+            LOG.log(Level.FINE, "{0}:{1}", new Object[]{args.length, Arrays.toString(args)});
+
+            String val = null;
+            if(args.length >= 2) {
+                val = args[1];
+                Matcher plafMatcher = platformRegex.matcher(args[args.length - 1]);
+                if(plafMatcher.find()) {
+                    boolean bool = plafMatcher.group(1) == null; // true if "!" is present
+                    String platform = plafMatcher.group(2);
+                    if(args[args.length - 1] == val) { // yes, this is supposed to be a direct check
+                        val = null;
+                    }
+                } else if(args.length > 2) {
+                    LOG.log(Level.WARNING, "More than 2 args on {0}: {1}", new Object[]{line, Arrays.toString(args)});
+                }
+            }
+
+            if(args[0].equals("{")) { // just a { on its own line
+                continue;
+            }
+
+            if(args[0].equals("}")) { // for returning out of recursion: analyze: processAnalyze > processAnalyze < break < break
+                Object obj = parent.getUserObject();
+//                if(obj instanceof Element) {
+//                    ((Element)e).validate(); // TODO: Thread safety. oops
+//                }
                 LOG.log(Level.FINE, "Leaving {0}", obj);
                 break; // TODO: /tf/scripts/HudAnimations_tf.txt
+            } else if(val == null) { // very good assumption
+                val = "{";
             }
 
-            // Process values
-
-            Property p = new Property(key, val, info);
-
-            if(key.startsWith("#") && key.split("[ \t]+").length == 2) { // #include, #base
-                String rest = line.substring(line.indexOf('#') + 1);
-                p.setKey("#" + rest);
-                int idx2 = rest.indexOf(' ');
-                if(idx2 == -1) {
-                    idx2 = 0;
-                }
-                p.setValue(rest.substring(idx2));
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            } else if(line.startsWith("//")) {
-                p.setKey("//");
-                p.setValue(line.substring(line.indexOf("//") + 2)); // display this with .trim()
-                p.setInfo("");
-                LOG.log(Level.FINE, "Carrying: {0}", line);
-                carried.add(p);
-                continue;
-            }
-
-            if(p.getValue().equals("{")) { // make new sub
-                Element childElement = new Element(p.getKey(), p.getInfo());
-                childElement.setParentFile(file);
-                LOG.log(Level.FINE, "Subbing: {0}", childElement);
-                // If setting the properties of a section, put put the value in the info spot
-                for(int i = 0; i < carried.size(); i++) {
-                    Property prop = carried.get(i);
-                    prop.setInfo(prop.getValue());
-                    prop.setValue("");
-                }
-                childElement.addProps(carried);
-
-                Object obj = parent.getUserObject();
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addChild(childElement);
-                }
-
-                DefaultMutableTreeNode child = new DefaultMutableTreeNode(childElement);
-//                child.setUserObject(childElement);
-                parent.add(child);
-
-                processAnalyze(scanner, child, carried, file);
-            } else { // properties
-                Object obj = parent.getUserObject();
-                LOG.log(Level.FINE, "{2} >> {0},{1}", new Object[]{key, val, obj});
-                if(obj instanceof Element) {
-                    Element e = (Element) obj;
-                    e.addProps(carried);
-                    e.addProp(p);
-                }
+            VDFNode p = new VDFNode(args[0], val);
+            p.setFile(file);
+            parent.add(p);
+            if(val.equals("{")) { // make new sub
+                LOG.log(Level.FINE, "Stepping into {0}", p);
+                processAnalyze(scanner, p, file);
             }
         }
     }
