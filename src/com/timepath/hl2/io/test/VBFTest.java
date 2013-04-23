@@ -510,7 +510,7 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void save(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save
         try {
-            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select save location").setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select save location").addFilter(new ExtensionFilter("Valve Bitmap Font", "vbf")).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
             if(fs == null) {
                 return;
             }
