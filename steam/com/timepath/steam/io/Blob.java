@@ -35,8 +35,7 @@ public class Blob {
         parsePayload(buf, bn, false);
         TreeUtils.moveChildren(bn, root);
     }
-
-    @SuppressWarnings("fallthrough")
+    
     private static void parsePayload(ByteBuffer parentbuf, BlobNode parent, boolean rawData) {
         ByteBuffer buf = DataUtils.getSlice(parentbuf);
         if(!rawData) {
@@ -87,9 +86,11 @@ public class Blob {
         short id = buf.getShort();
         BlobNode d = new BlobNode("Payload: 0x" + Integer.toHexString(id));
         switch(id) {
+            //<editor-fold defaultstate="collapsed" desc="Compressed">
+            /*
             case 0x4301:
                 ByteBuffer decompressed = decompress(buf);
-
+                //<editor-fold defaultstate="collapsed" desc="Debug">
                 int stride = 20;
                 byte[] data = new byte[stride];
                 File f = new File("binout.blob");
@@ -115,17 +116,18 @@ public class Blob {
                     LOG.info(Utils.hex(data));
                 }
                 decompressed.position(0);
-
-//                parsePayload(decompressed, d, false);
+                //</editor-fold>
+                parsePayload(decompressed, d, false);
                 break;
+            */
+            //</editor-fold>
             case 0x5001:
-                int length = buf.getInt();
-//                d.add(new BlobNode("length", length));
-                int padding = buf.getInt();
-//                d.add(new BlobNode("padding", padding));
-                int limit = Math.min((buf.position() - 10) + length + padding, buf.position() + buf.remaining()); // workaround for decompressed
+                int length = buf.getInt();//d.add(new BlobNode("length", length));
+                int padding = buf.getInt();//d.add(new BlobNode("padding", padding));
+                int limit = (buf.position() - 10) + length + padding; // 10 because is relative to when this section started
+//                limit = Math.min(limit, buf.position() + buf.remaining()); // workaround for decompressed
                 LOG.log(Level.FINE, "limit: {0}", limit);
-                buf.limit(limit); // 10 because is relative to when this section started
+                buf.limit(limit);
                 ByteBuffer payload = DataUtils.getSlice(buf);
                 //<editor-fold defaultstate="collapsed" desc="Payload">
                 BlobNode children = d;
@@ -159,17 +161,15 @@ public class Blob {
             default:
                 if(parent.getMeta() == 1) {
                     buf.position(0);
-                    int dataType = buf.getInt();
-                    parent.dataType = dataType;
-                    parent.add(new BlobNode("Payload type: " + dataType));
+                    parent.dataType = buf.getInt();;
+                    parent.add(new BlobNode("Payload type: " + parent.dataType));
                     return;
                 } else if(!rawData) {
                     LOG.log(Level.WARNING, "Unhandled {0}", id);
                 }
                 break;
         }
-        TreeUtils.moveChildren(d, parent, false);
-//        parent.add(d);
+        TreeUtils.moveChildren(d, parent);
     }
 
     /**

@@ -201,10 +201,12 @@ public class VBF {
             Rectangle b = g.bounds;
             buf.putShort((short) b.x);
             buf.putShort((short) b.y);
-            buf.putShort((short) b.width);
-            buf.putShort((short) b.height);
+            int width = b.height != 0 ? b.width : 0;
+            int height = b.width != 0 ? b.height : 0;
+            buf.putShort((short) width);
+            buf.putShort((short) height);
             buf.putShort(g.a);
-            buf.putShort((short) b.width);//g.b); // XXX: why?
+            buf.putShort((short) width); // XXX: why?
             buf.putShort(g.c);
         }
 
