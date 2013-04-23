@@ -35,95 +35,53 @@ public class Blob {
         parsePayload(buf, bn, false);
         TreeUtils.moveChildren(bn, root);
     }
-    
+
     private static void parsePayload(ByteBuffer parentbuf, BlobNode parent, boolean rawData) {
         ByteBuffer buf = DataUtils.getSlice(parentbuf);
-        if(!rawData) {
-            if(buf.remaining() == 1) {
-                byte byt = buf.get();
-                parent.add(new BlobNode(byt));
-                return;
-            }
-            if(parent.getMeta() == 2) {
-                int dataType = ((BlobNode) parent.getPreviousSibling()).dataType;
-                if(dataType != -1) {
-                    switch(dataType) {
-                        case 0: // Text
-                            String str = DataUtils.getText(buf, true);
-                            Calendar cal;
-                            try {
-                                cal = DatatypeConverter.parseDateTime(str);
-                                str = "Date: " + cal.getTime().toString();
-                            } catch(java.lang.IllegalArgumentException ex) {
-                            }
-                            LOG.log(Level.FINE, "String: {0}", str);
-                            parent.add(new BlobNode("String: " + str));
-                            break;
-                        case 1: // Dword
-                            int val = buf.getInt();
-                            LOG.log(Level.FINE, "DWORD: {0}", val);
-                            parent.add(new BlobNode("DWORD: " + val));
-                            break;
-                        case 2: // Raw
-                            byte[] data = new byte[6];
-                            buf.get(data, 0, Math.min(buf.remaining(), data.length));
-                            buf.position(0);
-                            BlobNode raw = new BlobNode("Raw data: " + Utils.hex(data) + " ...");
-                            parent.add(raw);
-                            parsePayload(buf, raw, true);
-                            break;
-                        default:
-                            if(!rawData) {
-                                parent.add(new BlobNode("Unhandled data type " + dataType));
-                            }
-//                        LOG.log(Level.WARNING, "Unhandled data type {0}", dataType);
-                            break;
-                    };
-                    return;
-                }
-            }
+        if(buf.remaining() < 2) {
+            return;
         }
         short id = buf.getShort();
         BlobNode d = new BlobNode("Payload: 0x" + Integer.toHexString(id));
         switch(id) {
             //<editor-fold defaultstate="collapsed" desc="Compressed">
             /*
-            case 0x4301:
-                ByteBuffer decompressed = decompress(buf);
-                //<editor-fold defaultstate="collapsed" desc="Debug">
-                int stride = 20;
-                byte[] data = new byte[stride];
-                File f = new File("binout.blob");
-                RandomAccessFile rf = null;
-                if(f != null) {
-                    try {
-                        f.createNewFile();
-                        rf = new RandomAccessFile(f, "rw");
-                    } catch(IOException ex) {
-                        Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                LOG.log(Level.INFO, "{0}:", decompressed.remaining());
-                for(int i = 0; i < data.length; i++) {
-                    decompressed.get(data, 0, Math.min(decompressed.remaining(), stride));
-                    if(rf != null) {
-                        try {
-                            rf.write(data);
-                        } catch(IOException ex) {
-                            Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    LOG.info(Utils.hex(data));
-                }
-                decompressed.position(0);
-                //</editor-fold>
-                parsePayload(decompressed, d, false);
-                break;
-            */
+             * case 0x4301:
+             * ByteBuffer decompressed = decompress(buf);
+             * //<editor-fold defaultstate="collapsed" desc="Debug">
+             * int stride = 20;
+             * byte[] data = new byte[stride];
+             * File f = new File("binout.blob");
+             * RandomAccessFile rf = null;
+             * if(f != null) {
+             * try {
+             * f.createNewFile();
+             * rf = new RandomAccessFile(f, "rw");
+             * } catch(IOException ex) {
+             * Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
+             * }
+             * }
+             * LOG.log(Level.INFO, "{0}:", decompressed.remaining());
+             * for(int i = 0; i < data.length; i++) {
+             * decompressed.get(data, 0, Math.min(decompressed.remaining(), stride));
+             * if(rf != null) {
+             * try {
+             * rf.write(data);
+             * } catch(IOException ex) {
+             * Logger.getLogger(Blob.class.getName()).log(Level.SEVERE, null, ex);
+             * }
+             * }
+             * LOG.info(Utils.hex(data));
+             * }
+             * decompressed.position(0);
+             * //</editor-fold>
+             * parsePayload(decompressed, d, false);
+             * break;
+             */
             //</editor-fold>
             case 0x5001:
-                int length = buf.getInt();//d.add(new BlobNode("length", length));
-                int padding = buf.getInt();//d.add(new BlobNode("padding", padding));
+                int length = buf.getInt();
+                int padding = buf.getInt();
                 int limit = (buf.position() - 10) + length + padding; // 10 because is relative to when this section started
 //                limit = Math.min(limit, buf.position() + buf.remaining()); // workaround for decompressed
                 LOG.log(Level.FINE, "limit: {0}", limit);
@@ -131,17 +89,10 @@ public class Blob {
                 ByteBuffer payload = DataUtils.getSlice(buf);
                 //<editor-fold defaultstate="collapsed" desc="Payload">
                 BlobNode children = d;
-//                BlobNode children = new BlobNode("Children");
-//                if(payload.remaining() > padding) {
-//                    d.add(children);
-//                }
                 while(payload.remaining() > padding) {
                     BlobNode child = new BlobNode();
-                    children.add(child);
                     short descLength = payload.getShort();
-//                    child.add(new BlobNode("nameLength", descLength));
                     int payloadLength = payload.getInt();
-//                    child.add(new BlobNode("payloadLength", payloadLength));
                     ByteBuffer childDesc = DataUtils.getSlice(payload, descLength);
                     String name = DataUtils.getText(childDesc);
                     if(name.equals("\1\0\0\0") || name.equals("\2\0\0\0")) {
@@ -150,21 +101,73 @@ public class Blob {
                     }
                     name = name.replaceAll("\1\0\0\0", "<Folder>");
                     name = name.replaceAll("\2\0\0\0", "<File>");
-//                    child.add(new BlobNode("name", name));
                     child.setUserObject(name);
+
                     ByteBuffer childPayload = DataUtils.getSlice(payload, payloadLength);
-                    parsePayload(childPayload, child, false);
+
+                    if(payloadLength == 10) {
+                        continue;
+                    }
+                    BlobNode nextup = child;
+                    if(!child.isMeta()) {
+                        children.add(child);
+                    } else {
+                        nextup = parent;
+                    }
+                    if(child.getMeta() == 1 && payloadLength == 4) {
+                        parent.dataType = childPayload.getInt();//parent.add(new BlobNode("Payload type: " + parent.dataType));
+                    } else {
+                        int dataType = parent.dataType;
+                        if(dataType != -1) {
+                            switch(dataType) {
+                                case 0: // Text
+                                    String str = DataUtils.getText(childPayload, true);
+                                    Calendar cal;
+                                    try {
+                                        cal = DatatypeConverter.parseDateTime(str);
+                                        str = "Date: " + cal.getTime().toString();
+                                    } catch(java.lang.IllegalArgumentException ex) {
+                                    }
+                                    LOG.log(Level.FINE, "String: {0}", str);
+                                    parent.add(new BlobNode("String: " + str));
+                                    break;
+                                case 1: // Dword
+                                    int val = childPayload.getInt();
+                                    LOG.log(Level.FINE, "DWORD: {0}", val);
+                                    parent.add(new BlobNode("DWORD: " + val));
+                                    break;
+                                case 2: // Raw
+                                    int remaining = childPayload.remaining();
+                                    int max = 10;
+                                    byte[] data = new byte[Math.min(childPayload.remaining(), max)];
+                                    childPayload.get(data);
+                                    childPayload.position(0);
+                                    BlobNode raw = new BlobNode("Raw data: " + Utils.hex(data) + (remaining > max ? " ..." : ""));
+                                    parent.add(raw);
+                                    parsePayload(childPayload, raw, true);
+                                    break;
+                                default:
+                                    if(!rawData) {
+                                        parent.add(new BlobNode("Unhandled data type: " + dataType));
+                                    }
+//                                LOG.log(Level.WARNING, "Unhandled data type {0}", dataType);
+                                    break;
+                            }
+                        } else {
+                            parsePayload(childPayload, nextup, false);
+                        }
+                    }
                 }
                 payload.get(new byte[padding]);
+
+                if(buf.remaining() > 0) {
+                    LOG.log(Level.INFO, "Underflow: {0}", buf.remaining());
+                    return;
+                }
                 //</editor-fold>
                 break;
             default:
-                if(parent.getMeta() == 1) {
-                    buf.position(0);
-                    parent.dataType = buf.getInt();;
-                    parent.add(new BlobNode("Payload type: " + parent.dataType));
-                    return;
-                } else if(!rawData) {
+                if(!rawData) {
                     LOG.log(Level.WARNING, "Unhandled {0}", id);
                 }
                 break;
