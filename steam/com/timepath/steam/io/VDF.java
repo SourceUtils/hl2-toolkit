@@ -64,6 +64,12 @@ public class VDF {
             }
         }
     }
+    
+    public static VDFNode load(File f) {
+        VDFNode vn = new VDFNode();
+        analyze(f, vn);
+        return vn;
+    }
 
     private static final Pattern quoteRegex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"");
 

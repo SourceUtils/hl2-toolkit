@@ -130,9 +130,11 @@ public class VBFTest extends javax.swing.JFrame {
 
         jTree2.setModel(jTree1.getModel());
         jTree1.setMinDragLevel(2);
+        jTree1.setMinDropLevel(1);
         jTree1.setMaxDropLevel(1);
         jTree1.setDropMode(DropMode.ON);
         jTree2.setMinDragLevel(2);
+        jTree2.setMinDropLevel(1);
         jTree2.setMaxDropLevel(1);
         jTree2.setDropMode(DropMode.ON);
         TreeCellRenderer renderer = new DefaultTreeCellRenderer() {
