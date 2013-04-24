@@ -206,9 +206,15 @@ public class BVDF {
                     break;
 
                 case TYPE_INT:
-                    int intValue = buffer.getInt(); // is this 2 or 4 bytes?
+                    int intValue = buffer.getInt();
                     dat.value = (intValue);
                     LOG.log(Level.FINE, "Int value: {0}", intValue);
+                    break;
+                    
+                case TYPE_UINT64:
+                    long longValue = buffer.getLong();
+                    dat.value = (longValue);
+                    LOG.log(Level.FINE, "Long value: {0}", longValue);
                     break;
 
                 case TYPE_FLOAT:

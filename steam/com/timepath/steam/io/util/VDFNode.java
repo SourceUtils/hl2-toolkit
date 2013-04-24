@@ -35,6 +35,10 @@ public class VDFNode extends DefaultMutableTreeNode {
         return key;
     }
 
+    public VDFNode get(int index) {
+        return (VDFNode) this.getChildAt(index);
+    }
+
     public VDFNode get(String key) {
         VDFNode node;
         for(Object o : this.children) {
@@ -84,13 +88,13 @@ public class VDFNode extends DefaultMutableTreeNode {
         }
         return props;
     }
-    
+
     protected String fileName;
 
     public void setFile(File file) {
         setFile(file.getName());
     }
-    
+
     public void setFile(String name) { // todo: case insensitivity
         if(name.contains(".")) {
             this.fileName = name.split("\\.")[0];

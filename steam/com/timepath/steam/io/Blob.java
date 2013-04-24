@@ -1,6 +1,7 @@
 package com.timepath.steam.io;
 
 import com.timepath.DataUtils;
+import com.timepath.DateUtils;
 import com.timepath.Utils;
 import com.timepath.swing.TreeUtils;
 import java.io.File;
@@ -122,11 +123,9 @@ public class Blob {
                             switch(dataType) {
                                 case 0: // Text
                                     String str = DataUtils.getText(childPayload, true);
-                                    Calendar cal;
-                                    try {
-                                        cal = DatatypeConverter.parseDateTime(str);
-                                        str = "Date: " + cal.getTime().toString();
-                                    } catch(java.lang.IllegalArgumentException ex) {
+                                    String date = DateUtils.parse(str);
+                                    if(date != null) {
+                                        str += " Date: " + date;
                                     }
                                     LOG.log(Level.FINE, "String: {0}", str);
                                     parent.add(new BlobNode("String: " + str));

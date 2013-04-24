@@ -1,6 +1,7 @@
 package com.timepath.steam;
 
 import com.timepath.plaf.OS;
+import com.timepath.steam.io.VDF;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.logging.Logger;
@@ -25,6 +26,30 @@ public class SteamUtils {
      * http://forums.alliedmods.net/showthread.php?p=750532
      * http://sapi.techieanalyst.net/
      */
+    
+    public static class SteamID {
+        public SteamID(String user, String id64, String uid, String sid) {
+            this.user = user;
+            this.id64 = id64;
+            this.uid = uid;
+            this.sid = sid;
+        }
+        public String user, id64, uid, sid;
+
+        @Override
+        public String toString() {
+            return "[" + user + ", " + id64 + ", " + uid + ", " + sid + "]";
+        }
+        
+    }
+    
+    public static SteamID getUser() {
+        String username = VDF.load(new File(SteamUtils.getSteam(), "config/SteamAppData.vdf")).get("SteamAppData").get("AutoLoginUser").getValue();
+        String id64 = VDF.load(new File(SteamUtils.getSteam(), "config/config.vdf")).get("InstallConfigStore").get("Software").get("Valve").get("Steam").get("Accounts").get(username).get("SteamID").getValue();
+        String uid = SteamUtils.ID64toUID(id64);
+        String sid = SteamUtils.UIDtoSID(uid);
+        return new SteamID(username, id64, uid, sid);
+    }
     
     /**
      * Steam_#

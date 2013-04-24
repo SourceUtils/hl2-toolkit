@@ -19,14 +19,14 @@ public class ArchiveOutputStreamTest {
         GCF g = new GCF(new File(SteamUtils.getSteamApps(), "Team Fortress 2 Materials.gcf"));
         int index = 7;
         InputStream is = g.get(index);
-        File out = new File("/home/timepath/Desktop/good.bin");
-        File two = new File("/home/timepath/Desktop/test.bin");
-        out.createNewFile();
-        two.createNewFile();
+        File dir = new File("/home/timepath/Desktop/");
+        File tmp = new File("/home/timepath/Desktop/tf/materials/ambulance/test.bin");
+        dir.createNewFile();
+        tmp.createNewFile();
         GCFDirectoryEntry e = g.directoryEntries[index];
-        e.extract(out);
+        e.extract(dir);
         InputStream in = e.getArchive().get(e.index);
-        FileOutputStream os = new FileOutputStream(two);
+        FileOutputStream os = new FileOutputStream(tmp);
         byte[] buffer = new byte[1024];
         int len;
         while((len = in.read(buffer)) != -1) {

@@ -378,6 +378,12 @@ public class GCF implements Archive, ViewableData {
             private GCFDirectoryEntry de = GCF.this.directoryEntries[index];
 
             private ByteBuffer buf = createBuffer();
+            
+            private BlockAllocationTableEntry block;
+
+            private int dataIdx;
+
+            private byte[] data;
 
             private ByteBuffer createBuffer() {
                 byte[] data = new byte[de.itemSize];
@@ -393,24 +399,18 @@ public class GCF implements Archive, ViewableData {
                     block = GCF.this.getBlock(idx);
                     dataIdx = block.firstClusterIndex;
                     LOG.log(Level.FINE, "bSize: {0}", new Object[]{block.fileDataSize});
-                    fill(b);
+                    data = fill(b);
                 } catch(IOException ex) {
                     Logger.getLogger(GCF.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 return b;
             }
 
-            private BlockAllocationTableEntry block;
-
-            private int dataIdx;
-
-            private byte[] data;
-
-            private void fill(ByteBuffer buf) throws IOException {
-                for(;;) {
-                    if(dataIdx == 0xFFFF || dataIdx == -1) {
-                        break;
-                    }
+            private byte[] fill(ByteBuffer buf) {
+                if(dataIdx == 0xFFFF || dataIdx == -1) {
+                    return new byte[]{-1};
+                }
+                try {
                     byte[] b = GCF.this.readData(block, dataIdx);
                     if(buf.position() + b.length > buf.capacity()) {
                         buf.put(b, 0, block.fileDataSize % dataBlockHeader.blockSize);
@@ -419,8 +419,11 @@ public class GCF implements Archive, ViewableData {
                     }
                     dataIdx = GCF.this.getEntry(dataIdx).nextClusterIndex;
                     LOG.log(Level.INFO, "next dataIdx: {0}", dataIdx);
+                    return buf.array();
+                } catch(IOException ex) {
+                    Logger.getLogger(GCF.class.getName()).log(Level.SEVERE, null, ex);
+                    return new byte[]{-1};
                 }
-                data = buf.array();
             }
 
             private int pointer;
@@ -432,7 +435,7 @@ public class GCF implements Archive, ViewableData {
 
             @Override
             public int read() throws IOException {
-                if(pointer > data.length) {
+                if(data == null || pointer > data.length) {
                     return -1;
                 }
                 return data[pointer++];
