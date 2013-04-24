@@ -252,8 +252,9 @@ public class BVDF {
         size = buffer.remaining(); // Source's buffer isn't big enough for some CDR entries
         ByteBuffer textBuffer = DataUtils.getTextBuffer(DataUtils.getSafeSlice(buffer, size), true);
         int length = textBuffer.remaining();
-        buffer.position(originalPosition + length + 1);
-        String token = Charset.forName("UTF-8").decode(textBuffer).toString();
+        buffer.position(originalPosition + length);
+        textBuffer.limit(length - 1);
+        String token = Charset.forName("UTF-8").decode(textBuffer.duplicate()).toString();
         LOG.log(Level.FINER, "Token {0} = {1}", new Object[]{token, Utils.hex(token.getBytes())});
         return token;
     }
