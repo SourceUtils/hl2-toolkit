@@ -3,11 +3,9 @@
     <type>org.netbeans.modules.java.j2seproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
-            <name>HL2 Toolkit</name>
+            <name>timepath-hl2-toolkit</name>
             <source-roots>
                 <root id="src.src2.dir" name="Source Packages"/>
-                <root id="src.steam.dir" name="Steam Packages"/>
-                <root id="src.hl2scores2.dir" name="External Scoreboard"/>
             </source-roots>
             <test-roots>
                 <root id="test.test.dir" name="Test Packages"/>
@@ -15,7 +13,15 @@
         </data>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
             <reference>
-                <foreign-project>TimePath_Commons</foreign-project>
+                <foreign-project>timepath-commons</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
+            <reference>
+                <foreign-project>timepath-steam-toolkit</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

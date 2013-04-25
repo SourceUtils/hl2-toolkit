@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.util;
 
+import com.timepath.steam.io.util.Property;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;

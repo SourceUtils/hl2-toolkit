@@ -1,7 +1,7 @@
 package com.timepath.hl2.io;
 
 import com.timepath.DataUtils;
-import com.timepath.hl2.io.util.Property;
+import com.timepath.steam.io.util.Property;
 import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.util.VDFNode;
 import java.io.File;

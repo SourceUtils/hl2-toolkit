@@ -1,7 +1,9 @@
 package com.timepath.hl2.io.util;
 
+import com.timepath.hl2.io.RES;
+import com.timepath.io.ViewableData;
+import com.timepath.steam.io.util.Property;
 import com.timepath.hl2.io.VTF;
-import com.timepath.steam.io.RES;
 import com.timepath.steam.io.util.VDFNode;
 import java.awt.Color;
 import java.awt.Dimension;

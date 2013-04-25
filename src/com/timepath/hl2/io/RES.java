@@ -1,7 +1,7 @@
-package com.timepath.steam.io;
+package com.timepath.hl2.io;
 
-import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.HudFont;
+import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.util.VDFNode;
 import com.timepath.swing.TreeUtils;
 import java.io.File;

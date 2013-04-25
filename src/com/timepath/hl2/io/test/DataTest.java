@@ -1,14 +1,14 @@
-package com.timepath.steam.io.test;
+package com.timepath.hl2.io.test;
 
 import com.timepath.backports.javax.swing.SwingWorker;
+import com.timepath.hl2.io.RES;
 import com.timepath.hl2.io.util.Element;
-import com.timepath.hl2.io.util.Property;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.BVDF;
 import com.timepath.steam.io.Blob;
-import com.timepath.steam.io.RES;
 import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.util.Property;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

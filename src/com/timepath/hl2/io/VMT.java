@@ -1,7 +1,6 @@
 package com.timepath.hl2.io;
 
 import com.timepath.steam.io.VDF;
-import static com.timepath.steam.io.VDF.analyze;
 import com.timepath.steam.io.util.VDFNode;
 import java.io.File;
 import java.io.IOException;

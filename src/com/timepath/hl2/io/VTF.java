@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import com.timepath.steam.SteamUtils;
-import com.timepath.hl2.io.util.ViewableData;
+import com.timepath.io.ViewableData;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
