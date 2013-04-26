@@ -55,6 +55,7 @@ public class VTFTest {
             ImagePreviewPanel() {
                 setPreferredSize(new Dimension(ACCSIZE, -1));
                 bg = getBackground();
+                bg = Color.BLACK;
             }
 
             public void propertyChange(PropertyChangeEvent e) {

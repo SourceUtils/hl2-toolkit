@@ -258,7 +258,7 @@ public class VCCDTest extends javax.swing.JFrame {
             NativeFileChooser fc = new NativeFileChooser();
             fc.setTitle("Open");
 
-            fc.addFilter(new ExtensionFilter("VCCD Binary Files", "dat"));
+            fc.addFilter(new ExtensionFilter("VCCD Binary Files", ".dat"));
             fc.setParent(this);
             File[] files = fc.choose();
             if(files == null) {
@@ -295,7 +295,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 fc.setTitle("Save");
                 fc.setParent(this);
 
-                fc.addFilter(new ExtensionFilter("closecaption_<language>", "dat"));
+                fc.addFilter(new ExtensionFilter("closecaption_<language>", ".dat"));
 
                 File[] fs = fc.choose();
                 if(fs == null) {
@@ -340,7 +340,7 @@ public class VCCDTest extends javax.swing.JFrame {
             NativeFileChooser fc = new NativeFileChooser();
             fc.setTitle("Import");
             fc.setParent(this);
-            fc.addFilter(new ExtensionFilter("VCCD Source Files", "txt"));
+            fc.addFilter(new ExtensionFilter("VCCD Source Files", ".txt"));
 
             File[] files = fc.choose();
             if(files == null) {

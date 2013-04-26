@@ -85,8 +85,8 @@ public class VBFTest extends javax.swing.JFrame {
 
             @Override
             public void windowClosing(WindowEvent we) {
-                int choice = JOptionPane.showInternalConfirmDialog(VBFTest.this.getContentPane(), "Do you really want to quit?");
-                if(choice == JOptionPane.YES_OPTION) {
+                int choice = JOptionPane.showInternalConfirmDialog(VBFTest.this.getContentPane(), "Don't you want to save?");
+                if(choice == JOptionPane.NO_OPTION) {
                     VBFTest.this.dispose();
                 }
             }
@@ -268,6 +268,8 @@ public class VBFTest extends javax.swing.JFrame {
             p.setVBF(data);
 
             DefaultTreeModel model = (DefaultTreeModel) this.jTree1.getModel();
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
+            root.removeAllChildren();
             for(BitmapGlyph g : data.getGlyphs()) {
                 insertGlyph(model, g);
             }
@@ -497,7 +499,7 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void open(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_open
         try {
-            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select vbf").addFilter(new ExtensionFilter("Valve Bitmap Font", "vbf")).choose();
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select vbf").addFilter(new ExtensionFilter("Valve Bitmap Font", ".vbf")).addFilter(new ExtensionFilter("Valve Texture File", ".vtf")).choose();
             if(fs == null) {
                 return;
             }
@@ -510,7 +512,7 @@ public class VBFTest extends javax.swing.JFrame {
 
     private void save(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save
         try {
-            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select save location").addFilter(new ExtensionFilter("Valve Bitmap Font", "vbf")).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
+            File[] fs = new NativeFileChooser().setParent(this).setTitle("Select save location").addFilter(new ExtensionFilter("Valve Bitmap Font", ".vbf")).setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG).choose();
             if(fs == null) {
                 return;
             }
