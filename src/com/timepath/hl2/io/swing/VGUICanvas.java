@@ -1,7 +1,7 @@
 package com.timepath.hl2.io.swing;
 
 import com.timepath.hl2.io.util.Element;
-import com.timepath.hl2.io.util.Element.Alignment;
+import com.timepath.hl2.io.util.Alignment;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -23,12 +23,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 

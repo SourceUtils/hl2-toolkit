@@ -1,6 +1,6 @@
 package com.timepath.hl2.io;
 
-import com.timepath.steam.io.GCF;
+import com.timepath.steam.io.storage.GCF;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;

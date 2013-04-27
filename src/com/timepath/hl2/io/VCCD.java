@@ -5,6 +5,8 @@ import com.timepath.steam.io.util.Property;
 import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.util.VDFNode;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -209,11 +211,12 @@ public class VCCD {
      *
      * @return
      */
-    public static ArrayList<CaptionEntry> importFile(String file) {
+    public static ArrayList<CaptionEntry> importFile(String file) throws FileNotFoundException {
         DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
-        VDF.analyze(new File(file), tn);
+        VDF v = new VDF();
+        v.readExternal(new FileInputStream(new File(file)), "UTF-16");
         ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
-        ArrayList<Property> props = ((VDFNode)(tn.getChildAt(0).getChildAt(0))).getProperties();
+        ArrayList<Property> props = ((VDFNode)(tn.getChildAt(0).getChildAt(1))).getProperties();
         ArrayList<String> usedKeys = new ArrayList<String>();
         for(int i = props.size() - 1; i >= 0; i--) {
             Property p = props.get(i);

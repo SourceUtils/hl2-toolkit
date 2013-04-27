@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.test;
 
+import com.timepath.DataUtils;
 import com.timepath.backports.javax.swing.SwingWorker;
 import com.timepath.hl2.io.RES;
 import com.timepath.hl2.io.util.Element;
@@ -166,23 +167,28 @@ public class DataTest extends javax.swing.JFrame {
                 DefaultMutableTreeNode n = null;
                 try {
                     if(f.getName().toLowerCase().endsWith(".blob")) {
-                        n = new DefaultMutableTreeNode("Blob");
-                        Blob.analyze(f, n);
+                        Blob bin = new Blob();
+                        bin.readExternal(DataUtils.mapFile(f));
+                        n = bin.getRoot();
                     } else if(f.getName().toLowerCase().endsWith(".vdf") || f.getName().toLowerCase().endsWith(".res")) {
                         if(f.getName().toLowerCase().endsWith(".res")) {
-                            n = new DefaultMutableTreeNode("RES");
-                            RES.analyze(f, n);
+                            VDF res = new VDF();
+                            res.readExternal(DataUtils.mapFile(f));
+                            n = res.getRoot();
                         } else if(!VDF.isBinary(f)) {
-                            n = new DefaultMutableTreeNode("VDF");
-                            VDF.analyze(f, n);
+                            VDF vdf = new VDF();
+                            vdf.readExternal(DataUtils.mapFile(f));
+                            n = vdf.getRoot();
 //                            addProperties(n);
                         } else {
-                            n = new DefaultMutableTreeNode("BVDF");
-                            BVDF.analyze(f, n);
+                            BVDF bin = new BVDF();
+                            bin.readExternal(DataUtils.mapFile(f));
+                            n = bin.getRoot();
                         }
                     } else if(f.getName().toLowerCase().endsWith(".bin")) {
-                        n = new DefaultMutableTreeNode("BVDF");
-                        BVDF.analyze(f, n);
+                        BVDF bin = new BVDF();
+                        bin.readExternal(DataUtils.mapFile(f));
+                        n = bin.getRoot();
                     }
                 } catch(StackOverflowError e) {
                     LOG.warning("Stack Overflow");

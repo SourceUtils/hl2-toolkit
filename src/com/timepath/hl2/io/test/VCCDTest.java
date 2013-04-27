@@ -5,9 +5,10 @@ import com.timepath.hl2.io.VCCD.CaptionEntry;
 import com.timepath.plaf.x.filechooser.BaseFileChooser.ExtensionFilter;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
-import com.timepath.steam.io.Archive.DirectoryEntry;
-import com.timepath.steam.io.GCF;
+import com.timepath.steam.io.storage.Archive.DirectoryEntry;
+import com.timepath.steam.io.storage.GCF;
 import com.timepath.steam.io.VDF;
+import com.timepath.swing.TreeUtils;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -48,6 +49,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
+ * http://hlssmod.net/he_code/utils/captioncompiler/captioncompiler.cpp
+ * http://hlssmod.net/he_code/public/captioncompiler.h
  *
  * @author timepath
  */
@@ -753,7 +756,9 @@ public class VCCDTest extends javax.swing.JFrame {
                         pb.setMaximum(caps.size());
                         pb.setIndeterminate(false);
                         for(int i = 0; i < caps.size(); i++) {
-                            VDF.analyze(gcf.extract(caps.get(i), null), top);
+                            VDF e = new VDF();
+                            e.readExternal(new FileInputStream(gcf.extract(caps.get(i), null)));
+                            TreeUtils.moveChildren(e.getRoot(), top);
                             pb.setValue(i);
                         }
 

@@ -664,12 +664,6 @@ public class Element extends VDFNode implements ViewableData {
         return UIManager.getIcon("FileChooser.listViewIcon");
     }
 
-    public enum Alignment {
-
-        Left, Center, Right
-
-    }
-
     public enum DimensionMode {
 
         Mode1, Mode2
