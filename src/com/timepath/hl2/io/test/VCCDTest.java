@@ -2,12 +2,13 @@ package com.timepath.hl2.io.test;
 
 import com.timepath.hl2.io.VCCD;
 import com.timepath.hl2.io.VCCD.CaptionEntry;
+import com.timepath.plaf.x.filechooser.BaseFileChooser;
 import com.timepath.plaf.x.filechooser.BaseFileChooser.ExtensionFilter;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
-import com.timepath.steam.io.storage.Archive.DirectoryEntry;
 import com.timepath.steam.io.storage.GCF;
 import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.storage.util.DirectoryEntry;
 import com.timepath.swing.TreeUtils;
 import java.awt.Color;
 import java.awt.Component;
@@ -295,10 +296,9 @@ public class VCCDTest extends javax.swing.JFrame {
             try {
                 // save as
                 NativeFileChooser fc = new NativeFileChooser();
-                fc.setTitle("Save");
+                fc.setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG);
+                fc.setTitle("Save (as closecaption_<language>.dat)");
                 fc.setParent(this);
-
-                fc.addFilter(new ExtensionFilter("closecaption_<language>", ".dat"));
 
                 File[] fs = fc.choose();
                 if(fs == null) {

@@ -23,10 +23,6 @@ import java.util.logging.Logger;
  */
 public class MDL {
 
-    public static void main(String... args) throws IOException {
-        MDL.load("tf/models/weapons/w_models/w_bonesaw");
-    }
-
     private static final Logger LOG = Logger.getLogger(MDL.class.getName());
 
     private static final int MAX_NUM_LODS = 8;

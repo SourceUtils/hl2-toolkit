@@ -561,9 +561,6 @@ public class Element extends VDFNode implements ViewableData {
             if(k == null) {
                 continue;
             }
-            if(k.contains("\"")) { // assumes one set of quotes
-                k = k.substring(1, k.length() - 1);
-            }
 
             if("enabled".equalsIgnoreCase(k)) {
                 entry.setValue(this.isEnabled() ? 1 : 0);
@@ -585,9 +582,6 @@ public class Element extends VDFNode implements ViewableData {
                 entry.setValue(this.getControlName());
             } else if("font".equalsIgnoreCase(k)) {
 //                entry.setValue(this.getFont()); // TODO
-            }
-            if(!entry.getKey().equals("//") && !entry.getKey().equals("\\n")) {
-                entry.setValue("" + entry.getValue() + ""); // TODO: insert quotes on table
             }
         }
     }
