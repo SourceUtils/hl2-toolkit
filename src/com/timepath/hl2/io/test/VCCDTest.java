@@ -298,6 +298,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 NativeFileChooser fc = new NativeFileChooser();
                 fc.setDialogType(BaseFileChooser.DialogType.SAVE_DIALOG);
                 fc.setTitle("Save (as closecaption_<language>.dat)");
+                fc.addFilter(new ExtensionFilter("VCCD Binary Files", ".dat"));
                 fc.setParent(this);
 
                 File[] fs = fc.choose();
@@ -379,7 +380,7 @@ public class VCCDTest extends javax.swing.JFrame {
         if(jTable1.getSelectedRow() == jTable1.getRowCount() - 1) {
             newRow = jTable1.getRowCount() - 2;
         }
-        LOG.log(Level.FINE, "New row: {0}", newRow);
+        LOG.log(Level.FINER, "New row: {0}", newRow);
         model.removeRow(jTable1.getSelectedRow());
         if(jTable1.getRowCount() > 0) {
             jTable1.setRowSelectionInterval(newRow, newRow);
@@ -528,7 +529,7 @@ public class VCCDTest extends javax.swing.JFrame {
             String[] children = prefs.keys();
             for(int i = 0; i < children.length; i++) {
                 int hash = prefs.getInt(children[i], -1);
-                LOG.log(Level.FINE, "{0} = {1}", new Object[]{children[i], hash});
+                LOG.log(Level.FINER, "{0} = {1}", new Object[]{children[i], hash});
                 if(hash != -1) {
                     hashmap.put(hash, children[i]);
                 }
@@ -765,7 +766,7 @@ public class VCCDTest extends javax.swing.JFrame {
                         for(int i = 0; i < top.getChildCount(); i++) {
                             String str = top.getChildAt(i).toString();
                             str = str.replaceAll("\"", "").toLowerCase();
-                            LOG.fine(str);
+                            LOG.log(Level.FINER, str);
                             crc.update(str.getBytes());
                             map.put((int) crc.getValue(), str);
                             crc.reset();

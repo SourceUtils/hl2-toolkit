@@ -161,7 +161,7 @@ public class VCCD {
                     offset = 0;
                     currentBlock++;
                     firstInBlock = i;
-                    LOG.fine("Doesn't fit; new block");
+                    LOG.log(Level.FINER, "Doesn't fit; new block");
                 } else {
                     offset = proposedOffset;
                 }
@@ -212,11 +212,10 @@ public class VCCD {
      * @return
      */
     public static ArrayList<CaptionEntry> importFile(String file) throws FileNotFoundException {
-        DefaultMutableTreeNode tn = new DefaultMutableTreeNode();
         VDF v = new VDF();
         v.readExternal(new FileInputStream(new File(file)), "UTF-16");
         ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
-        ArrayList<Property> props = ((VDFNode)(tn.getChildAt(0).getChildAt(1))).getProperties();
+        ArrayList<Property> props = (v.getRoot().get(0).get(1)).getProperties();
         ArrayList<String> usedKeys = new ArrayList<String>();
         for(int i = props.size() - 1; i >= 0; i--) {
             Property p = props.get(i);
