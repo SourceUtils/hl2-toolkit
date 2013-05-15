@@ -721,7 +721,30 @@ public class VCCDTest extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        try {
+            if(args.length > 0) {
+                System.out.println(args[0]);
+                ArrayList<CaptionEntry> in = VCCD.importFile(args[0]);
+                HashMap<Integer, String> hashmap = new HashMap<Integer, String>();
+                for(CaptionEntry i : in) { // learning
+                    Object crc = i.getKey();
+                    String token = i.getTrueKey();
+//                    if(token != null && !token.toString().isEmpty()) {
+//                        crc = hexFormat(VCCD.takeCRC32(token));
+//                    }
+                    long hash = Long.parseLong(crc.toString().toLowerCase(), 16);
+                    hashmap.put((int) hash, token);
+                }
+                persistHashmap(hashmap);
+                VCCD.save("closecaption_english.dat", in);
+                return;
+            }
+        } catch(FileNotFoundException ex) {
+            Logger.getLogger(VCCDTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        java.awt.EventQueue.invokeLater(
+                new Runnable() {
             public void run() {
                 VCCDTest c = new VCCDTest();
                 c.setLocationRelativeTo(null);
@@ -783,7 +806,7 @@ public class VCCDTest extends javax.swing.JFrame {
         }).start();
     }
 
-    private void persistHashmap(HashMap<Integer, String> map) {
+    private static void persistHashmap(HashMap<Integer, String> map) {
         for(Entry<Integer, String> entry : map.entrySet()) {
             Integer key = entry.getKey();
             String value = entry.getValue();
@@ -794,7 +817,7 @@ public class VCCDTest extends javax.swing.JFrame {
         }
     }
 
-    private String hexFormat(int in) {
+    private static String hexFormat(int in) {
         String str = Integer.toHexString(in).toUpperCase();
         while(str.length() < 8) {
             str = "0" + str;
