@@ -3,16 +3,29 @@ package com.timepath.hl2.io.test;
 import com.timepath.DataUtils;
 import com.timepath.backports.javax.swing.SwingWorker;
 import com.timepath.hl2.io.util.Element;
+import com.timepath.plaf.OS;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
 import com.timepath.steam.io.BVDF;
 import com.timepath.steam.io.Blob;
 import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.util.Property;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetContext;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.InvalidDnDOperationException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +44,59 @@ public class DataTest extends javax.swing.JFrame {
      */
     public DataTest() {
         initComponents();
+        
+        //<editor-fold defaultstate="collapsed" desc="Drag+drop">
+        this.setDropTarget(new DropTarget() {
+            @Override
+            public void drop(DropTargetDropEvent e) {
+                try {
+                    DropTargetContext context = e.getDropTargetContext();
+                    e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+                    Transferable t = e.getTransferable();
+                    File file = null;
+                    if(OS.isLinux()) {
+                        DataFlavor nixFileDataFlavor = new DataFlavor("text/uri-list;class=java.lang.String");
+                        String data = (String) t.getTransferData(nixFileDataFlavor);
+                        for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
+                            String token = st.nextToken().trim();
+                            if(token.startsWith("#") || token.length() == 0) {
+                                // comment line, by RFC 2483
+                                continue;
+                            }
+                            try {
+                                file = new File(new URI(token));
+                            } catch(Exception ex) {
+                            }
+                        }
+                    } else {
+                        Object data = t.getTransferData(DataFlavor.javaFileListFlavor);
+                        if(data instanceof List) {
+                            for(Iterator<?> it = ((List<?>) data).iterator(); it.hasNext();) {
+                                Object o = it.next();
+                                if(o instanceof File) {
+                                    file = (File) o;
+                                }
+                            }
+                        }
+                    }
+                    if(file != null) {
+                        open(file);
+                    }
+                } catch(ClassNotFoundException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                } catch(InvalidDnDOperationException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                } catch(UnsupportedFlavorException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                } catch(IOException ex) {
+                    LOG.log(Level.SEVERE, null, ex);
+                } finally {
+                    e.dropComplete(true);
+                    repaint();
+                }
+            }
+        });
+        //</editor-fold>
     }
 
     /**
@@ -173,7 +239,7 @@ public class DataTest extends javax.swing.JFrame {
                     } else if(f.getName().toLowerCase().endsWith(".vdf") || f.getName().toLowerCase().endsWith(".res")) {
                         if(f.getName().toLowerCase().endsWith(".res")) {
                             VDF res = new VDF();
-                            res.readExternal(DataUtils.mapFile(f));
+                            res.readExternal(new FileInputStream(f));
                             n = res.getRoot();
                         } else if(!VDF.isBinary(f)) {
                             VDF vdf = new VDF();
