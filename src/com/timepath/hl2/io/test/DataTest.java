@@ -2,7 +2,6 @@ package com.timepath.hl2.io.test;
 
 import com.timepath.DataUtils;
 import com.timepath.backports.javax.swing.SwingWorker;
-import com.timepath.hl2.io.RES;
 import com.timepath.hl2.io.util.Element;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import com.timepath.steam.SteamUtils;
@@ -11,6 +10,7 @@ import com.timepath.steam.io.Blob;
 import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.util.Property;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -177,7 +177,7 @@ public class DataTest extends javax.swing.JFrame {
                             n = res.getRoot();
                         } else if(!VDF.isBinary(f)) {
                             VDF vdf = new VDF();
-                            vdf.readExternal(DataUtils.mapFile(f));
+                            vdf.readExternal(new FileInputStream(f));
                             n = vdf.getRoot();
 //                            addProperties(n);
                         } else {
