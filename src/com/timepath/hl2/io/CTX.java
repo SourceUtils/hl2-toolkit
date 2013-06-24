@@ -80,9 +80,11 @@ public class CTX {
             }
             buf.put(out, 0, read);
         }
-        // last block is not encrypted
-        buf.position(buf.limit() - prevRead);
-        buf.put(in, 0, prevRead);
+        // last block is not encrypted if there are fewer bytes in it than the blocksize
+        if(prevRead < bs) {
+            buf.position(buf.limit() - prevRead);
+            buf.put(in, 0, prevRead);
+        }
         
         byte[] arr = buf.array();
         return arr;
