@@ -1,7 +1,7 @@
 package com.timepath.hl2.io;
 
 import com.timepath.DataUtils;
-import com.timepath.nio.BitBuffer;
+import com.timepath.io.BitBuffer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
