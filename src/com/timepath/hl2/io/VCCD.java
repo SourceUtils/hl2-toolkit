@@ -58,7 +58,7 @@ public class VCCD {
             is.read(array);
             ByteBuffer buf = ByteBuffer.wrap(array);
             buf.order(ByteOrder.LITTLE_ENDIAN);
-            
+
             if(buf.getInt() != expectedHeader) {
                 LOG.severe("Header mismatch");
             }
@@ -70,7 +70,9 @@ public class VCCD {
             int blockSize = buf.getInt();
             int directorySize = buf.getInt();
             int dataOffset = buf.getInt();
-            LOG.log(Level.INFO, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", new Object[]{version, blocks, blockSize, directorySize, dataOffset});
+            LOG.log(Level.INFO,
+                    "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}",
+                    new Object[] {version, blocks, blockSize, directorySize, dataOffset});
 
             CaptionEntry[] entries = new CaptionEntry[directorySize];
             for(int i = 0; i < directorySize; i++) {
@@ -184,13 +186,15 @@ public class VCCD {
                 CaptionEntry e = entries.get(i);
                 if(e.getBlock() > lastBlock) {
                     lastBlock = e.getBlock();
-                    rf.write(new byte[blockSize - (entries.get(i - 1).getOffset() + entries.get(i - 1).getLength())]);
+                    rf.write(new byte[blockSize - (entries.get(i - 1).getOffset() + entries.get(
+                                                   i - 1).getLength())]);
                 }
                 DataUtils.writeLEChars(rf, e.getValue());
                 DataUtils.writeLEChar(rf, 0);
             }
             int last = entries.size() - 1;
-            rf.write(new byte[blockSize - (entries.get(last).getOffset() + entries.get(last).getLength())]);
+            rf.write(
+                    new byte[blockSize - (entries.get(last).getOffset() + entries.get(last).getLength())]);
             rf.close();
         } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -313,7 +317,8 @@ public class VCCD {
 
         @Override
         public String toString() {
-            return new StringBuilder().append("H: ").append(key).append(", b: ").append(block).append(", o: ").append(offset).append(", l: ").append(length).toString();
+            return new StringBuilder().append("H: ").append(key).append(", b: ").append(block).append(
+                    ", o: ").append(offset).append(", l: ").append(length).toString();
         }
 
         public int compareTo(CaptionEntry t) {
@@ -327,6 +332,7 @@ public class VCCD {
             }
             return e1.compareToIgnoreCase(e2);
         }
+
     }
 
 }

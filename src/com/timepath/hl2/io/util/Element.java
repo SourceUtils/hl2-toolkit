@@ -99,10 +99,14 @@ public class Element extends VDFNode implements ViewableData {
     }
 
     public Rectangle getBounds() {
-        int minX = (int) Math.round(this.getX() * ((double) screen.width / (double) internal.width) * scale);
-        int minY = (int) Math.round(this.getY() * ((double) screen.height / (double) internal.height) * scale);
-        int maxX = (int) Math.round(this.getWidth() * ((double) screen.width / (double) internal.width) * scale);
-        int maxY = (int) Math.round(this.getHeight() * ((double) screen.height / (double) internal.height) * scale);
+        int minX = (int) Math.round(
+                this.getX() * ((double) screen.width / (double) internal.width) * scale);
+        int minY = (int) Math.round(
+                this.getY() * ((double) screen.height / (double) internal.height) * scale);
+        int maxX = (int) Math.round(
+                this.getWidth() * ((double) screen.width / (double) internal.width) * scale);
+        int maxY = (int) Math.round(
+                this.getHeight() * ((double) screen.height / (double) internal.height) * scale);
         return new Rectangle(minX, minY, maxX + 1, maxY + 1);
     }
 
@@ -358,7 +362,8 @@ public class Element extends VDFNode implements ViewableData {
             } else if("fgcolor".equalsIgnoreCase(k)) {
                 String[] c = v.split(" ");
                 try {
-                    this.setFgColor(new Color(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]), Integer.parseInt(c[3])));
+                    this.setFgColor(new Color(Integer.parseInt(c[0]), Integer.parseInt(c[1]),
+                                              Integer.parseInt(c[2]), Integer.parseInt(c[3])));
                 } catch(NumberFormatException e) {
                 }
             } else if("font".equalsIgnoreCase(k)) {
@@ -567,15 +572,21 @@ public class Element extends VDFNode implements ViewableData {
             } else if("visible".equalsIgnoreCase(k)) {
                 entry.setValue(this.isVisible() ? 1 : 0);
             } else if("xpos".equalsIgnoreCase(k)) {
-                entry.setValue(this.getXAlignment().name().substring(0, 1).toLowerCase().replaceFirst("l", "") + this.getLocalX());
+                entry.setValue(
+                        this.getXAlignment().name().substring(0, 1).toLowerCase().replaceFirst("l",
+                                                                                               "") + this.getLocalX());
             } else if("ypos".equalsIgnoreCase(k)) {
-                entry.setValue(this.getYAlignment().name().substring(0, 1).toLowerCase().replaceFirst("l", "") + this.getLocalY());
+                entry.setValue(
+                        this.getYAlignment().name().substring(0, 1).toLowerCase().replaceFirst("l",
+                                                                                               "") + this.getLocalY());
             } else if("zpos".equalsIgnoreCase(k)) {
                 entry.setValue(this.getLayer());
             } else if("wide".equalsIgnoreCase(k)) {
-                entry.setValue((this.getWidthMode() == DimensionMode.Mode2 ? "f" : "") + this.getLocalWidth());
+                entry.setValue(
+                        (this.getWidthMode() == DimensionMode.Mode2 ? "f" : "") + this.getLocalWidth());
             } else if("tall".equalsIgnoreCase(k)) {
-                entry.setValue((this.getHeightMode() == DimensionMode.Mode2 ? "f" : "") + this.getLocalHeight());
+                entry.setValue(
+                        (this.getHeightMode() == DimensionMode.Mode2 ? "f" : "") + this.getLocalHeight());
             } else if("labelText".equalsIgnoreCase(k)) {
                 entry.setValue(this.getLabelText());
             } else if("ControlName".equalsIgnoreCase(k)) {
@@ -660,7 +671,8 @@ public class Element extends VDFNode implements ViewableData {
 
     public enum DimensionMode {
 
-        Mode1, Mode2
+        Mode1,
+        Mode2
 
     }
 

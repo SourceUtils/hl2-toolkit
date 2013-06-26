@@ -21,18 +21,17 @@ public class VMT extends VDF implements Savable {
     }
 
     private static final Logger LOG = Logger.getLogger(VMT.class.getName());
-    
+
     public VMT() {
-        
     }
 
     private static void analyze(VDFNode data) {
         String shader = data.getKey();
         LOG.log(Level.INFO, "Shader: {0}", shader);
     }
-    
+
     public VTF getTexture() throws IOException {
         return VTF.load(this.root.get(0).get("$basetexture").getValue());
     }
-    
+
 }

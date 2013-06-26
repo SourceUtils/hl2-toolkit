@@ -282,7 +282,8 @@ public class VCCDTest extends javax.swing.JFrame {
                 model.removeRow(i);
             }
             for(int i = 0; i < entries.size(); i++) {
-                model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), attemptDecode(entries.get(i).getKey()), entries.get(i).getValue()});
+                model.addRow(new Object[] {hexFormat(entries.get(i).getKey()), attemptDecode(
+                    entries.get(i).getKey()), entries.get(i).getValue()});
             }
             saveFile = files[0];
         } catch(IOException ex) {
@@ -361,7 +362,8 @@ public class VCCDTest extends javax.swing.JFrame {
                 int hash = entries.get(i).getKey();
                 String token = entries.get(i).getTrueKey();
                 hashmap.put(hash, token);
-                model.addRow(new Object[]{hexFormat(entries.get(i).getKey()), entries.get(i).getTrueKey(), entries.get(i).getValue()});
+                model.addRow(new Object[] {hexFormat(entries.get(i).getKey()),
+                                           entries.get(i).getTrueKey(), entries.get(i).getValue()});
             }
             persistHashmap(hashmap);
         } catch(IOException ex) {
@@ -371,7 +373,7 @@ public class VCCDTest extends javax.swing.JFrame {
 
     private void insertRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertRow
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.addRow(new Object[]{0, "", ""});
+        model.addRow(new Object[] {0, "", ""});
     }//GEN-LAST:event_insertRow
 
     private void deleteRow(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteRow
@@ -392,7 +394,7 @@ public class VCCDTest extends javax.swing.JFrame {
         for(int i = model.getRowCount() - 1; i >= 0; i--) {
             model.removeRow(i);
         }
-        model.addRow(new Object[]{0, "", ""});
+        model.addRow(new Object[] {0, "", ""});
     }//GEN-LAST:event_createNew
 
     private void formattingHelp(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_formattingHelp
@@ -436,7 +438,8 @@ public class VCCDTest extends javax.swing.JFrame {
                          + "Changing caption languages (cc_lang) reloads them from tf/resource/closecaption_language.dat\n"
                          + "cc_random emits a random caption\n"
                          + "";
-        JOptionPane pane = new JOptionPane(new JScrollPane(new JTextArea(message)), JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane pane = new JOptionPane(new JScrollPane(new JTextArea(message)),
+                                           JOptionPane.INFORMATION_MESSAGE);
         JDialog dialog = pane.createDialog(null, "Formatting");
         dialog.setModal(false);
         dialog.setVisible(true);
@@ -446,7 +449,8 @@ public class VCCDTest extends javax.swing.JFrame {
         StringBuilder sb = new StringBuilder(jTable1.getRowCount() * 100); // rough estimate
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         for(int i = 0; i < model.getRowCount(); i++) {
-            sb.append(model.getValueAt(i, 0)).append("\t").append(model.getValueAt(i, 2)).append("\n");
+            sb.append(model.getValueAt(i, 0)).append("\t").append(model.getValueAt(i, 2)).append(
+                    "\n");
         }
         JTextArea pane = new JTextArea(sb.toString());
         Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
@@ -529,7 +533,7 @@ public class VCCDTest extends javax.swing.JFrame {
             String[] children = prefs.keys();
             for(int i = 0; i < children.length; i++) {
                 int hash = prefs.getInt(children[i], -1);
-                LOG.log(Level.FINER, "{0} = {1}", new Object[]{children[i], hash});
+                LOG.log(Level.FINER, "{0} = {1}", new Object[] {children[i], hash});
                 if(hash != -1) {
                     hashmap.put(hash, children[i]);
                 }
@@ -583,16 +587,17 @@ public class VCCDTest extends javax.swing.JFrame {
         }
 
         //<editor-fold defaultstate="collapsed" desc="ComboBox">
-        private class SharedPoolComboBox extends JComboBox { // <String>
+        private class SharedPoolComboBox extends JComboBox<String> {
 
             SharedPoolComboBox(ArrayList<String> list) {
-                DefaultComboBoxModel model = new DefaultComboBoxModel(); // <String>
+                DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
                 this.setModel(model);
                 this.setEditable(true);
                 for(int i = 0; i < list.size(); i++) {
                     this.addItem(list.get(i));
                 }
             }
+
         }
         //</editor-fold>
 
@@ -626,7 +631,8 @@ public class VCCDTest extends javax.swing.JFrame {
 
                 int erow = jTable1.getEditingRow();
                 if(erow > -1 && erow < jTable1.getRowCount()) {
-                    jTable1.getModel().setValueAt(hexFormat(VCCD.takeCRC32(str)), jTable1.convertRowIndexToModel(erow), 0);
+                    jTable1.getModel().setValueAt(hexFormat(VCCD.takeCRC32(str)),
+                                                  jTable1.convertRowIndexToModel(erow), 0);
                 }
                 old = str;
             }
@@ -649,6 +655,7 @@ public class VCCDTest extends javax.swing.JFrame {
                 field = jTextField;
                 field.getDocument().addDocumentListener(this);
             }
+
         }
 
     }
@@ -696,7 +703,9 @@ public class VCCDTest extends javax.swing.JFrame {
             curX += fm.stringWidth(str);
         }
 
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row,
+                                                       int column) {
             setText((value == null) ? "" : value.toString());
             if(isSelected) {
                 setForeground(table.getSelectionForeground());
@@ -711,6 +720,7 @@ public class VCCDTest extends javax.swing.JFrame {
         private void setText(String string) {
             this.text = string;
         }
+
     }
 
     private TableCellRenderer valueRenderer = new EditorPaneRenderer();

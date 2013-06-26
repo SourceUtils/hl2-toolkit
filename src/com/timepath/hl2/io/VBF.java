@@ -88,7 +88,7 @@ public class VBF {
         //<editor-fold defaultstate="collapsed" desc="Parse">
         int header = buf.getInt();
         int version = buf.getInt();
-        
+
         v.width = buf.getShort();
         v.height = buf.getShort();
         short maxcharwidth = buf.getShort();
@@ -243,6 +243,7 @@ public class VBF {
         public String toString() {
             return "#" + index;
         }
+
     }
 
 }

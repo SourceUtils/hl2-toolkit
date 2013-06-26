@@ -45,7 +45,8 @@ public class RES extends VDF implements Savable {
 
     /**
      * TODO
-     * @param props 
+     * <p/>
+     * @param props
      */
     private static void clientScheme(DefaultMutableTreeNode props) {
         LOG.info("Found clientscheme");
@@ -78,4 +79,5 @@ public class RES extends VDF implements Savable {
         }
         LOG.info("Loaded clientscheme");
     }
+
 }

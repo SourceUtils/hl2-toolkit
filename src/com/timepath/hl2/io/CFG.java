@@ -26,6 +26,7 @@ public class CFG {
 
         public Alias() {
         }
+
     }
 
     private static void parse(Scanner s) {
@@ -45,7 +46,8 @@ public class CFG {
                     offset++;
                     continue;
                 }
-                System.out.println(new String(pText).substring(offset, offset + commandLength).trim());
+                System.out.println(
+                        new String(pText).substring(offset, offset + commandLength).trim());
                 offset += commandLength;
             }
 
@@ -82,7 +84,8 @@ public class CFG {
     }
 
     public static void main(String[] args) {
-        readFromString("alias one \"alias three four\"; alias two // yay\nalias b; alias c alias c alias d alias v taunt");
+        readFromString(
+                "alias one \"alias three four\"; alias two // yay\nalias b; alias c alias c alias d alias v taunt");
     }
 
     public static void readFromString(String s) {
@@ -106,4 +109,5 @@ public class CFG {
             }
         }
     }
+
 }

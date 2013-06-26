@@ -49,7 +49,8 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
      */
     private static AlphaComposite acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
 
-    private static AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    private static AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                                          0.5f);
 
     private static AlphaComposite acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
 
@@ -110,7 +111,8 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 //                g.setXORMode(Color.WHITE);
                 g.setComposite(acText);
                 g.setColor(Color.GREEN);
-                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1, bounds.y + bounds.height - 1);
+                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1,
+                             bounds.y + bounds.height - 1);
             }
         }
     }
@@ -214,4 +216,5 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         }
         return this.selected.get(0);
     }
+
 }

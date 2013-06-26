@@ -37,74 +37,74 @@ public class VTF implements ViewableData {
      * 8 bytes
      */
     public int[] version;
-    
+
     /**
      * 2 bytes
      * The size of the VTF header. Image data comes after this
      */
     public int headerSize;
-    
+
     /**
      * 2 bytes
      */
     public int width;
-    
+
     /**
      * 2 bytes
      */
     public int height;
-    
+
     /**
      * 4 bytes
      */
     public int flags;
-    
+
     /**
      * 2 bytes
      */
     public int frameCount;
-    
+
     /**
      * 2 bytes
      * Zero indexed
      */
     public int frameFirst;
-    
+
     /**
      * 12 bytes
      */
     public float[] reflectivity;
-    
+
     /**
      * 4 bytes
      */
     public float bumpScale;
-    
+
     /**
      * 4 bytes
      */
     public Format format;
-    
+
     /**
      * 1 byte
      */
     public int mipCount;
-    
+
     /**
      * 4 bytes
      */
     public Format thumbFormat;
-    
+
     /**
      * 1 byte
      */
     public int thumbWidth;
-    
+
     /**
      * 1 byte
      */
     public int thumbHeight;
-    
+
     /**
      * 1 byte
      * The documentation says 2, but I don't think so...
@@ -113,7 +113,7 @@ public class VTF implements ViewableData {
     //</editor-fold>
 
     private File file;
-    
+
     private static int expectedCrcHead = (('C') | ('R' << 8) | ('C' << 16) | ('\2' << 24));
 
     public void getControls() throws IOException {
@@ -214,6 +214,7 @@ public class VTF implements ViewableData {
     private static int expectedHeader = (('V') | ('T' << 8) | ('F' << 16) | ('\0' << 24));
 
     private InputStream stream;
+
     private ByteBuffer buf;
 
     public static VTF load(InputStream is) throws IOException {
@@ -222,16 +223,18 @@ public class VTF implements ViewableData {
 //            cache.put(file, null);
             return null;
         }
-        
+
         VTF vtf = new VTF();
         vtf.stream = is;
-        byte[] array = new byte[4 + is.available()/*65*/];
+        byte[] array = new byte[4 + is.available()/*
+                 * 65
+                 */];
         is.read(array, 4, array.length - 4);
         vtf.buf = ByteBuffer.wrap(array);
         vtf.buf.order(ByteOrder.LITTLE_ENDIAN);
         vtf.buf.position(4);
-        
-        vtf.version = new int[]{vtf.buf.getInt(), vtf.buf.getInt()};
+
+        vtf.version = new int[] {vtf.buf.getInt(), vtf.buf.getInt()};
         vtf.headerSize = vtf.buf.getInt();
         vtf.width = vtf.buf.getShort();
         vtf.height = vtf.buf.getShort();
@@ -239,7 +242,7 @@ public class VTF implements ViewableData {
         vtf.frameCount = vtf.buf.getShort();
         vtf.frameFirst = vtf.buf.getShort();
         vtf.buf.get(new byte[4]);
-        vtf.reflectivity = new float[]{vtf.buf.getFloat(), vtf.buf.getFloat(), vtf.buf.getFloat()};
+        vtf.reflectivity = new float[] {vtf.buf.getFloat(), vtf.buf.getFloat(), vtf.buf.getFloat()};
         vtf.buf.get(new byte[4]);
         vtf.bumpScale = vtf.buf.getFloat();
         vtf.format = Format.getEnumForIndex(vtf.buf.getInt());
@@ -272,7 +275,7 @@ public class VTF implements ViewableData {
         File f = null;
         try {
             File dest = File.createTempFile(path.replaceAll("/", "_"), "");
-            LOG.log(Level.INFO, "Extracting {0} to {1}", new Object[]{path, dest});
+            LOG.log(Level.INFO, "Extracting {0} to {1}", new Object[] {path, dest});
             if(mats.extract(mats.find(path).get(0), dest) != null) {
                 f = new File(path);
                 LOG.log(Level.INFO, "Loading {0}", f);
@@ -289,7 +292,8 @@ public class VTF implements ViewableData {
      * 8 bytes per 4*4
      */
     private static BufferedImage loadDXT1(byte[] b, int width, int height) {
-        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4),
+                                             BufferedImage.TYPE_INT_ARGB);
         int pos = 0;
 
         for(int y = 0; y < height; y += 4) {
@@ -301,12 +305,21 @@ public class VTF implements ViewableData {
                 if(color_0 > color_1) {
                     colour[0] = extract565(color_0);
                     colour[1] = extract565(color_1);
-                    colour[2] = new Color(Math.round(((2 * colour[0].getRed()) + colour[1].getRed()) / 3), Math.round(((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3), Math.round(((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
-                    colour[3] = new Color(Math.round(((2 * colour[1].getRed()) + colour[0].getRed()) / 3), Math.round(((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3), Math.round(((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
+                    colour[2] = new Color(Math.round(
+                            ((2 * colour[0].getRed()) + colour[1].getRed()) / 3), Math.round(
+                            ((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3), Math.round(
+                            ((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
+                    colour[3] = new Color(Math.round(
+                            ((2 * colour[1].getRed()) + colour[0].getRed()) / 3), Math.round(
+                            ((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3), Math.round(
+                            ((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
                 } else {
                     colour[0] = extract565(color_0);
                     colour[1] = extract565(color_1);
-                    colour[2] = new Color(Math.round((colour[0].getRed() + colour[1].getRed()) / 2), Math.round((colour[0].getGreen() + colour[1].getGreen()) / 2), Math.round((colour[0].getBlue() + colour[1].getBlue()) / 2));
+                    colour[2] = new Color(Math.round((colour[0].getRed() + colour[1].getRed()) / 2),
+                                          Math.round(
+                            (colour[0].getGreen() + colour[1].getGreen()) / 2), Math.round(
+                            (colour[0].getBlue() + colour[1].getBlue()) / 2));
                     colour[3] = new Color(0, 0, 0, 0);
                 }
 
@@ -319,7 +332,8 @@ public class VTF implements ViewableData {
                          * - (height % 4)
                          */; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                     byte rowData = b[pos++];
-                    int[] rowBits = {(rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4, (rowData & 0xC) >>> 2, rowData & 0x3};
+                    int[] rowBits = {(rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4,
+                                     (rowData & 0xC) >>> 2, rowData & 0x3};
 
                     for(int x1 = 0; x1 < 4/*
                              * - (width % 4)
@@ -387,7 +401,8 @@ public class VTF implements ViewableData {
                 byte[] next4 = {b[pos], b[pos + 1], b[pos + 2], b[pos + 3]};
                 pos += 4;
                 for(int y1 = 0; y1 < 4; y1++) { // 16 bits / 4 lines = 4 bits/line = 1 byte/line
-                    int[] bits = new int[]{(next4[y1] & bits_12) >> 6, (next4[y1] & bits_34) >> 4, (next4[y1] & bits_56) >> 2, next4[y1] & bits_78};
+                    int[] bits = new int[] {(next4[y1] & bits_12) >> 6, (next4[y1] & bits_34) >> 4,
+                                            (next4[y1] & bits_56) >> 2, next4[y1] & bits_78};
 
                     for(int i = 0; i < 4; i++) { // horizontal scan
                         int bit = bits[i];
@@ -426,7 +441,8 @@ public class VTF implements ViewableData {
      */
     private static BufferedImage loadDXT5(byte[] b, int width, int height) {
         boolean alphaEnabled = true;
-        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4),
+                                             BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) bi.getGraphics();
         g.setComposite(AlphaComposite.Src);
         int pos = 0;
@@ -455,7 +471,8 @@ public class VTF implements ViewableData {
 
                 int[][] alphas = new int[4][4];
                 if(alphaEnabled) {
-                    int[] alphaByte = {b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF};
+                    int[] alphaByte = {b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF,
+                                       b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF};
                     int sel1 = (((alphaByte[2] << 16) & 0xFF0000) | ((alphaByte[1] << 8) & 0xFF00) | alphaByte[0]) & 0xFFFFFF;
                     int sel2 = (((alphaByte[5] << 16) & 0xFF0000) | ((alphaByte[4] << 8) & 0xFF00) | alphaByte[3]) & 0xFFFFFF;
                     for(int yi = 0; yi < 2; yi++) {
@@ -483,19 +500,28 @@ public class VTF implements ViewableData {
                 Color[] colour = new Color[4];
                 colour[0] = extract565(c0);
                 colour[1] = extract565(c1);
-                colour[2] = new Color(Math.round(((2 * colour[0].getRed()) + colour[1].getRed()) / 3), Math.round(((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3), Math.round(((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
-                colour[3] = new Color(Math.round(((2 * colour[1].getRed()) + colour[0].getRed()) / 3), Math.round(((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3), Math.round(((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
+                colour[2] = new Color(
+                        Math.round(((2 * colour[0].getRed()) + colour[1].getRed()) / 3), Math.round(
+                        ((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3), Math.round(
+                        ((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
+                colour[3] = new Color(
+                        Math.round(((2 * colour[1].getRed()) + colour[0].getRed()) / 3), Math.round(
+                        ((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3), Math.round(
+                        ((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
 
                 // remaining 4 bytes
                 if(width >= 4 && height >= 4) {
                     for(int y1 = 0; y1 < 4; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                         int rowData = b[pos++] & 0xff;
-                        int[] rowBits = {(rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4, (rowData & 0xC) >>> 2, rowData & 0x3};
+                        int[] rowBits = {(rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4,
+                                         (rowData & 0xC) >>> 2, rowData & 0x3};
 
                         for(int x1 = 0; x1 < 4; x1++) { // column scan
 //                            if(alphas[y1][x1] > 0)
 //                                System.out.println(alphas[y1][x1]);
-                            Color col = new Color(colour[rowBits[3 - x1]].getRed(), colour[rowBits[3 - x1]].getGreen(), colour[rowBits[3 - x1]].getBlue(), alphas[y1][x1]); // c is taken from 3 to ensure everything is drawn the correct way around
+                            Color col = new Color(colour[rowBits[3 - x1]].getRed(),
+                                                  colour[rowBits[3 - x1]].getGreen(),
+                                                  colour[rowBits[3 - x1]].getBlue(), alphas[y1][x1]); // c is taken from 3 to ensure everything is drawn the correct way around
                             bi.setRGB((x + x1), (y + y1), col.getRGB());
 //                            System.out.println("(" + y + "," + x + ") = " + (y1) + ":" + (x1) + " = (" + (y+y1) + "," + (x+x1) + ")");
                         }
@@ -515,7 +541,8 @@ public class VTF implements ViewableData {
         int pos = 0;
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
-                g.setColor(new Color((b[pos] & 0xff) + ((b[pos + 1] & 0xff) << 16) + ((255 & 0xff) << 24)));
+                g.setColor(new Color(
+                        (b[pos] & 0xff) + ((b[pos + 1] & 0xff) << 16) + ((255 & 0xff) << 24)));
                 pos += 2;
                 g.drawLine(x, y, x, y);
             }
@@ -529,7 +556,8 @@ public class VTF implements ViewableData {
         int pos = 0;
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
-                g.setColor(new Color((b[pos] & 0xff) + ((b[pos + 1] & 0xff) << 8) + ((b[pos + 2] & 0xff) << 16) + ((255 & 0xff) << 24)));
+                g.setColor(new Color(
+                        (b[pos] & 0xff) + ((b[pos + 1] & 0xff) << 8) + ((b[pos + 2] & 0xff) << 16) + ((255 & 0xff) << 24)));
                 pos += 3;
                 g.drawLine(x, y, x, y);
             }
@@ -544,7 +572,8 @@ public class VTF implements ViewableData {
         int pos = 0;
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
-                g.setColor(new Color((b[pos + 2] & 0xff), (b[pos + 1] & 0xff), (b[pos] & 0xff), (b[pos + 3] & 0xff)));
+                g.setColor(new Color((b[pos + 2] & 0xff), (b[pos + 1] & 0xff), (b[pos] & 0xff),
+                                     (b[pos + 3] & 0xff)));
                 pos += 4;
                 g.drawLine(x, y, x, y);
             }
@@ -584,7 +613,9 @@ public class VTF implements ViewableData {
     private static final int blue_mask_565 = 0x1F;
 
     private static Color extract565(int c) {
-        return createColor((float) (((c & red_mask_565) >>> 11) << 3), (float) (((c & green_mask_565) >>> 5) << 2), (float) ((c & blue_mask_565) << 3), 255);
+        return createColor((float) (((c & red_mask_565) >>> 11) << 3),
+                           (float) (((c & green_mask_565) >>> 5) << 2),
+                           (float) ((c & blue_mask_565) << 3), 255);
     }
 
     private static final int red_mask_555 = 0x7C00; // first 5 bits
@@ -596,7 +627,9 @@ public class VTF implements ViewableData {
     private static final int alpha_mask_555 = 0x1;
 
     private static Color extract555(int c) {
-        return createColor((float) (((c & red_mask_555) >>> 10) << 3), (float) (((c & green_mask_555) >>> 5) << 3), (float) ((c & blue_mask_555) << 3), (float) ((c & alpha_mask_555) << 7));
+        return createColor((float) (((c & red_mask_555) >>> 10) << 3),
+                           (float) (((c & green_mask_555) >>> 5) << 3),
+                           (float) ((c & blue_mask_555) << 3), (float) ((c & alpha_mask_555) << 7));
     }
     //</editor-fold>
 
@@ -659,6 +692,7 @@ public class VTF implements ViewableData {
             }
             return null;
         }
+
     }
 
     /**
@@ -721,6 +755,7 @@ public class VTF implements ViewableData {
             }
             return null;
         }
+
     }
     //</editor-fold>
 
@@ -738,4 +773,5 @@ public class VTF implements ViewableData {
         }
         return null;
     }
+
 }

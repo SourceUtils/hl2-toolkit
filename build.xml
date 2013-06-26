@@ -3,7 +3,7 @@
     <description>Builds the library.</description>
     <import file="nbproject/build-impl.xml"/>
     
-<!--    <target name="-pre-jar">
+    <!--    <target name="-pre-jar">
         <echo message="Unpacking all direct libraries into build directory"/>
         <mkdir dir="lib"/>
         <unjar dest="${build.classes.dir}">

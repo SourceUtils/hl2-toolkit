@@ -76,12 +76,13 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
      */
     private static AlphaComposite acSimple = AlphaComposite.SrcOver;
 
-    private static AlphaComposite acSelect = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, selectAlpha);
+    private static AlphaComposite acSelect = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                                        selectAlpha);
 
-    private static AlphaComposite acGrid = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, gridAlpha);
+    private static AlphaComposite acGrid = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                                      gridAlpha);
 
     //</editor-fold>
-    
     public VGUICanvas() {
         initInput();
         this.setPreferredSize(new Dimension(640, 480));
@@ -92,9 +93,12 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
                 offY = ((getHeight() - internal.height) / 2);
 
                 if(elementImage != null) {
-                    BufferedImage img = new BufferedImage(screen.width + (2 * offX), screen.height + (2 * offY), BufferedImage.TYPE_INT_ARGB);
+                    BufferedImage img = new BufferedImage(screen.width + (2 * offX),
+                                                          screen.height + (2 * offY),
+                                                          BufferedImage.TYPE_INT_ARGB);
                     Graphics2D ge = img.createGraphics();
-                    ge.translate((img.getWidth() - elementImage.getWidth()) / 2, (img.getHeight() - elementImage.getHeight()) / 2);
+                    ge.translate((img.getWidth() - elementImage.getWidth()) / 2,
+                                 (img.getHeight() - elementImage.getHeight()) / 2);
                     ge.drawImage(elementImage, 0, 0, VGUICanvas.this);
                     ge.dispose();
                     elementImage = toCompatibleImage(img);
@@ -113,7 +117,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     @Override
     public void setPreferredSize(Dimension preferredSize) {
-        Dimension UISize = new Dimension(preferredSize.width + 2 * offX, preferredSize.height + 2 * offY);
+        Dimension UISize = new Dimension(preferredSize.width + 2 * offX,
+                                         preferredSize.height + 2 * offY);
         super.setPreferredSize(UISize);
 
         currentbg = null;
@@ -146,7 +151,9 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         }
 
         // image is not optimized, so create a new image that is
-        BufferedImage new_image = gfx_config.createCompatibleImage(image.getWidth(), image.getHeight(), image.getTransparency());
+        BufferedImage new_image = gfx_config.createCompatibleImage(image.getWidth(),
+                                                                   image.getHeight(),
+                                                                   image.getTransparency());
 
         // get the graphics context of the new image to draw the old image on
         Graphics2D g2d = (Graphics2D) new_image.getGraphics();
@@ -196,7 +203,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             g.drawImage(currentbg, offX, offY, this);
         } else {
             g.setColor(Color.WHITE.darker().darker());
-            g.fillRect(offX, offY, (int) Math.round(screen.width * scale), (int) Math.round(screen.height * scale));
+            g.fillRect(offX, offY, (int) Math.round(screen.width * scale), (int) Math.round(
+                    screen.height * scale));
         }
 
         if(gridbg == null) {
@@ -205,7 +213,9 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         g.drawImage(gridbg, offX, offY, this);
 
         if(elementImage == null) {
-            BufferedImage img = new BufferedImage(screen.width + (2 * offX), screen.height + (2 * offY), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage img = new BufferedImage(screen.width + (2 * offX),
+                                                  screen.height + (2 * offY),
+                                                  BufferedImage.TYPE_INT_ARGB);
             Graphics2D ge = img.createGraphics();
             ge.translate(offX, offY);
 
@@ -223,9 +233,11 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         //<editor-fold defaultstate="collapsed" desc="Selection rectangle">
         g.setComposite(acSelect);
         g.setColor(Color.CYAN.darker());
-        g.fillRect(offX + selectRect.x + 1, offY + selectRect.y + 1, selectRect.width - 2, selectRect.height - 2);
+        g.fillRect(offX + selectRect.x + 1, offY + selectRect.y + 1, selectRect.width - 2,
+                   selectRect.height - 2);
         g.setColor(Color.BLUE);
-        g.drawRect(offX + selectRect.x, offY + selectRect.y, selectRect.width - 1, selectRect.height - 1);
+        g.drawRect(offX + selectRect.x, offY + selectRect.y, selectRect.width - 1,
+                   selectRect.height - 1);
         //</editor-fold>
     }
 
@@ -244,11 +256,13 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         Graphics2D g = resizedImage.createGraphics();
 
         g.setComposite(acSimple);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                           RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int proposedWidth = Math.round((float) h / (float) i.getHeight(null) * (float) i.getWidth(null));
+        int proposedWidth = Math.round((float) h / (float) i.getHeight(null) * (float) i.getWidth(
+                null));
         int excess = Math.abs(proposedWidth - w) / 2;
         g.drawImage(i, -excess, 0, w + (2 * excess), h, this); // should scale most images correctly
         g.dispose();
@@ -260,7 +274,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     // as soon as the height drops below 480, stops rendering
     private BufferedImage drawGrid() {
-        BufferedImage img = new BufferedImage(screen.width, screen.height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(screen.width, screen.height,
+                                              BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
 
         g.setComposite(acGrid);
@@ -297,10 +312,14 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     private void paintElement(Element e, Graphics2D g) {
         if(e.getWidth() > 0 && e.getHeight() > 0) { // invisible? don't waste time
-            int elementX = (int) Math.round((double) e.getX() * ((double) screen.width / (double) internal.width) * scale);
-            int elementY = (int) Math.round((double) e.getY() * ((double) screen.height / (double) internal.height) * scale);
-            int elementW = (int) Math.round((double) e.getWidth() * ((double) screen.width / (double) internal.width) * scale);
-            int elementH = (int) Math.round((double) e.getHeight() * ((double) screen.height / (double) internal.height) * scale);
+            int elementX = (int) Math.round(
+                    (double) e.getX() * ((double) screen.width / (double) internal.width) * scale);
+            int elementY = (int) Math.round(
+                    (double) e.getY() * ((double) screen.height / (double) internal.height) * scale);
+            int elementW = (int) Math.round(
+                    (double) e.getWidth() * ((double) screen.width / (double) internal.width) * scale);
+            int elementH = (int) Math.round(
+                    (double) e.getHeight() * ((double) screen.height / (double) internal.height) * scale);
             if(selectedElements.contains(e)) {
                 elementX += _offX;
                 elementY += _offY;
@@ -318,7 +337,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
             if(e.getImage() != null) {
                 if(e.getFgColor() != null) {
-                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, e.getFgColor().getAlpha()));
+                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                              e.getFgColor().getAlpha()));
                 }
                 g.drawImage(e.getImage(), elementX, elementY, elementW, elementH, this);
             }
@@ -331,7 +351,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             g.drawRect(elementX, elementY, elementW - 1, elementH - 1);
 
             if(hoveredElement == e) {
-                g.setColor(new Color(255 - g.getColor().getRed(), 255 - g.getColor().getGreen(), 255 - g.getColor().getBlue()));
+                g.setColor(new Color(255 - g.getColor().getRed(), 255 - g.getColor().getGreen(),
+                                     255 - g.getColor().getBlue()));
                 g.setComposite(acSimple);
 //                g.drawRect(elementX + offX, elementY + offY, e.getWidth() - 1, e.getHeight() - 1); // border
                 g.drawRect(elementX + 1, elementY + 1, elementW - 3, elementH - 3); // inner
@@ -353,13 +374,16 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
                 FontMetrics fm = getFontMetrics(e.getFont());
                 int width = fm.stringWidth(e.getLabelText());
                 g.setFont(e.getFont());
-                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                   RenderingHints.VALUE_ANTIALIAS_ON);
                 if(e.getTextAlignment() == Alignment.Left) {
                     g.drawString(e.getLabelText(), elementX, elementY + fontSize);
                 } else if(e.getTextAlignment() == Alignment.Right) {
-                    g.drawString(e.getLabelText(), (elementX + elementW) - width, elementY + fontSize);
+                    g.drawString(e.getLabelText(), (elementX + elementW) - width,
+                                 elementY + fontSize);
                 } else if(e.getTextAlignment() == Alignment.Center) {
-                    g.drawString(e.getLabelText(), elementX + ((elementW - width) / 2), elementY + fontSize);
+                    g.drawString(e.getLabelText(), elementX + ((elementW - width) / 2),
+                                 elementY + fontSize);
                 }
             }
             g.setClip(clip);
@@ -448,7 +472,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             selectRect.height = 0;
             for(int i = 0; i < selectedElements.size(); i++) {
                 Element e = selectedElements.get(i);
-                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll("\"", "").endsWith(".res")) { // XXX: hacky
+                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll(
+                        "\"", "").endsWith(".res")) { // XXX: hacky
                     continue;
                 }
                 translate(e, _offX, _offY);
@@ -493,7 +518,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     //</editor-fold>
     //</editor-fold>
-    
     public void placed() {
     }
 
@@ -656,8 +680,10 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
                 }
             }
             // This repaints the overlap a second time. A minor inefficiency...
-            this.doRepaint(new Rectangle(originalSelectRect.x, originalSelectRect.y, originalSelectRect.width + 1, originalSelectRect.height + 1));
-            this.doRepaint(new Rectangle(this.selectRect.x, this.selectRect.y, this.selectRect.width + 1, this.selectRect.height + 1));
+            this.doRepaint(new Rectangle(originalSelectRect.x, originalSelectRect.y,
+                                         originalSelectRect.width + 1, originalSelectRect.height + 1));
+            this.doRepaint(new Rectangle(this.selectRect.x, this.selectRect.y,
+                                         this.selectRect.width + 1, this.selectRect.height + 1));
         }
     }
 

@@ -13,12 +13,12 @@ import java.util.logging.Logger;
  * https://code.google.com/p/coldemoplayer
  * https://code.google.com/p/coldemoplayer/source/browse/trunk/compLexity%20Demo%20Player/demo/SourceDemo.cs
  * https://code.google.com/p/coldemoplayer/source/browse/trunk/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
- * 
+ * <p/>
  * https://github.com/stgn/netdecode
  * https://github.com/stgn/netdecode/issues/1
  * https://github.com/stgn/netdecode/blob/master/DemoFile.cs
  * https://github.com/stgn/netdecode/blob/master/Packet.cs
- * 
+ * <p/>
  * http://hg.alliedmods.net/hl2sdks/hl2sdk-css/file/1901d5b74430/public/demofile/demoformat.h
  *
  * @author timepath
@@ -173,6 +173,7 @@ public class HL2DEM {
 
         Buttons(int i) {
         }
+
     }
 
     private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
@@ -232,7 +233,8 @@ public class HL2DEM {
                 throw new IOException("Unknown demo message type encountered.");
             }
             if(msg.type == MessageType.Stop) {
-                LOG.log(Level.INFO, "Stopping at {0}, {1} remaining bytes", new Object[]{buffer.position(), buffer.remaining()});
+                LOG.log(Level.INFO, "Stopping at {0}, {1} remaining bytes", new Object[] {
+                    buffer.position(), buffer.remaining()});
                 break;
             }
             msg.tick = buffer.getInt();
@@ -259,7 +261,8 @@ public class HL2DEM {
                     }
                     switch(msg.type) {
                         case UserCmd:
-                            LOG.log(Level.INFO, "UserCommand at {0} ({1})", new Object[]{msg.tick, buffer.position()});
+                            LOG.log(Level.INFO, "UserCommand at {0} ({1})", new Object[] {msg.tick,
+                                                                                          buffer.position()});
                             BitBuffer bb = new BitBuffer((ByteBuffer) msg.data);
                             Level l = Level.INFO;
                             if(bb.ReadBool()) {
@@ -305,19 +308,20 @@ public class HL2DEM {
 
     //<editor-fold defaultstate="collapsed" desc="Messages">
     static class Message {
-        
+
         MessageType type;
-        
+
         int tick;
-        
+
         Object data;
-        
+
         Message() {
         }
+
     }
-    
+
     static enum MessageType {
-        
+
         Signon(1),
         Packet(2),
         Synctick(3),
@@ -326,13 +330,13 @@ public class HL2DEM {
         DataTables(6),
         Stop(7),
         StringTables(8);
-        
+
         MessageType(int i) {
             this.i = i;
         }
-        
+
         int i;
-        
+
         static MessageType get(int i) {
             for(MessageType m : MessageType.values()) {
                 if(m.i == i) {
@@ -341,9 +345,11 @@ public class HL2DEM {
             }
             return null;
         }
+
     }
     //</editor-fold>
-    
+
     private HL2DEM() {
     }
+
 }

@@ -55,7 +55,7 @@ public class HudFont {
 
         Font f1 = null;
         try {
-            LOG.log(Level.INFO, "Loading font: {0}... ({1})", new Object[]{name, _name});
+            LOG.log(Level.INFO, "Loading font: {0}... ({1})", new Object[] {name, _name});
             f1 = fontFileForName(_name);
             if(f1 == null) {
                 return null;
@@ -70,7 +70,8 @@ public class HudFont {
     }
 
     public static Font fontFileForName(String name) throws Exception {
-        File[] files = new File("/home/andrew/TF2 HUDS/frankenhudr47/resource/").listFiles(new FilenameFilter() { // XXX: hardcoded
+        File[] files = new File("/home/andrew/TF2 HUDS/frankenhudr47/resource/").listFiles(
+                new FilenameFilter() { // XXX: hardcoded
             public boolean accept(File file, String string) {
                 return string.endsWith(".ttf");
             }
@@ -89,4 +90,5 @@ public class HudFont {
     }
 
     private static final Logger LOG = Logger.getLogger(HudFont.class.getName());
+
 }

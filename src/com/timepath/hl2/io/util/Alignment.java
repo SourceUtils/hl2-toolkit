@@ -6,6 +6,8 @@ package com.timepath.hl2.io.util;
  */
 public enum Alignment {
 
-    Left, Center, Right
+    Left,
+    Center,
+    Right
 
 }

@@ -80,12 +80,10 @@ public class MDLTest extends SimpleApplication {
         });
         fileMenu.add(open);
         frame.addWindowListener(new WindowAdapter() {
-
             @Override
             public void windowClosing(WindowEvent e) {
                 app.stop(true);
             }
-            
         });
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
@@ -141,7 +139,8 @@ public class MDLTest extends SimpleApplication {
 
         @Override
         public Object load(AssetInfo info) throws IOException {
-            String name = "mdl/" + info.getKey().getName().substring(0, info.getKey().getName().length() - 4);
+            String name = "mdl/" + info.getKey().getName().substring(0,
+                                                                     info.getKey().getName().length() - 4);
             System.out.println(new File(name));
 
             return load(name);
@@ -177,6 +176,7 @@ public class MDLTest extends SimpleApplication {
             Geometry geom = new Geometry(name + "-geom", mesh);
             return geom;
         }
+
     }
 
     public static class VTFLoader implements AssetLoader {
@@ -223,6 +223,7 @@ public class MDLTest extends SimpleApplication {
             textureImage.setData(scratch);
             return textureImage;
         }
+
     }
 
     private void loadModel(final File f) {
@@ -250,4 +251,5 @@ public class MDLTest extends SimpleApplication {
             Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 }

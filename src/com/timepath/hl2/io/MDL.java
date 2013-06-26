@@ -84,7 +84,8 @@ public class MDL {
     }
 
     private static MDL load(File file) throws IOException {
-        MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+        MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(
+                FileChannel.MapMode.READ_ONLY, 0, file.length());
         mbb.order(ByteOrder.LITTLE_ENDIAN);
         return load(mbb);
     }
@@ -117,7 +118,8 @@ public class MDL {
 
         private static VTX load(File file) throws IOException {
             LOG.log(Level.INFO, "\n\nLoading VTX {0}", file);
-            MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(
+                    FileChannel.MapMode.READ_ONLY, 0, file.length());
             mbb.order(ByteOrder.LITTLE_ENDIAN);
             return load(mbb);
         }
@@ -140,23 +142,31 @@ public class MDL {
             int numBodyParts = buf.getInt(); // 28
             int bodyPartOffset = buf.getInt(); // 32 // offset to an array of BodyPartHeader_t's
             //</editor-fold>
-            LOG.log(Level.INFO, "\t\t\tver:{0}, vertCache:{1}, bones/strip:{2}, bones/tri:{3}, bones/vert:{4}, check:{5}, lods:{6}, replOff:{7}, parts:{8}, partOff:{9}", new Object[]{version, vertCacheSize, maxBonesPerStrip, maxBonesPerTri, maxBonesPerVert, checkSum, numLODs, materialReplacementListOffset, numBodyParts, bodyPartOffset});
+            LOG.log(Level.INFO,
+                    "\t\t\tver:{0}, vertCache:{1}, bones/strip:{2}, bones/tri:{3}, bones/vert:{4}, check:{5}, lods:{6}, replOff:{7}, parts:{8}, partOff:{9}",
+                    new Object[] {version, vertCacheSize, maxBonesPerStrip, maxBonesPerTri,
+                                  maxBonesPerVert, checkSum, numLODs, materialReplacementListOffset,
+                                  numBodyParts, bodyPartOffset});
 
             int totalIndices = 0;
 
-            LOG.log(Level.INFO, "parts[] = {2}: {0} vs {1}", new Object[]{buf.position(), bodyPartOffset, numBodyParts});
+            LOG.log(Level.INFO, "parts[] = {2}: {0} vs {1}", new Object[] {buf.position(),
+                                                                           bodyPartOffset,
+                                                                           numBodyParts});
             buf.position(bodyPartOffset);
             for(int part = 0; part < numBodyParts; part++) {
                 int part_numModels = buf.getInt();
                 int part_modelOffset = bodyPartOffset + buf.getInt();
 
-                LOG.log(Level.INFO, "parts[{3}].models[] = {2}: {0} vs {1}", new Object[]{buf.position(), part_modelOffset, part_numModels, part});
+                LOG.log(Level.INFO, "parts[{3}].models[] = {2}: {0} vs {1}", new Object[] {
+                    buf.position(), part_modelOffset, part_numModels, part});
                 buf.position(part_modelOffset);
                 for(int model = 0; model < part_numModels; model++) {
                     int mdl_numLODs = buf.getInt();
                     int mdl_lodOffset = part_modelOffset + buf.getInt();
 
-                    LOG.log(Level.INFO, "parts[{4}].models[{3}].lods[] = {2}: {0} vs {1}", new Object[]{buf.position(), mdl_lodOffset, mdl_numLODs, model, part});
+                    LOG.log(Level.INFO, "parts[{4}].models[{3}].lods[] = {2}: {0} vs {1}",
+                            new Object[] {buf.position(), mdl_lodOffset, mdl_numLODs, model, part});
                     buf.position(mdl_lodOffset);
                     mdl_numLODs = 1; // XXX: Temporarily load one LOD
                     for(int lod = 0; lod < mdl_numLODs; lod++) {
@@ -164,14 +174,20 @@ public class MDL {
                         int lod_meshOffset = mdl_lodOffset + buf.getInt();
                         float lod_switchPoint = buf.getFloat();
 
-                        LOG.log(Level.INFO, "parts[{5}].model[{4}].lod[{3}].meshes[] = {2}: {0} vs {1}", new Object[]{buf.position(), lod_meshOffset, lod_numMeshes, lod, model, part});
+                        LOG.log(Level.INFO,
+                                "parts[{5}].model[{4}].lod[{3}].meshes[] = {2}: {0} vs {1}",
+                                new Object[] {buf.position(), lod_meshOffset, lod_numMeshes, lod,
+                                              model, part});
                         buf.position(lod_meshOffset);
                         for(int mesh = 0; mesh < lod_numMeshes; mesh++) {
                             int mesh_numStripGroups = buf.getInt();
                             int mesh_stripGroupHeaderOffset = lod_meshOffset + buf.getInt();
                             short mesh_flags = buf.get();
 
-                            LOG.log(Level.INFO, "parts[{6}].model[{5}].lod[{4}].meshes[{3}].stripGroups[] = {2}: {0} vs {1}", new Object[]{buf.position(), mesh_stripGroupHeaderOffset, mesh_numStripGroups, mesh, lod, model, part});
+                            LOG.log(Level.INFO,
+                                    "parts[{6}].model[{5}].lod[{4}].meshes[{3}].stripGroups[] = {2}: {0} vs {1}",
+                                    new Object[] {buf.position(), mesh_stripGroupHeaderOffset,
+                                                  mesh_numStripGroups, mesh, lod, model, part});
                             buf.position(mesh_stripGroupHeaderOffset);
                             for(int group = 0; group < mesh_numStripGroups; group++) {
                                 int group_numVerts = buf.getInt();
@@ -184,9 +200,15 @@ public class MDL {
 
                                 totalIndices += group_numIndices;
 
-                                LOG.log(Level.INFO, "\t\t\tstripOff: {2}, vertOff: {0}, indOff: {1},", new Object[]{group_vertOffset, group_indexOffset, group_stripOffset});
+                                LOG.log(Level.INFO,
+                                        "\t\t\tstripOff: {2}, vertOff: {0}, indOff: {1},",
+                                        new Object[] {group_vertOffset, group_indexOffset,
+                                                      group_stripOffset});
 
-                                LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].strips[] = {2}: {0} vs {1}", new Object[]{buf.position(), group_stripOffset, group_numStrips, group, mesh, lod, model, part});
+                                LOG.log(Level.INFO,
+                                        "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].strips[] = {2}: {0} vs {1}",
+                                        new Object[] {buf.position(), group_stripOffset,
+                                                      group_numStrips, group, mesh, lod, model, part});
                                 buf.position(group_stripOffset);
                                 for(int strip = 0; strip < group_numStrips; strip++) {
                                     int strip_numIndices = buf.getInt();
@@ -204,7 +226,10 @@ public class MDL {
 //                                    }
                                 }
 
-                                LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].verts[] = {2}: {0} vs {1}", new Object[]{buf.position(), group_vertOffset, group_numVerts, group, mesh, lod, model, part});
+                                LOG.log(Level.INFO,
+                                        "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].verts[] = {2}: {0} vs {1}",
+                                        new Object[] {buf.position(), group_vertOffset,
+                                                      group_numVerts, group, mesh, lod, model, part});
                                 buf.position(group_vertOffset);
                                 int[] vert_origMeshVertIDs = new int[group_numVerts];
                                 for(int vert = 0; vert < group_numVerts; vert++) {
@@ -220,7 +245,11 @@ public class MDL {
                                     }
                                 }
 
-                                LOG.log(Level.INFO, "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].indices[] = {2}: {0} vs {1}", new Object[]{buf.position(), group_indexOffset, group_numIndices, group, mesh, lod, model, part});
+                                LOG.log(Level.INFO,
+                                        "parts[{7}].model[{6}].lod[{5}].meshes[{4}].stripGroups[{3}].indices[] = {2}: {0} vs {1}",
+                                        new Object[] {buf.position(), group_indexOffset,
+                                                      group_numIndices, group, mesh, lod, model,
+                                                      part});
                                 buf.position(group_indexOffset);
                                 int[] indices = new int[group_numIndices];
                                 for(int index = 0; index < group_numIndices; index++) {
@@ -235,10 +264,11 @@ public class MDL {
 
             vtx.indices.ensureCapacity(totalIndices);
 
-            LOG.log(Level.INFO, "Underflow: {0}", new Object[]{buf.remaining()});
+            LOG.log(Level.INFO, "Underflow: {0}", new Object[] {buf.remaining()});
 
             return vtx;
         }
+
     }
 
     /**
@@ -258,7 +288,8 @@ public class MDL {
 
         public static VVD load(File file) throws IOException {
             LOG.log(Level.INFO, "\n\nLoading VVD {0}", file);
-            MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+            MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(
+                    FileChannel.MapMode.READ_ONLY, 0, file.length());
             mbb.order(ByteOrder.LITTLE_ENDIAN);
             return load(mbb);
         }
@@ -286,9 +317,12 @@ public class MDL {
             vvd.tangents = new float[vertexCount * 4];
             vvd.uv = new float[vertexCount * 2];
 
-            LOG.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7}", new Object[]{id, version, checksum, Arrays.toString(numLODVertexes), numFixups, fixupTableStart, vertexDataStart, tangentDataStart});
+            LOG.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7}", new Object[] {id, version,
+                                                                                 checksum,
+                                                                                 Arrays.toString(
+                numLODVertexes), numFixups, fixupTableStart, vertexDataStart, tangentDataStart});
 
-            LOG.log(Level.INFO, "{0} vs {1}", new Object[]{buf.position(), fixupTableStart});
+            LOG.log(Level.INFO, "{0} vs {1}", new Object[] {buf.position(), fixupTableStart});
 
             // Fixup Table
             buf.position(fixupTableStart);
@@ -298,7 +332,7 @@ public class MDL {
                 int numVertexes = buf.getInt();
             }
 
-            LOG.log(Level.INFO, "{0} vs {1}", new Object[]{buf.position(), vertexDataStart});
+            LOG.log(Level.INFO, "{0} vs {1}", new Object[] {buf.position(), vertexDataStart});
 
             // Vertex Data
             buf.position(vertexDataStart);
@@ -321,19 +355,21 @@ public class MDL {
                 System.arraycopy(m_vecTexCoord, 0, vvd.uv, v * 2, m_vecTexCoord.length);
             }
 
-            LOG.log(Level.INFO, "{0} vs {1}", new Object[]{buf.position(), tangentDataStart});
+            LOG.log(Level.INFO, "{0} vs {1}", new Object[] {buf.position(), tangentDataStart});
 
             // Tangent Data
             buf.position(tangentDataStart);
             for(int t = 0; t < vertexCount; t++) {
-                float[] m_vecTangent = {buf.getFloat(), buf.getFloat(), buf.getFloat(), buf.getFloat()};
+                float[] m_vecTangent = {buf.getFloat(), buf.getFloat(), buf.getFloat(),
+                                        buf.getFloat()};
                 System.arraycopy(m_vecTangent, 0, vvd.tangents, t * 4, m_vecTangent.length);
             }
 
-            LOG.log(Level.INFO, "Underflow: {0}", new Object[]{buf.remaining()});
+            LOG.log(Level.INFO, "Underflow: {0}", new Object[] {buf.remaining()});
 
             return vvd;
         }
+
     }
 
 }

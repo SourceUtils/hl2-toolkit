@@ -86,7 +86,8 @@ public class VTFTest {
                             return;
                         }
                         f.setIconImage(VTF.load(new FileInputStream(selection)).getThumbImage());
-                        image = (i != null ? i : new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB));
+                        image = (i != null ? i : new BufferedImage(128, 128,
+                                                                   BufferedImage.TYPE_INT_ARGB));
                         scaleImage();
                         repaint();
                     } catch(IOException ex) {
@@ -137,8 +138,10 @@ public class VTFTest {
                  * be a bug in JFileChooser.
                  */
                 g.fillRect(0, 0, ACCSIZE, getHeight());
-                g.drawImage(image, getWidth() / 2 - width / 2 + 5, getHeight() / 2 - height / 2, this);
+                g.drawImage(image, getWidth() / 2 - width / 2 + 5, getHeight() / 2 - height / 2,
+                            this);
             }
+
         }
 
         class VtfFileFilter extends FileFilter {
@@ -173,6 +176,7 @@ public class VTFTest {
             public String getDescription() {
                 return "VTF (" + (vtfFormat != Format.IMAGE_FORMAT_NONE ? vtfFormat.name() : "All") + ")";
             }
+
         }
 
         JFileChooser chooser = new JFileChooser();
@@ -233,4 +237,5 @@ public class VTFTest {
             }
         }).start();
     }
+
 }

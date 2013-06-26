@@ -44,7 +44,7 @@ public class DataTest extends javax.swing.JFrame {
      */
     public DataTest() {
         initComponents();
-        
+
         //<editor-fold defaultstate="collapsed" desc="Drag+drop">
         this.setDropTarget(new DropTarget() {
             @Override
@@ -55,7 +55,8 @@ public class DataTest extends javax.swing.JFrame {
                     Transferable t = e.getTransferable();
                     File file = null;
                     if(OS.isLinux()) {
-                        DataFlavor nixFileDataFlavor = new DataFlavor("text/uri-list;class=java.lang.String");
+                        DataFlavor nixFileDataFlavor = new DataFlavor(
+                                "text/uri-list;class=java.lang.String");
                         String data = (String) t.getTransferData(nixFileDataFlavor);
                         for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
                             String token = st.nextToken().trim();
@@ -236,7 +237,8 @@ public class DataTest extends javax.swing.JFrame {
                         Blob bin = new Blob();
                         bin.readExternal(DataUtils.mapFile(f));
                         n = bin.getRoot();
-                    } else if(f.getName().toLowerCase().endsWith(".vdf") || f.getName().toLowerCase().endsWith(".res")) {
+                    } else if(f.getName().toLowerCase().endsWith(".vdf") || f.getName().toLowerCase().endsWith(
+                            ".res")) {
                         if(f.getName().toLowerCase().endsWith(".res")) {
                             VDF res = new VDF();
                             res.readExternal(new FileInputStream(f));
