@@ -15,19 +15,23 @@ import java.util.Arrays;
  */
 public class CTX {
 
-    public static final String key = "E2NcUkG2";
+    public static final String TF2 = "E2NcUkG2";
 
-    public static final String key_items = "A5fSXbf7";
+    public static final String TF2_ITEMS = "A5fSXbf7";
 
-    public static final String key_default = "x9Ke0BY7";
+    public static final String SOURCE_DEFAULT = "x9Ke0BY7";
 
     public static void main(String[] args) {
         try {
             InputStream is = new FileInputStream(args[0]);
-            InputStream de = CTX.decrypt(is);
-            InputStream is2 = CTX.encrypt(de);
+            String key = args[1];
+            if (key == null) {
+                key = TF2;
+            }
+            InputStream de = CTX.decrypt(key.getBytes(), is);
+            InputStream is2 = CTX.encrypt(key.getBytes(), de);
             is = new FileInputStream(args[0]);
-            de = CTX.decrypt(is);
+            de = CTX.decrypt(key.getBytes(), is);
             is = new FileInputStream(args[0]);
 
             int bs = 4096;
@@ -57,11 +61,11 @@ public class CTX {
         }
     }
 
-    private static byte[] method(InputStream is, boolean decrypt) throws IOException {
+    private static byte[] method(byte[] key, InputStream is, boolean decrypt) throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(is.available());
         IceKey ice = new IceKey(0);
 
-        ice.set(key.getBytes());
+        ice.set(key);
 
         final int bs = 8; // ice.blockSize();
         byte[] in = new byte[bs];
@@ -93,12 +97,12 @@ public class CTX {
         return arr;
     }
 
-    public static InputStream encrypt(InputStream is) throws IOException {
-        return new ByteArrayInputStream(method(is, false));
+    public static InputStream encrypt(byte[] key, InputStream is) throws IOException {
+        return new ByteArrayInputStream(method(key, is, false));
     }
 
-    public static InputStream decrypt(InputStream is) throws IOException {
-        return new ByteArrayInputStream(method(is, true));
+    public static InputStream decrypt(byte[] key, InputStream is) throws IOException {
+        return new ByteArrayInputStream(method(key, is, true));
     }
 
 }

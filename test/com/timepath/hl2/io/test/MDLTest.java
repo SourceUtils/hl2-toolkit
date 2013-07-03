@@ -52,6 +52,7 @@ public class MDLTest extends SimpleApplication {
         app.setShowSettings(true);
         AppSettings settings = new AppSettings(true);
         settings.setRenderer(AppSettings.LWJGL_OPENGL_ANY);
+        settings.setAudioRenderer(null);
         app.setSettings(settings);
         app.createCanvas();
         app.startCanvas(true);
@@ -196,7 +197,8 @@ public class MDLTest extends SimpleApplication {
 
         public Object load(String f) throws IOException {
             VTF v = VTF.load(new FileInputStream(f));
-            BufferedImage t = (BufferedImage) v.getThumbImage();
+            BufferedImage t;
+//            t = (BufferedImage) v.getThumbImage();
             t = (BufferedImage) v.getImage(0);
 
             byte[] rawData = new byte[t.getWidth() * t.getHeight() * 4];
