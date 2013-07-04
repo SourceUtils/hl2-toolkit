@@ -1,15 +1,13 @@
 package com.timepath.hl2.io;
 
-import com.timepath.DataUtils;
+import com.timepath.io.RandomAccessFileWrapper;
 import com.timepath.steam.io.util.Property;
 import com.timepath.steam.io.VDF;
-import com.timepath.steam.io.util.VDFNode;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -17,7 +15,6 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -138,13 +135,13 @@ public class VCCD {
             } else {
                 f.createNewFile();
             }
-            RandomAccessFile rf = new RandomAccessFile(f, "rw");
-            DataUtils.writeLEInt(rf, expectedHeader);
-            DataUtils.writeLEInt(rf, 1);
-            DataUtils.writeLEInt(rf, blocks);
-            DataUtils.writeLEInt(rf, blockSize);
-            DataUtils.writeLEInt(rf, directorySize);
-            DataUtils.writeLEInt(rf, dataOffset);
+            RandomAccessFileWrapper rf = new RandomAccessFileWrapper(f, "rw");
+            rf.writeLEInt(expectedHeader);
+            rf.writeLEInt(1);
+            rf.writeLEInt(blocks);
+            rf.writeLEInt(blockSize);
+            rf.writeLEInt(directorySize);
+            rf.writeLEInt(dataOffset);
 
             int currentBlock = 0;
             int firstInBlock = 0;
@@ -173,10 +170,10 @@ public class VCCD {
 
 //                    System.out.println(">" + i + " - " + e);
 
-                DataUtils.writeULong(rf, e.getKey());
-                DataUtils.writeLEInt(rf, e.getBlock());
-                DataUtils.writeULEShort(rf, (short) e.getOffset());
-                DataUtils.writeULEShort(rf, (short) e.getLength());
+                rf.writeULong(e.getKey());
+                rf.writeLEInt(e.getBlock());
+                rf.writeULEShort((short) e.getOffset());
+                rf.writeULEShort((short) e.getLength());
             }
 
             rf.write(new byte[(dataOffset - (int) rf.getFilePointer())]);
@@ -189,8 +186,8 @@ public class VCCD {
                     rf.write(new byte[blockSize - (entries.get(i - 1).getOffset() + entries.get(
                                                    i - 1).getLength())]);
                 }
-                DataUtils.writeLEChars(rf, e.getValue());
-                DataUtils.writeLEChar(rf, 0);
+                rf.writeLEChars(e.getValue());
+                rf.writeLEChar(0);
             }
             int last = entries.size() - 1;
             rf.write(
