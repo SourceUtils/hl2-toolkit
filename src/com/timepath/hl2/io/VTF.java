@@ -1,6 +1,5 @@
 package com.timepath.hl2.io;
 
-import com.timepath.steam.io.storage.GCF;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -13,9 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import com.timepath.steam.SteamUtils;
 import com.timepath.io.utils.ViewableData;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -28,6 +25,10 @@ import java.nio.ByteOrder;
 public class VTF implements ViewableData {
 
     private static final Logger LOG = Logger.getLogger(VTF.class.getName());
+
+    public static VTF load(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     public VTF() {
     }
@@ -139,6 +140,10 @@ public class VTF implements ViewableData {
         }
         return thumbImage;
     }
+    
+    public Image getImage(int level) throws IOException {
+        return getImage(level, 0);
+    }
 
     /**
      *
@@ -148,8 +153,11 @@ public class VTF implements ViewableData {
      *
      * @throws IOException
      */
-    public Image getImage(int level) throws IOException {
+    public Image getImage(int level, int frame) throws IOException {
         if(level >= this.mipCount) {
+            return null;
+        }
+        if(frame >= this.frameCount) {
             return null;
         }
         buf.position(this.headerSize + (Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) / 2));
@@ -183,34 +191,33 @@ public class VTF implements ViewableData {
                 LOG.log(Level.WARNING, "Unrecognised VTF format {0}", this.format);
                 return null;
             }
-
             if(this.mipCount - 1 - i == level && nBytes > 0) { // biggest
-                byte[] imageData = new byte[nBytes];
-                buf.get(imageData);
-                image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = (Graphics2D) image.getGraphics();
-                if(this.format == Format.IMAGE_FORMAT_DXT1) {
-                    g.drawImage(loadDXT1(imageData, w, h), 0, 0, w, h, null);
-                } else if(this.format == Format.IMAGE_FORMAT_DXT5) {
-                    g.drawImage(loadDXT5(imageData, w, h), 0, 0, w, h, null);
-                } else if(this.format == Format.IMAGE_FORMAT_BGRA8888) {
-                    g.drawImage(loadBGRA(imageData, w, h), 0, 0, w, h, null);
-                } else if(this.format == Format.IMAGE_FORMAT_BGR888) {
-                    g.drawImage(loadBGR(imageData, w, h), 0, 0, w, h, null);
-                } else if(this.format == Format.IMAGE_FORMAT_UV88) {
-                    g.drawImage(loadUV(imageData, w, h), 0, 0, w, h, null);
-                }
+                    byte[] imageData = new byte[nBytes * this.frameCount];
+                    buf.get(imageData);
+                    System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes);
+                    image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = (Graphics2D) image.getGraphics();
+                    BufferedImage bi = null;
+                    if(this.format == Format.IMAGE_FORMAT_DXT1) {
+                        bi = loadDXT1(imageData, w, h);
+                    } else if(this.format == Format.IMAGE_FORMAT_DXT5) {
+                        bi = loadDXT5(imageData, w, h);
+                    } else if(this.format == Format.IMAGE_FORMAT_BGRA8888) {
+                        bi = loadBGRA(imageData, w, h);
+                    } else if(this.format == Format.IMAGE_FORMAT_BGR888) {
+                        bi = loadBGR(imageData, w, h);
+                    } else if(this.format == Format.IMAGE_FORMAT_UV88) {
+                        bi = loadUV(imageData, w, h);
+                    }
+                    g.drawImage(bi, 0, 0, w, h, null);
             } else {
-//                rf.skipBytes(nBytes);
-                buf.get(new byte[nBytes]);
+                buf.get(new byte[nBytes * this.frameCount]);
             }
         }
         return image;
     }
 
     // STATIC METHODS
-    public static GCF mats = null;
-
     private static int expectedHeader = (('V') | ('T' << 8) | ('F' << 16) | ('\0' << 24));
 
     private InputStream stream;
@@ -252,38 +259,8 @@ public class VTF implements ViewableData {
         vtf.thumbHeight = vtf.buf.get();
         vtf.depth = vtf.buf.getShort();
 
-        LOG.log(Level.FINE, "Format: {0}", vtf.format);
-
-        if(vtf.frameCount > 1) {
-            LOG.log(Level.WARNING, "FRAMES = {0}", vtf.frameCount); // zero indexed
-            if(vtf.frameFirst != 0) {
-                LOG.log(Level.WARNING, "FIRSTFRAME = {0}", vtf.frameFirst); // zero indexed
-            }
-        }
+        LOG.log(Level.INFO, "Format: {0}", vtf.format);
         return vtf;
-    }
-
-    public static VTF load(String path) throws IOException {
-        path = new File(path).getAbsolutePath();
-        if(mats == null) {
-            try {
-                mats = new GCF(new File(SteamUtils.getSteamApps(), "Team Fortress 2 Materials.gcf"));
-            } catch(IOException ex) {
-                Logger.getLogger(VTF.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        File f = null;
-        try {
-            File dest = File.createTempFile(path.replaceAll("/", "_"), "");
-            LOG.log(Level.INFO, "Extracting {0} to {1}", new Object[] {path, dest});
-            if(mats.extract(mats.find(path).get(0), dest) != null) {
-                f = new File(path);
-                LOG.log(Level.INFO, "Loading {0}", f);
-            }
-        } catch(IOException ex) {
-            Logger.getLogger(VTF.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return VTF.load(new FileInputStream(f));
     }
 
     private static HashMap<InputStream, VTF> cache = new HashMap<InputStream, VTF>();
