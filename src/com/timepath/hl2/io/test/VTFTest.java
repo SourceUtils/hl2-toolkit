@@ -2,10 +2,7 @@ package com.timepath.hl2.io.test;
 
 import com.timepath.hl2.io.VTF;
 import com.timepath.hl2.io.VTF.Format;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -14,11 +11,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BoxLayout;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 /**
@@ -30,7 +25,7 @@ public class VTFTest {
     private static final Logger LOG = Logger.getLogger(VTFTest.class.getName());
 
     public static void test() {
-        final JFrame f = new JFrame("Vtf Loader");
+        final JFrame f = new JFrame("VTF Loader");
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JScrollPane jsp = new JScrollPane();
@@ -44,102 +39,90 @@ public class VTFTest {
         @SuppressWarnings("serial")
         class ImagePreviewPanel extends JPanel implements PropertyChangeListener {
 
-            private int width, height;
-
             private Image image;
 
-            private static final int ACCSIZE = 128;
+            private static final int ACCSIZE = 256;
 
             private Color bg;
+
+            private final JSpinner lod, frame;
+
+            private VTF v;
 
             ImagePreviewPanel() {
                 setPreferredSize(new Dimension(ACCSIZE, -1));
                 bg = getBackground();
-                bg = Color.BLACK;
+                bg = Color.PINK;
+                lod = new JSpinner();
+                lod.addChangeListener(new ChangeListener() {
+                    public void stateChanged(ChangeEvent e) {
+                        try {
+                            createImage(v);
+                            repaint();
+                        } catch(IOException ex) {
+                            Logger.getLogger(VTFTest.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                });
+                this.add(lod, BorderLayout.WEST);
+                frame = new JSpinner();
+                frame.addChangeListener(new ChangeListener() {
+                    public void stateChanged(ChangeEvent e) {
+                        try {
+                            createImage(v);
+                            repaint();
+                        } catch(IOException ex) {
+                            Logger.getLogger(VTFTest.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                });
+                this.add(frame, BorderLayout.EAST);
             }
 
             public void propertyChange(PropertyChangeEvent e) {
                 String propertyName = e.getPropertyName();
-
-                // Make sure we are responding to the right event.
                 if(propertyName.equals(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY)) {
-                    File selection = (File) e.getNewValue();
-                    String name;
-
-                    if(selection == null) {
-                        return;
-                    } else {
-                        name = selection.getAbsolutePath();
-                    }
-
-                    /*
-                     * Make reasonably sure we have an image format that AWT can
-                     * handle so we don't try to draw something silly.
-                     */
                     try {
-                        VTF v = VTF.load(new FileInputStream(selection));
-                        if(v == null) {
-                            return;
-                        }
-                        Image i = v.getImage(0);
-                        if(i == null) {
-                            return;
-                        }
-                        f.setIconImage(VTF.load(new FileInputStream(selection)).getThumbImage());
-                        image = (i != null ? i : new BufferedImage(128, 128,
-                                                                   BufferedImage.TYPE_INT_ARGB));
-                        scaleImage();
+                        load((File) e.getNewValue());
                         repaint();
                     } catch(IOException ex) {
-                        LOG.log(Level.SEVERE, null, ex);
+                        Logger.getLogger(VTFTest.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
 
-            private void scaleImage() {
-                width = image.getWidth(this);
-                height = image.getHeight(this);
-                double ratio = 1.0;
+            private void load(File selection) throws IOException {
+                if(selection == null) {
+                    return;
+                }
+                v = VTF.load(new FileInputStream(selection));
+                if(v != null) {
+                    frame.setValue(v.frameFirst);
+                }
+                createImage(v);
+            }
 
-                /*
-                 * Determine how to scale the image. Since the accessory can expand
-                 * vertically make sure we don't go larger than ACCSIZE when scaling
-                 * vertically.
-                 */
-                if(width >= height) {
-                    ratio = (double) (ACCSIZE - 5) / width;
-                    width = ACCSIZE - 5;
-                    height = (int) (height * ratio);
-                } else {
-                    if(getHeight() > ACCSIZE) {
-                        ratio = (double) (ACCSIZE - 5) / height;
-                        height = ACCSIZE - 5;
-                        width = (int) (width * ratio);
-                    } else {
-                        ratio = (double) getHeight() / height;
-                        height = getHeight();
-                        width = (int) (width * ratio);
+            private void createImage(VTF v) throws IOException {
+                if(v != null) {
+                    Image i = v.getImage((Integer) lod.getValue(), (Integer) frame.getValue());
+                    if(i != null) {
+                        f.setIconImage(v.getThumbImage());
+                        image = i;
+                        return;
                     }
                 }
+                image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
 
-                image = image.getScaledInstance(width, height, Image.SCALE_DEFAULT);
             }
 
             @Override
             public void paintComponent(Graphics g) {
                 g.setColor(bg);
-
-                /*
-                 * If we don't do this, we will end up with garbage from previous
-                 * images if they have larger sizes than the one we are currently
-                 * drawing. Also, it seems that the file list can paint outside
-                 * of its rectangle, and will cause odd behavior if we don't clear
-                 * or fill the rectangle for the accessory before drawing. This might
-                 * be a bug in JFileChooser.
-                 */
                 g.fillRect(0, 0, ACCSIZE, getHeight());
-                g.drawImage(image, getWidth() / 2 - width / 2 + 5, getHeight() / 2 - height / 2,
-                            this);
+                if(image != null) {
+                    g.drawImage(image, getWidth() / 2 - image.getWidth(null) / 2,
+                                getHeight() / 2 - image.getHeight(null) / 2, this);
+                }
             }
 
         }
@@ -190,44 +173,9 @@ public class VTFTest {
         chooser.addPropertyChangeListener(preview);
         chooser.setControlButtonsAreShown(false);
         pane.add(chooser);
-//        boolean init = false;
-//        File root = new File("res/vtf/hud/");
-//        File[] subs = root.listFiles();
-//        if(subs != null) {
-//            for(int i = 0; i < subs.length; i++) {
-//                if(subs[i].getName().endsWith(".vtf")) {
-//                    try {
-//                        VtfFile v = VtfFile.load(subs[i]);
-//                        Image image = null;
-//                        if(v != null) {
-//                            image = v.getImage(0);
-//                        }
-//                        if(image != null) {
-//                            JPanel p = new JPanel(new BorderLayout());
-//                            p.setBackground(Color.MAGENTA.darker().darker());
-//                            p.setSize(image.getWidth(null), image.getHeight(null));
-//                            JLabel l = new JLabel();
-//                            l.setToolTipText(subs[i].getName());
-//                            l.setIcon(new ImageIcon(image));
-//                            p.add(l, BorderLayout.CENTER);
-//                            p.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//                            pane.add(p);
-//                            jsp.invalidate();
-//                            jsp.validate();
-//                            jsp.repaint();
-//
-//                            if(!init) {
         f.setVisible(true);
         f.pack();
-//                                init = true;
-//                            }
-//                        }
-//                    } catch (IOException ex) {
-//                        logger.log(Level.SEVERE, null, ex);
-//                    }
-//                }
-//            }
-//        }
+        f.setLocationRelativeTo(null);
     }
 
     public static void main(String... args) {
