@@ -1,5 +1,6 @@
 package com.timepath.hl2.io;
 
+import com.timepath.DataUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,17 +14,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Studiomodel
  *
  * https://github.com/toji/webgl-source/tree/master/js
  * https://github.com/toji/webgl-source/blob/master/js/source-mdl-struct.js
  * https://github.com/toji/webgl-source/blob/master/js/source-mdl.js
+ * http://trac.openscenegraph.org/projects/osg/browser/OpenSceneGraph/trunk/src/osgPlugins/mdl
+ * https://github.com/w23/OpenSource/tree/master/src
  *
  * @author timepath
  */
-public class MDL {
+public class StudioModel {
 
-    private static final Logger LOG = Logger.getLogger(MDL.class.getName());
+    private static final Logger LOG = Logger.getLogger(StudioModel.class.getName());
 
     private static final int MAX_NUM_LODS = 8;
 
@@ -33,6 +35,8 @@ public class MDL {
 
     private static final int VERTEX_STRIDE = 64;
 
+    private MDL mdl;
+    
     private VVD vvd;
 
     public float[] getVertices() {
@@ -65,35 +69,43 @@ public class MDL {
         return b;
     }
 
-    public static MDL load(String fileName) throws IOException {
-        LOG.log(Level.INFO, "\n\nLoading MDL {0}", fileName);
-        File model = new File(fileName + ".mdl");
-        if(!model.exists()) {
-            return null;
+    public static StudioModel load(String fileName) throws IOException {
+        LOG.log(Level.INFO, "\n\nLoading StudioModel {0}", fileName);
+        StudioModel s = new StudioModel();
+        
+        File mdl = new File(fileName + ".mdl");
+        if(mdl.exists()) {
+            s.mdl = MDL.load(mdl);
         }
-        MDL mdl = MDL.load(model);
         File vvd = new File(fileName + ".vvd");
         if(vvd.exists()) {
-            mdl.vvd = VVD.load(vvd);
+            s.vvd = VVD.load(vvd);
         }
         File vtx = new File(fileName + ".dx90.vtx");
         if(vtx.exists()) {
-            mdl.vtx = VTX.load(vtx);
+            s.vtx = VTX.load(vtx);
         }
-        return mdl;
+        
+        return s;
     }
 
-    private static MDL load(File file) throws IOException {
-        MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(
-                FileChannel.MapMode.READ_ONLY, 0, file.length());
-        mbb.order(ByteOrder.LITTLE_ENDIAN);
-        return load(mbb);
-    }
+    private static class MDL {
+        
+        private static final Logger LOG = Logger.getLogger(MDL.class.getName());
 
-    private static MDL load(ByteBuffer buf) {
-        MDL mdl = new MDL();
+        private static MDL load(File file) throws IOException {
+            LOG.log(Level.INFO, "\n\nLoading MDL {0}", file);
+            return load(DataUtils.mapFile(file));
+        }
 
-        return mdl;
+        private static MDL load(ByteBuffer buf) {
+            MDL mdl = new MDL();
+            
+            
+
+            return mdl;
+        }
+
     }
 
     /**
@@ -118,10 +130,7 @@ public class MDL {
 
         private static VTX load(File file) throws IOException {
             LOG.log(Level.INFO, "\n\nLoading VTX {0}", file);
-            MappedByteBuffer mbb = new FileInputStream(file).getChannel().map(
-                    FileChannel.MapMode.READ_ONLY, 0, file.length());
-            mbb.order(ByteOrder.LITTLE_ENDIAN);
-            return load(mbb);
+            return load(DataUtils.mapFile(file));
         }
 
         private static VTX load(ByteBuffer buf) {
