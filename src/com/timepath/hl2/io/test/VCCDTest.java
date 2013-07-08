@@ -786,12 +786,12 @@ public class VCCDTest extends javax.swing.JFrame {
 
                         CRC32 crc = new CRC32();
                         DefaultMutableTreeNode top = new DefaultMutableTreeNode();
-                        ArrayList<DirectoryEntry> caps = gcf.find("game_sounds");//_vo");
+                        ArrayList<DirectoryEntry> caps = gcf.find("game_sounds", gcf.getRoot());//_vo");
                         pb.setMaximum(caps.size());
                         pb.setIndeterminate(false);
                         for(int i = 0; i < caps.size(); i++) {
                             VDF e = new VDF();
-                            e.readExternal(new FileInputStream(gcf.extract(caps.get(i), null)));
+                            e.readExternal(caps.get(i).asStream());
                             TreeUtils.moveChildren(e.getRoot(), top);
                             pb.setValue(i);
                         }
