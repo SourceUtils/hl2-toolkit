@@ -243,6 +243,7 @@ public class DataTest extends javax.swing.JFrame {
                             VDF res = new VDF();
                             res.readExternal(new FileInputStream(f));
                             n = res.getRoot();
+                            System.out.println(res.save());
                         } else if(!VDF.isBinary(f)) {
                             VDF vdf = new VDF();
                             vdf.readExternal(new FileInputStream(f));
