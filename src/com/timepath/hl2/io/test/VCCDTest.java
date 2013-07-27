@@ -576,7 +576,7 @@ public class VCCDTest extends javax.swing.JFrame {
         private ComboBoxChangeListener dl = new ComboBoxChangeListener();
 
         TokenDropdown() {
-            super(new JComboBox()); // <String>
+            super(new JComboBox/*<String>*/());
             createComboBox(initVals());
         }
 
@@ -587,10 +587,10 @@ public class VCCDTest extends javax.swing.JFrame {
         }
 
         //<editor-fold defaultstate="collapsed" desc="ComboBox">
-        private class SharedPoolComboBox extends JComboBox<String> {
+        private class SharedPoolComboBox extends JComboBox/*<String>*/ {
 
             SharedPoolComboBox(ArrayList<String> list) {
-                DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
+                DefaultComboBoxModel/*<String>*/ model = new DefaultComboBoxModel/*<String>*/();
                 this.setModel(model);
                 this.setEditable(true);
                 for(int i = 0; i < list.size(); i++) {
