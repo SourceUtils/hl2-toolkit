@@ -732,8 +732,7 @@ public class VCCDTest extends javax.swing.JFrame {
      */
     public static void main(String... args) {
         try {
-            if(args[0].length() > 0) {
-                System.out.println(args[0]);
+            if(args.length > 0) {
                 ArrayList<CaptionEntry> in = VCCD.importFile(args[0]);
                 HashMap<Integer, String> hashmap = new HashMap<Integer, String>();
                 for(CaptionEntry i : in) { // learning
