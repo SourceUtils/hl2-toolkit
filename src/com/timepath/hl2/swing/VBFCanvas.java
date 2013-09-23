@@ -1,4 +1,4 @@
-package com.timepath.hl2.io.swing;
+package com.timepath.hl2.swing;
 
 import com.timepath.hl2.io.VBF;
 import com.timepath.hl2.io.VBF.BitmapGlyph;
@@ -73,7 +73,7 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 //        g.setTransform(at);
         if(img == null && vtf != null) {
             try {
-                img = vtf.getImage(0);
+                img = vtf.getImage(vtf.mipCount - 1);
             } catch(IOException ex) {
                 Logger.getLogger(VBFCanvas.class.getName()).log(Level.SEVERE, null, ex);
             }

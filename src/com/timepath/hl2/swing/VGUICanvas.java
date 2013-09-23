@@ -1,4 +1,4 @@
-package com.timepath.hl2.io.swing;
+package com.timepath.hl2.swing;
 
 import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Alignment;
