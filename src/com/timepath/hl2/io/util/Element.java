@@ -547,7 +547,7 @@ public class Element extends VDFNode implements ViewableData {
             } else {
                 LOG.log(Level.WARNING, "Unknown control: {0}", controlName);
             }
-        } else if(this.getFile().equalsIgnoreCase("hudlayout")) {
+        } else if(this.getFile() != null && this.getFile().equalsIgnoreCase("hudlayout")) {
             areas.put(this.name, this);
 //            System.out.println("adding " + this.name + " to areas");
         }
