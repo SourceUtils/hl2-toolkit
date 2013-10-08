@@ -39,7 +39,7 @@ public class VCCDTest {
      */
     @Test
     public void testLoadSave() throws Exception {
-        File in = new File("/home/timepath/Desktop/in.dat");
+        File in = new File("testdata/in.dat");
         FileInputStream is = new FileInputStream(in);
         byte[] array = new byte[is.available()];
         is.read(array);
