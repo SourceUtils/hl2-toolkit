@@ -20,20 +20,20 @@ import java.util.zip.CRC32;
  * https://developer.valvesoftware.com/wiki/Subtitles_(Portal_2)
  * https://developer.valvesoftware.com/wiki/Soundscript
  * phonemes
- * 
+ * <p>
  * @author TimePath
  */
 public class VCCD {
-    
+
     private static final Logger LOG = Logger.getLogger(VCCD.class.getName());
 
     private VCCD() {
     }
 
-    private static int HEADER_MAGIC = (('V') | ('C' << 8) | ('C' << 16) | ('D' << 24));
+    private static final int HEADER_MAGIC = (('V') | ('C' << 8) | ('C' << 16) | ('D' << 24));
 
-    private static int HEADER_VERSION_EXPECTED = 1;
-    
+    private static final int HEADER_VERSION_EXPECTED = 1;
+
     private static final int HEADER_SIZE = (4 * 6);
 
     private static final int ENTRY_SIZE = (4 * 2) + (2 * 2);
@@ -180,6 +180,8 @@ public class VCCD {
      * @param file
      *
      * @return
+     * <p>
+     * @throws java.io.FileNotFoundException
      */
     public static ArrayList<CaptionEntry> importFile(String file) throws FileNotFoundException {
         VDF v = new VDF();
@@ -262,7 +264,8 @@ public class VCCD {
 
         /**
          * Set byte length of value. Has no effect if not a multiple of 2
-         * @param length 
+         * <p>
+         * @param length
          */
         public void setLength(int length) {
             if(length % 2 != 0) {
@@ -295,7 +298,7 @@ public class VCCD {
                     .append("(").append(trueKey != null ? "'" + trueKey + "'" : "?").append(")")
                     .append(" = '").append(value).append("'").toString();
         }
-        
+
         public int compareTo(CaptionEntry t) {
             String e1 = this.getTrueKey();
             if(e1 == null) {
