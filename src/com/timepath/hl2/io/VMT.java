@@ -10,24 +10,24 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class VMT extends VDF implements Savable {
+
+    private static final Logger LOG = Logger.getLogger(VMT.class.getName());
+
+    private static void analyze(VDFNode data) {
+        String shader = data.getKey();
+        LOG.log(Level.INFO, "Shader: {0}", shader);
+    }
+
+    public VMT() {
+    }
 
     @Override
     public void readExternal(InputStream in, String encoding) {
         super.readExternal(in, encoding);
         analyze(root);
-    }
-
-    private static final Logger LOG = Logger.getLogger(VMT.class.getName());
-
-    public VMT() {
-    }
-
-    private static void analyze(VDFNode data) {
-        String shader = data.getKey();
-        LOG.log(Level.INFO, "Shader: {0}", shader);
     }
 
     public VTF getTexture() throws IOException {

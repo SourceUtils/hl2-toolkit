@@ -26,22 +26,13 @@ import javax.swing.tree.TreeNode;
  *
  * https://code.google.com/p/hl2sb-src/source/browse/#svn%2Ftrunk%2Fsrc%2Fgame%2Fclient%2Fgame_controls
  *
- * @author timepath
+ * @author TimePath
  */
 public class RES extends VDF implements Savable {
 
-    private static final Logger LOG = Logger.getLogger(RES.class.getName());
-
     public static final HashMap<String, HudFont> fonts = new HashMap<String, HudFont>();
 
-    public RES() {
-    }
-
-    @Override
-    public void readExternal(InputStream in, String encoding) {
-        super.readExternal(in, encoding);
-//        clientScheme(root);
-    }
+    private static final Logger LOG = Logger.getLogger(RES.class.getName());
 
     /**
      * TODO
@@ -78,6 +69,15 @@ public class RES extends VDF implements Savable {
             LOG.log(Level.INFO, "TODO: Load font {0}", fontName);
         }
         LOG.info("Loaded clientscheme");
+    }
+
+        public RES() {
+        }
+
+        @Override
+    public void readExternal(InputStream in, String encoding) {
+        super.readExternal(in, encoding);
+//        clientScheme(root);
     }
 
 }

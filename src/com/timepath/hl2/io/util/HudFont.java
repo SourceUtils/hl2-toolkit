@@ -12,11 +12,30 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class HudFont {
 
-    public HudFont() {
+    private static final Logger LOG = Logger.getLogger(HudFont.class.getName());
+
+    public static Font fontFileForName(String name) throws Exception {
+        File[] files = new File("/home/andrew/TF2 HUDS/frankenhudr47/resource/").listFiles(
+                new FilenameFilter() { // XXX: hardcoded
+                    public boolean accept(File file, String string) {
+                        return string.endsWith(".ttf");
+                    }
+                });
+        if(files != null) {
+            for(File file : files) {
+                Font f = Font.createFont(Font.TRUETYPE_FONT, file);
+                //            System.out.println(f.getFamily().toLowerCase());
+                if(f.getFamily().toLowerCase().equals(name.toLowerCase())) {
+                    LOG.log(Level.INFO, "Found font for {0}", name);
+                    return f;
+                }
+            }
+        }
+        return null;
     }
 
     private String name;
@@ -26,6 +45,9 @@ public class HudFont {
     private int tall;
 
     private boolean aa;
+
+    public HudFont() {
+    }
 
     public HudFont(String font, Element node) {
         this.name = font;
@@ -68,27 +90,5 @@ public class HudFont {
         LOG.log(Level.INFO, "Loaded {0}", name);
         return f1.deriveFont(fontSize);
     }
-
-    public static Font fontFileForName(String name) throws Exception {
-        File[] files = new File("/home/andrew/TF2 HUDS/frankenhudr47/resource/").listFiles(
-                new FilenameFilter() { // XXX: hardcoded
-            public boolean accept(File file, String string) {
-                return string.endsWith(".ttf");
-            }
-        });
-        if(files != null) {
-            for(int t = 0; t < files.length; t++) {
-                Font f = Font.createFont(Font.TRUETYPE_FONT, files[t]);
-                //            System.out.println(f.getFamily().toLowerCase());
-                if(f.getFamily().toLowerCase().equals(name.toLowerCase())) {
-                    LOG.log(Level.INFO, "Found font for {0}", name);
-                    return f;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static final Logger LOG = Logger.getLogger(HudFont.class.getName());
 
 }

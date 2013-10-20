@@ -1,27 +1,9 @@
 package com.timepath.hl2.swing;
 
-import com.timepath.hl2.io.util.Element;
 import com.timepath.hl2.io.util.Alignment;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Toolkit;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import com.timepath.hl2.io.util.Element;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,35 +17,16 @@ import javax.swing.SwingUtilities;
  * OSX - http://i.imgur.com/KxiV3.jpg
  * WIN - http://i.imgur.com/VqABM.jpg
  *
- * @author timepath
+ * @author TimePath
  */
 @SuppressWarnings("serial")
 public class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     private static final Logger LOG = Logger.getLogger(VGUICanvas.class.getName());
 
-    //<editor-fold defaultstate="collapsed" desc="Variables">
-    public double scale = 1;
-
-    public Dimension screen;
-
-    public Dimension internal;
-
-    private Color BG_COLOR = Color.GRAY;
-
-    private Color GRID_COLOR = Color.WHITE;
-
     private static int offX = 10; // left
 
     private static int offY = 10; // top
-
-    private Rectangle selectRect = new Rectangle();
-
-    private BufferedImage currentbg;
-
-    private BufferedImage gridbg;
-
-    private BufferedImage elementImage;
 
     private static final float gridAlpha = 0.25f;
 
@@ -82,7 +45,79 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     private static AlphaComposite acGrid = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                                                                       gridAlpha);
 
+    private static final Comparator<Element> layerSort = new Comparator<Element>() {
+        public int compare(Element e1, Element e2) {
+            return e1.getLayer() - e2.getLayer();
+        }
+    };
+
+    //<editor-fold defaultstate="collapsed" desc="Utility methods">
+    /**
+     * Finds the greatest common multiple
+     *
+     * @param a
+     * @param b
+     *
+     * @return
+     */
+    public static long gcm(long a, long b) {
+        return b == 0 ? a : gcm(b, a % b);
+    }
+
+    public static Rectangle fitRect(Point p1, Point p2, Rectangle r) {
+        Rectangle result = new Rectangle(r);
+        result.x = Math.min(p1.x, p2.x);
+        result.y = Math.min(p1.y, p2.y);
+        result.width = Math.abs(p2.x - p1.x);
+        result.height = Math.abs(p2.y - p1.y);
+        return result;
+    }
     //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Variables">
+    public double scale = 1;
+
+    public Dimension screen;
+
+    public Dimension internal;
+
+    private final Color BG_COLOR = Color.GRAY;
+
+    private final Color GRID_COLOR = Color.WHITE;
+
+    private Rectangle selectRect = new Rectangle();
+
+    private BufferedImage currentbg;
+
+    private BufferedImage gridbg;
+
+    private BufferedImage elementImage;
+
+    private Image background;
+
+    private final int minGridSpacing = 10;
+
+    private int _offX;
+
+    private int _offY;
+
+    private boolean isDragSelecting;
+
+    private boolean isDragMoving;
+
+    private Point dragStart;
+    //</editor-fold>
+
+    //<editor-fold defaultstate="collapsed" desc="Element management">
+    // List of elements
+    private final ArrayList<Element> elements = new ArrayList<Element>();
+
+    // List of currently selected elements
+    private final ArrayList<Element> selectedElements = new ArrayList<Element>();
+
+    private Element hoveredElement;
+    //</editor-fold>
+    
     public VGUICanvas() {
         initInput();
         this.setPreferredSize(new Dimension(640, 480));
@@ -106,8 +141,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             }
         });
     }
-
-    private Image background;
 
     public void setBackgroundImage(Image background) {
         this.background = background;
@@ -134,6 +167,316 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
         internal = new Dimension((int) Math.round(m * 480), 480);
         this.repaint();
+    }
+
+    /**
+     * Convenience method for repainting the bare minimum
+     *
+     * @param bounds
+     */
+    public void doRepaint(Rectangle bounds) {
+        elementImage = null;
+        this.repaint(offX + bounds.x, offY + bounds.y, bounds.width - 1, bounds.height - 1);
+//        this.repaint();
+    }
+
+    public void mouseMoved(MouseEvent event) {
+        Point p = new Point(event.getPoint());
+        p.translate(-offX, -offY);
+
+        hover(chooseBest(pick(p, elements)));
+    }
+
+    public void mousePressed(MouseEvent event) {
+        this.requestFocusInWindow();
+        Point p = new Point(event.getPoint());
+        p.translate(-offX, -offY);
+        int button = event.getButton();
+
+        if(SwingUtilities.isLeftMouseButton(event)) {
+            dragStart = new Point(p.x, p.y);
+            selectRect.x = p.x;
+            selectRect.y = p.y;
+            if(getHovered() == null) { // clicked nothing
+                if(!event.isControlDown()) {
+                    deselectAll();
+                }
+                isDragSelecting = true;
+                isDragMoving = false;
+            } else { // hovering over something
+                isDragSelecting = false;
+                isDragMoving = true;
+                if(event.isControlDown()) { // always select
+                    if(isSelected(getHovered())) {
+                        deselect(getHovered());
+                    } else {
+                        select(getHovered());
+                    }
+                } else {
+                    if(!isSelected(getHovered())) { // If the thing I'm hovering isn't selected already
+                        deselectAll();
+                        select(getHovered());
+                    }
+                }
+            }
+        }
+    }
+
+    public void mouseReleased(MouseEvent event) {
+        Point p = new Point(event.getPoint());
+        p.translate(-offX, -offY);
+        int button = event.getButton();
+
+        if(SwingUtilities.isLeftMouseButton(event)) {
+            this.setCursor(Cursor.getDefaultCursor());
+            if(isDragMoving) {
+                placed();
+            }
+            isDragSelecting = false;
+            isDragMoving = false;
+            dragStart = null;
+            Rectangle original = new Rectangle(selectRect);
+            selectRect.width = 0;
+            selectRect.height = 0;
+            for(int i = 0; i < selectedElements.size(); i++) {
+                Element e = selectedElements.get(i);
+                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll(
+                        "\"", "").endsWith(".res")) { // XXX: hacky
+                    continue;
+                }
+                translate(e, _offX, _offY);
+            }
+            _offX = 0;
+            _offY = 0;
+            doRepaint(new Rectangle(original.x, original.y, original.width + 1, original.height + 1));
+        }
+    }
+
+    public void mouseDragged(MouseEvent event) {
+        Point p = new Point(event.getPoint());
+        p.translate(-offX, -offY); // relative to top left of canvas
+
+        //        if(button == MouseEvent.BUTTON1) {
+        if(isDragSelecting) {
+            select(dragStart, p, event.isControlDown());
+        } else if(isDragMoving) {
+            this.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            _offX += p.x - dragStart.x;
+            _offY += p.y - dragStart.y;
+            elementImage = null;
+            this.repaint();
+            dragStart = p; // hacky
+        }
+        //        }
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="For later use">
+    public void mouseEntered(MouseEvent e) {
+    } // Needed for showing mouse coordinates later
+
+    public void mouseExited(MouseEvent e) {
+    } // Needed for hiding mouse coordinates later
+
+    public void mouseClicked(MouseEvent event) {
+    } // May be needed for double clicks later on
+
+    public void placed() {
+    }
+
+    public ArrayList<Element> getElements() {
+        return elements;
+    }
+
+    public void addElement(Element e) {
+        if(!elements.contains(e)) {
+            e.validateLoad();
+//            e.setCanvas(this);
+            elements.add(e);
+            this.doRepaint(e.getBounds());
+        }
+    }
+
+    public void removeElement(Element e) {
+        if(elements.contains(e)) {
+            elements.remove(e);
+            this.doRepaint(e.getBounds());
+        }
+    }
+
+    public void removeElements(ArrayList<Element> e) {
+        for(int i = 0; i < e.size(); i++) {
+            removeElement(e.get(i));
+        }
+    }
+
+    public void clearElements() {
+        for(int i = 0; i < elements.size(); i++) {
+            removeElement(elements.get(i));
+        }
+    }
+
+    /**
+     * Special exceptions are handled here
+     *
+     * @param element
+     */
+    public void load(Element element) {
+        if(element.getFile() == null) {
+            return;
+        }
+        if(Element.areas.containsKey(element.getFile())) {
+            Element p = Element.areas.get(element.getFile());
+            p.add(element);
+            this.addElement(p);
+        } else if(element.getFile().equalsIgnoreCase("HudPlayerHealth")) { // better, but still not perfect
+            // move by "CHealthAccountPanel" delta_item_x" and "delta_item_start_y"
+            Element p = Element.areas.get("CHealthAccountPanel");
+            p.add(element);
+            this.addElement(p);
+        } else if(element.getFile().equalsIgnoreCase("HudAmmoWeapons")) {
+            Element p = Element.areas.get("HudWeaponAmmo");
+            p.add(element);
+            this.addElement(p);
+        }
+        this.addElement(element); // weird but it has to be done
+    }
+
+    public ArrayList<Element> getSelected() {
+        return selectedElements;
+    }
+
+    public boolean isSelected(Element e) {
+        return selectedElements.contains(e);
+    }
+
+    public void select(Element e) {
+        if(e != null) {
+            if(selectedElements.contains(e)) {
+                return;
+            }
+
+            selectedElements.add(e);
+
+            //            if(e.children != null) {
+            //                for(int i = 0; i < e.children.size(); i++) {
+            //                    select(e.children.get(i));
+            //                }
+            //            }
+            this.doRepaint(e.getBounds());
+        }
+    }
+
+    public void deselect(Element e) {
+        if(e != null) {
+            if(!selectedElements.contains(e)) {
+                return;
+            }
+
+            selectedElements.remove(e);
+
+            //            if(e.children != null) {
+            //                for(int i = 0; i < e.children.size(); i++) {
+            //                    deselect(e.children.get(i));
+            //                }
+            //            }
+            this.doRepaint(e.getBounds());
+        }
+    }
+
+    public void deselectAll() {
+        ArrayList<Element> temp = new ArrayList<Element>(selectedElements);
+        selectedElements.clear();
+        for(int i = 0; i < temp.size(); i++) {
+            this.doRepaint(temp.get(i).getBounds());
+        }
+    }
+
+    public Element getHovered() {
+        return hoveredElement;
+    }
+
+    public void select(Point p1, Point p2, boolean ctrl) {
+        if(p1 != null && p2 != null) {
+            Rectangle originalSelectRect = new Rectangle(selectRect);
+            selectRect = fitRect(p1, p2, selectRect);
+            for(int i = 0; i < elements.size(); i++) {
+                Element e = elements.get(i);
+                if(selectRect.intersects(e.getBounds())) {
+                    select(e); // TODO: not perfect, I want the selection inverted as it goes over
+                } else {
+                    if(!ctrl) {
+                        deselect(e);
+                    }
+                }
+            }
+            // This repaints the overlap a second time. A minor inefficiency...
+            this.doRepaint(new Rectangle(originalSelectRect.x, originalSelectRect.y,
+                                         originalSelectRect.width + 1, originalSelectRect.height + 1));
+            this.doRepaint(new Rectangle(this.selectRect.x, this.selectRect.y,
+                                         this.selectRect.width + 1, this.selectRect.height + 1));
+        }
+    }
+
+    // Checks if poing p is inside the bounds of any element
+    public ArrayList<Element> pick(Point p, ArrayList<Element> elements) {
+        ArrayList<Element> potential = new ArrayList<Element>();
+        for(int i = 0; i < elements.size(); i++) {
+            Element e = elements.get(i);
+            if(e.getBounds().contains(p)) {
+                potential.add(e);
+            }
+        }
+        return potential;
+    }
+
+    public Element chooseBest(ArrayList<Element> potential) {
+        int pSize = potential.size();
+        if(pSize == 0) {
+            return null;
+        }
+        if(pSize == 1) {
+            return potential.get(0);
+        }
+        Element smallest = potential.get(0);
+        for(int i = 1; i < potential.size(); i++) {
+            Element e = potential.get(i); // sort by layer, then by size
+            if(e.getLayer() > smallest.getLayer()) {
+                smallest = e;
+            } else if(e.getLayer() == smallest.getLayer()) {
+                if(e.getSize() < smallest.getSize()) {
+                    smallest = e;
+                }
+            }
+        }
+        return smallest;
+    }
+
+    public void translate(Element e, double dx, double dy) { // todo: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
+        //        Rectangle originalBounds = new Rectangle(e.getBounds());
+        if(e.getXAlignment() == Alignment.Right) {
+            dx *= -1;
+        }
+        double scaleX = ((double) screen.width / (double) internal.width);
+        dx = Math.round(dx / scaleX);
+        e.setLocalX(e.getLocalX() + dx);
+        if(e.getYAlignment() == Alignment.Right) {
+            dy *= -1;
+        }
+        double scaleY = ((double) screen.height / (double) internal.height);
+        dy = Math.round(dy / scaleY);
+        e.setLocalY(e.getLocalY() + dy);
+        //        this.doRepaint(originalBounds);
+        //        this.doRepaint(e.getBounds());
+        this.repaint(); // helps
+    }
+
+    public void removeAllElements() {
+        ArrayList<Element> temp = new ArrayList<Element>(elements);
+        elements.removeAll(elements);
+        for(int i = 0; i < temp.size(); i++) {
+            Element e = temp.get(i);
+            this.doRepaint(e.getBounds());
+        }
     }
 
     //<editor-fold defaultstate="collapsed" desc="Paint methods">
@@ -174,79 +517,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         return r;
     }
 
-    @Override
-    protected void paintComponent(Graphics graphics) {
-//        Rectangle outliers = getOutliers();
-//        int left = -outliers.x;
-//        int right = outliers.width + outliers.x - internal.width;
-//        int top = -outliers.y;
-//        int down = outliers.height + outliers.y - internal.height;
-//        this.resize(this.getWidth() + left + right, this.getHeight() + top + down);
-
-//        offX = ((this.getWidth() - internal.width) / 2);
-//        offY = ((this.getHeight() - internal.height) / 2);
-
-//        offX = ((this.getWidth() - internal.width) / 2) + ((-outliers.x) - (outliers.width + outliers.x - internal.width));
-//        offY = ((this.getHeight() - internal.height) / 2) + ((-outliers.y) - (outliers.height + outliers.y - internal.height));
-
-//        super.paintComponent(graphics);
-
-        Graphics2D g = (Graphics2D) graphics;
-
-        g.setColor(BG_COLOR);
-        g.fillRect(0, 0, this.getWidth(), this.getHeight());
-
-        if(background != null) {
-            if(currentbg == null) {
-                currentbg = toCompatibleImage(resizeImage(background));
-            }
-            g.drawImage(currentbg, offX, offY, this);
-        } else {
-            g.setColor(Color.WHITE.darker().darker());
-            g.fillRect(offX, offY, (int) Math.round(screen.width * scale), (int) Math.round(
-                    screen.height * scale));
-        }
-
-        if(gridbg == null) {
-            gridbg = toCompatibleImage(drawGrid());
-        }
-        g.drawImage(gridbg, offX, offY, this);
-
-        if(elementImage == null) {
-            BufferedImage img = new BufferedImage(screen.width + (2 * offX),
-                                                  screen.height + (2 * offY),
-                                                  BufferedImage.TYPE_INT_ARGB);
-            Graphics2D ge = img.createGraphics();
-            ge.translate(offX, offY);
-
-            Collections.sort(elements, layerSort);
-            for(int i = 0; i < elements.size(); i++) {
-                ge.setComposite(acSimple);
-                paintElement(elements.get(i), ge);
-            }
-
-            ge.dispose();
-            elementImage = toCompatibleImage(img);
-        }
-        g.drawImage(elementImage, 0, 0, this);
-
-        //<editor-fold defaultstate="collapsed" desc="Selection rectangle">
-        g.setComposite(acSelect);
-        g.setColor(Color.CYAN.darker());
-        g.fillRect(offX + selectRect.x + 1, offY + selectRect.y + 1, selectRect.width - 2,
-                   selectRect.height - 2);
-        g.setColor(Color.BLUE);
-        g.drawRect(offX + selectRect.x, offY + selectRect.y, selectRect.width - 1,
-                   selectRect.height - 1);
-        //</editor-fold>
-    }
-
-    private static Comparator<Element> layerSort = new Comparator<Element>() {
-        public int compare(Element e1, Element e2) {
-            return e1.getLayer() - e2.getLayer();
-        }
-    };
-
     private BufferedImage resizeImage(Image i) { // TODO: aspect ratio tuning
         int w = screen.width;
         int h = screen.height;
@@ -269,8 +539,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
         return resizedImage;
     }
-
-    private int minGridSpacing = 10;
 
     // as soon as the height drops below 480, stops rendering
     private BufferedImage drawGrid() {
@@ -393,262 +661,12 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         //            paintElement(e.children.get(i), g);
         //        }
     }
-
-    /**
-     * Convenience method for repainting the bare minimum
-     *
-     * @param bounds
-     */
-    public void doRepaint(Rectangle bounds) {
-        elementImage = null;
-        this.repaint(offX + bounds.x, offY + bounds.y, bounds.width - 1, bounds.height - 1);
-//        this.repaint();
-    }
     //</editor-fold>
-
+    
     //<editor-fold defaultstate="collapsed" desc="Input">
     private void initInput() {
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-    }
-
-    public void mouseMoved(MouseEvent event) {
-        Point p = new Point(event.getPoint());
-        p.translate(-offX, -offY);
-
-        hover(chooseBest(pick(p, elements)));
-    }
-
-    public void mousePressed(MouseEvent event) {
-        this.requestFocusInWindow();
-        Point p = new Point(event.getPoint());
-        p.translate(-offX, -offY);
-        int button = event.getButton();
-
-        if(SwingUtilities.isLeftMouseButton(event)) {
-            dragStart = new Point(p.x, p.y);
-            selectRect.x = p.x;
-            selectRect.y = p.y;
-            if(getHovered() == null) { // clicked nothing
-                if(!event.isControlDown()) {
-                    deselectAll();
-                }
-                isDragSelecting = true;
-                isDragMoving = false;
-            } else { // hovering over something
-                isDragSelecting = false;
-                isDragMoving = true;
-                if(event.isControlDown()) { // always select
-                    if(isSelected(getHovered())) {
-                        deselect(getHovered());
-                    } else {
-                        select(getHovered());
-                    }
-                } else {
-                    if(!isSelected(getHovered())) { // If the thing I'm hovering isn't selected already
-                        deselectAll();
-                        select(getHovered());
-                    }
-                }
-            }
-        }
-    }
-
-    public void mouseReleased(MouseEvent event) {
-        Point p = new Point(event.getPoint());
-        p.translate(-offX, -offY);
-        int button = event.getButton();
-
-        if(SwingUtilities.isLeftMouseButton(event)) {
-            this.setCursor(Cursor.getDefaultCursor());
-            if(isDragMoving) {
-                placed();
-            }
-            isDragSelecting = false;
-            isDragMoving = false;
-            dragStart = null;
-            Rectangle original = new Rectangle(selectRect);
-            selectRect.width = 0;
-            selectRect.height = 0;
-            for(int i = 0; i < selectedElements.size(); i++) {
-                Element e = selectedElements.get(i);
-                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll(
-                        "\"", "").endsWith(".res")) { // XXX: hacky
-                    continue;
-                }
-                translate(e, _offX, _offY);
-            }
-            _offX = 0;
-            _offY = 0;
-            doRepaint(new Rectangle(original.x, original.y, original.width + 1, original.height + 1));
-        }
-    }
-
-    private int _offX;
-
-    private int _offY;
-
-    public void mouseDragged(MouseEvent event) {
-        Point p = new Point(event.getPoint());
-        p.translate(-offX, -offY); // relative to top left of canvas
-
-        //        if(button == MouseEvent.BUTTON1) {
-        if(isDragSelecting) {
-            select(dragStart, p, event.isControlDown());
-        } else if(isDragMoving) {
-            this.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
-            _offX += p.x - dragStart.x;
-            _offY += p.y - dragStart.y;
-            elementImage = null;
-            this.repaint();
-            dragStart = p; // hacky
-        }
-        //        }
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="For later use">
-    public void mouseEntered(MouseEvent e) {
-    } // Needed for showing mouse coordinates later
-
-    public void mouseExited(MouseEvent e) {
-    } // Needed for hiding mouse coordinates later
-
-    public void mouseClicked(MouseEvent event) {
-    } // May be needed for double clicks later on
-
-    //</editor-fold>
-    //</editor-fold>
-    public void placed() {
-    }
-
-    private boolean isDragSelecting;
-
-    private boolean isDragMoving;
-
-    private Point dragStart;
-
-    //<editor-fold defaultstate="collapsed" desc="Element management">
-    // List of elements
-    private ArrayList<Element> elements = new ArrayList<Element>();
-
-    public ArrayList<Element> getElements() {
-        return elements;
-    }
-
-    public void addElement(Element e) {
-        if(!elements.contains(e)) {
-            e.validateLoad();
-//            e.setCanvas(this);
-            elements.add(e);
-            this.doRepaint(e.getBounds());
-        }
-    }
-
-    public void removeElement(Element e) {
-        if(elements.contains(e)) {
-            elements.remove(e);
-            this.doRepaint(e.getBounds());
-        }
-    }
-
-    public void removeElements(ArrayList<Element> e) {
-        for(int i = 0; i < e.size(); i++) {
-            removeElement(e.get(i));
-        }
-    }
-
-    public void clearElements() {
-        for(int i = 0; i < elements.size(); i++) {
-            removeElement(elements.get(i));
-        }
-    }
-
-    /**
-     * Special exceptions are handled here
-     *
-     * @param element
-     */
-    public void load(Element element) {
-        if(element.getFile() == null) {
-            return;
-        }
-        if(Element.areas.containsKey(element.getFile())) {
-            Element p = Element.areas.get(element.getFile());
-            p.add(element);
-            this.addElement(p);
-        } else if(element.getFile().equalsIgnoreCase("HudPlayerHealth")) { // better, but still not perfect
-            // move by "CHealthAccountPanel" delta_item_x" and "delta_item_start_y"
-            Element p = Element.areas.get("CHealthAccountPanel");
-            p.add(element);
-            this.addElement(p);
-        } else if(element.getFile().equalsIgnoreCase("HudAmmoWeapons")) {
-            Element p = Element.areas.get("HudWeaponAmmo");
-            p.add(element);
-            this.addElement(p);
-        }
-        this.addElement(element); // weird but it has to be done
-    }
-
-    // List of currently selected elements
-    private ArrayList<Element> selectedElements = new ArrayList<Element>();
-
-    public ArrayList<Element> getSelected() {
-        return selectedElements;
-    }
-
-    public boolean isSelected(Element e) {
-        return selectedElements.contains(e);
-    }
-
-    public void select(Element e) {
-        if(e != null) {
-            if(selectedElements.contains(e)) {
-                return;
-            }
-
-            selectedElements.add(e);
-
-            //            if(e.children != null) {
-            //                for(int i = 0; i < e.children.size(); i++) {
-            //                    select(e.children.get(i));
-            //                }
-            //            }
-
-            this.doRepaint(e.getBounds());
-        }
-    }
-
-    public void deselect(Element e) {
-        if(e != null) {
-            if(!selectedElements.contains(e)) {
-                return;
-            }
-
-            selectedElements.remove(e);
-
-            //            if(e.children != null) {
-            //                for(int i = 0; i < e.children.size(); i++) {
-            //                    deselect(e.children.get(i));
-            //                }
-            //            }
-
-            this.doRepaint(e.getBounds());
-        }
-    }
-
-    public void deselectAll() {
-        ArrayList<Element> temp = new ArrayList<Element>(selectedElements);
-        selectedElements.clear();
-        for(int i = 0; i < temp.size(); i++) {
-            this.doRepaint(temp.get(i).getBounds());
-        }
-    }
-
-    //<editor-fold defaultstate="collapsed" desc="Hovers">
-    private Element hoveredElement;
-
-    public Element getHovered() {
-        return hoveredElement;
     }
 
     private void hover(Element e) {
@@ -665,111 +683,68 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     }
     //</editor-fold>
 
-    public void select(Point p1, Point p2, boolean ctrl) {
-        if(p1 != null && p2 != null) {
-            Rectangle originalSelectRect = new Rectangle(selectRect);
-            selectRect = fitRect(p1, p2, selectRect);
+    @Override
+    protected void paintComponent(Graphics graphics) {
+//        Rectangle outliers = getOutliers();
+//        int left = -outliers.x;
+//        int right = outliers.width + outliers.x - internal.width;
+//        int top = -outliers.y;
+//        int down = outliers.height + outliers.y - internal.height;
+//        this.resize(this.getWidth() + left + right, this.getHeight() + top + down);
+
+//        offX = ((this.getWidth() - internal.width) / 2);
+//        offY = ((this.getHeight() - internal.height) / 2);
+//        offX = ((this.getWidth() - internal.width) / 2) + ((-outliers.x) - (outliers.width + outliers.x - internal.width));
+//        offY = ((this.getHeight() - internal.height) / 2) + ((-outliers.y) - (outliers.height + outliers.y - internal.height));
+//        super.paintComponent(graphics);
+        Graphics2D g = (Graphics2D) graphics;
+
+        g.setColor(BG_COLOR);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+        if(background != null) {
+            if(currentbg == null) {
+                currentbg = toCompatibleImage(resizeImage(background));
+            }
+            g.drawImage(currentbg, offX, offY, this);
+        } else {
+            g.setColor(Color.WHITE.darker().darker());
+            g.fillRect(offX, offY, (int) Math.round(screen.width * scale), (int) Math.round(
+                    screen.height * scale));
+        }
+
+        if(gridbg == null) {
+            gridbg = toCompatibleImage(drawGrid());
+        }
+        g.drawImage(gridbg, offX, offY, this);
+
+        if(elementImage == null) {
+            BufferedImage img = new BufferedImage(screen.width + (2 * offX),
+                                                  screen.height + (2 * offY),
+                                                  BufferedImage.TYPE_INT_ARGB);
+            Graphics2D ge = img.createGraphics();
+            ge.translate(offX, offY);
+
+            Collections.sort(elements, layerSort);
             for(int i = 0; i < elements.size(); i++) {
-                Element e = elements.get(i);
-                if(selectRect.intersects(e.getBounds())) {
-                    select(e); // TODO: not perfect, I want the selection inverted as it goes over
-                } else {
-                    if(!ctrl) {
-                        deselect(e);
-                    }
-                }
+                ge.setComposite(acSimple);
+                paintElement(elements.get(i), ge);
             }
-            // This repaints the overlap a second time. A minor inefficiency...
-            this.doRepaint(new Rectangle(originalSelectRect.x, originalSelectRect.y,
-                                         originalSelectRect.width + 1, originalSelectRect.height + 1));
-            this.doRepaint(new Rectangle(this.selectRect.x, this.selectRect.y,
-                                         this.selectRect.width + 1, this.selectRect.height + 1));
+
+            ge.dispose();
+            elementImage = toCompatibleImage(img);
         }
+        g.drawImage(elementImage, 0, 0, this);
+
+        //<editor-fold defaultstate="collapsed" desc="Selection rectangle">
+        g.setComposite(acSelect);
+        g.setColor(Color.CYAN.darker());
+        g.fillRect(offX + selectRect.x + 1, offY + selectRect.y + 1, selectRect.width - 2,
+                   selectRect.height - 2);
+        g.setColor(Color.BLUE);
+        g.drawRect(offX + selectRect.x, offY + selectRect.y, selectRect.width - 1,
+                   selectRect.height - 1);
+        //</editor-fold>
     }
 
-    //<editor-fold defaultstate="collapsed" desc="Utility methods">
-    /**
-     * Finds the greatest common multiple
-     *
-     * @param a
-     * @param b
-     *
-     * @return
-     */
-    public static long gcm(long a, long b) {
-        return b == 0 ? a : gcm(b, a % b);
-    }
-
-    public static Rectangle fitRect(Point p1, Point p2, Rectangle r) {
-        Rectangle result = new Rectangle(r);
-        result.x = Math.min(p1.x, p2.x);
-        result.y = Math.min(p1.y, p2.y);
-        result.width = Math.abs(p2.x - p1.x);
-        result.height = Math.abs(p2.y - p1.y);
-        return result;
-    }
-
-    // Checks if poing p is inside the bounds of any element
-    public ArrayList<Element> pick(Point p, ArrayList<Element> elements) {
-        ArrayList<Element> potential = new ArrayList<Element>();
-        for(int i = 0; i < elements.size(); i++) {
-            Element e = elements.get(i);
-            if(e.getBounds().contains(p)) {
-                potential.add(e);
-            }
-        }
-        return potential;
-    }
-
-    public Element chooseBest(ArrayList<Element> potential) {
-        int pSize = potential.size();
-        if(pSize == 0) {
-            return null;
-        }
-        if(pSize == 1) {
-            return potential.get(0);
-        }
-        Element smallest = potential.get(0);
-        for(int i = 1; i < potential.size(); i++) {
-            Element e = potential.get(i); // sort by layer, then by size
-            if(e.getLayer() > smallest.getLayer()) {
-                smallest = e;
-            } else if(e.getLayer() == smallest.getLayer()) {
-                if(e.getSize() < smallest.getSize()) {
-                    smallest = e;
-                }
-            }
-        }
-        return smallest;
-    }
-
-    public void translate(Element e, double dx, double dy) { // todo: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
-        //        Rectangle originalBounds = new Rectangle(e.getBounds());
-        if(e.getXAlignment() == Alignment.Right) {
-            dx *= -1;
-        }
-        double scaleX = ((double) screen.width / (double) internal.width);
-        dx = Math.round(dx / scaleX);
-        e.setLocalX(e.getLocalX() + dx);
-        if(e.getYAlignment() == Alignment.Right) {
-            dy *= -1;
-        }
-        double scaleY = ((double) screen.height / (double) internal.height);
-        dy = Math.round(dy / scaleY);
-        e.setLocalY(e.getLocalY() + dy);
-        //        this.doRepaint(originalBounds);
-        //        this.doRepaint(e.getBounds());
-        this.repaint(); // helps
-    }
-
-    public void removeAllElements() {
-        ArrayList<Element> temp = new ArrayList<Element>(elements);
-        elements.removeAll(elements);
-        for(int i = 0; i < temp.size(); i++) {
-            Element e = temp.get(i);
-            this.doRepaint(e.getBounds());
-        }
-    }
-    //</editor-fold>
-    //</editor-fold>
 }

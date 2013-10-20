@@ -7,11 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * Thin-ICE encrypted files. Often VDF
  * <p/>
- * @author timepath
+ * @author TimePath
  */
 public class CTX {
 
@@ -20,6 +21,8 @@ public class CTX {
     public static final String TF2_ITEMS = "A5fSXbf7";
 
     public static final String SOURCE_DEFAULT = "x9Ke0BY7";
+
+    private static final Logger LOG = Logger.getLogger(CTX.class.getName());
 
     public static void main(String[] args) {
         try {
@@ -61,6 +64,14 @@ public class CTX {
         }
     }
 
+    public static InputStream encrypt(byte[] key, InputStream is) throws IOException {
+        return new ByteArrayInputStream(method(key, is, false));
+    }
+
+    public static InputStream decrypt(byte[] key, InputStream is) throws IOException {
+        return new ByteArrayInputStream(method(key, is, true));
+    }
+
     private static byte[] method(byte[] key, InputStream is, boolean decrypt) throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(is.available());
         IceKey ice = new IceKey(0);
@@ -95,14 +106,6 @@ public class CTX {
 
         byte[] arr = buf.array();
         return arr;
-    }
-
-    public static InputStream encrypt(byte[] key, InputStream is) throws IOException {
-        return new ByteArrayInputStream(method(key, is, false));
-    }
-
-    public static InputStream decrypt(byte[] key, InputStream is) throws IOException {
-        return new ByteArrayInputStream(method(key, is, true));
     }
 
 }

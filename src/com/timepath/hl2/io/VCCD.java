@@ -1,7 +1,7 @@
 package com.timepath.hl2.io;
 
-import com.timepath.steam.io.util.Property;
 import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.util.Property;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -26,9 +26,6 @@ import java.util.zip.CRC32;
 public class VCCD {
 
     private static final Logger LOG = Logger.getLogger(VCCD.class.getName());
-
-    private VCCD() {
-    }
 
     private static final int HEADER_MAGIC = (('V') | ('C' << 8) | ('C' << 16) | ('D' << 24));
 
@@ -207,25 +204,33 @@ public class VCCD {
         return children;
     }
 
-    /**
-     * Entries are stored alphabetically by original value of hash
-     */
+    private VCCD() {
+    }
+
     public static class CaptionEntry implements Comparable<CaptionEntry> {
+
+        private long key;
+
+        private String trueKey;
+
+        private int block;
+
+        private int offset;
+
+        private int length;
+
+        private String value;
 
         public CaptionEntry() {
         }
-
-        private long key;
 
         public int getKey() {
             return (int) key;
         }
 
-        public void setKey(long key) {
-            this.key = key;
-        }
-
-        private String trueKey;
+                public void setKey(long key) {
+                    this.key = key;
+                }
 
         public String getTrueKey() {
             return trueKey;
@@ -236,8 +241,6 @@ public class VCCD {
             this.trueKey = key;
         }
 
-        private int block;
-
         public int getBlock() {
             return block;
         }
@@ -246,8 +249,6 @@ public class VCCD {
             this.block = block;
         }
 
-        private int offset;
-
         public int getOffset() {
             return offset;
         }
@@ -255,8 +256,6 @@ public class VCCD {
         public void setOffset(int offset) {
             this.offset = offset;
         }
-
-        private int length;
 
         public int getLength() {
             return length;
@@ -276,8 +275,6 @@ public class VCCD {
                 this.value = value.substring(0, (length / 2) - 1);
             }
         }
-
-        private String value;
 
         public String getValue() {
             return value;

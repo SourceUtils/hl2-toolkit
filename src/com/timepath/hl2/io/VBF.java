@@ -14,69 +14,15 @@ import java.util.logging.Logger;
  *
  * Valve Bitmap Font
  *
- * @author timepath
+ * @author TimePath
  */
 public class VBF {
 
     private static final Logger LOG = Logger.getLogger(VBF.class.getName());
 
-    private static int expectedHeader = (('V') | ('F' << 8) | ('N' << 16) | ('T' << 24));
+    private static final int expectedHeader = (('V') | ('F' << 8) | ('N' << 16) | ('T' << 24));
 
-    private static int expectedVersion = 3;
-
-    private short width;
-
-    public void setWidth(int width) {
-        this.width = (short) width;
-    }
-
-    public short getWidth() {
-        return width;
-    }
-
-    private short height;
-
-    public void setHeight(int height) {
-        this.height = (short) height;
-    }
-
-    public short getHeight() {
-        return height;
-    }
-
-    /**
-     * style flags
-     *
-     * #define BF_BOLD	0x0001
-     * #define BF_ITALIC	0x0002
-     * #define BF_OUTLINED	0x0004
-     * #define BF_DROPSHADOW	0x0008
-     * #define BF_BLURRED	0x0010
-     * #define BF_SCANLINES	0x0020
-     * #define BF_ANTIALIASED	0x0040
-     * #define BF_CUSTOM	0x0080
-     */
-    private short flags;
-
-    private short ascent;
-
-    /**
-     * Maps characters to the glyph table
-     */
-    private byte[] table = new byte[256];
-
-    public byte[] getTable() {
-        return table;
-    }
-
-    private ArrayList<BitmapGlyph> glyphs = new ArrayList<BitmapGlyph>();
-
-    public ArrayList<BitmapGlyph> getGlyphs() {
-        return glyphs;
-    }
-
-    public VBF() {
-    }
+    private static final int expectedVersion = 3;
 
     public static VBF load(InputStream is) throws IOException {
         VBF v = new VBF();
@@ -131,8 +77,8 @@ public class VBF {
 
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < dbg.length; i++) {
-            for(int x = 0; x < dbg[i].length; x++) {
-                sb.append(dbg[i][x]);
+            for(Object item : dbg[i]) {
+                sb.append(item);
             }
             if(i < dbg.length) {
                 sb.append("\n");
@@ -150,6 +96,60 @@ public class VBF {
 //        }
         //</editor-fold>
         return v;
+    }
+
+    private short width;
+
+    private short height;
+
+    /**
+     * style flags
+     *
+     * #define BF_BOLD	0x0001
+     * #define BF_ITALIC	0x0002
+     * #define BF_OUTLINED	0x0004
+     * #define BF_DROPSHADOW	0x0008
+     * #define BF_BLURRED	0x0010
+     * #define BF_SCANLINES	0x0020
+     * #define BF_ANTIALIASED	0x0040
+     * #define BF_CUSTOM	0x0080
+     */
+    private short flags;
+
+    private short ascent;
+
+    /**
+     * Maps characters to the glyph table
+     */
+    private final byte[] table = new byte[256];
+
+    private final ArrayList<BitmapGlyph> glyphs = new ArrayList<BitmapGlyph>();
+
+    public VBF() {
+    }
+
+    public void setWidth(int width) {
+        this.width = (short) width;
+    }
+
+    public short getWidth() {
+        return width;
+    }
+
+    public void setHeight(int height) {
+        this.height = (short) height;
+    }
+
+    public short getHeight() {
+        return height;
+    }
+
+    public byte[] getTable() {
+        return table;
+    }
+
+    public ArrayList<BitmapGlyph> getGlyphs() {
+        return glyphs;
     }
 
     public boolean hasGlyph(int i) {
@@ -182,10 +182,10 @@ public class VBF {
             if(r.width == 0 || r.height == 0) {
                 continue;
             }
-            if((short) r.width > maxcharwidth) {
+            if(r.width > maxcharwidth) {
                 maxcharwidth = (short) r.width;
             }
-            if((short) r.height > maxcharheight) {
+            if(r.height > maxcharheight) {
                 maxcharheight = (short) r.height;
             }
         }
@@ -219,6 +219,9 @@ public class VBF {
 
         private byte index;
 
+        private Rectangle bounds = new Rectangle();
+
+        short a, b, c; // b seems to equal bounds.width
         public void setIndex(byte index) {
             this.index = index;
         }
@@ -227,8 +230,6 @@ public class VBF {
             return index;
         }
 
-        private Rectangle bounds = new Rectangle();
-
         public void setBounds(Rectangle bounds) {
             this.bounds = bounds;
         }
@@ -236,8 +237,6 @@ public class VBF {
         public Rectangle getBounds() {
             return bounds;
         }
-
-        short a, b, c; // b seems to equal bounds.width
 
         @Override
         public String toString() {

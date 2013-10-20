@@ -6,7 +6,6 @@ import com.jme3.asset.AssetLoader;
 import com.jme3.input.ChaseCamera;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
@@ -45,7 +44,7 @@ import javax.swing.JMenuItem;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class MDLTest extends SimpleApplication {
 
@@ -106,13 +105,6 @@ public class MDLTest extends SimpleApplication {
         Logger.getLogger("com.jme3").setLevel(Level.INFO);
     }
 
-    private void registerLoaders() {
-//        this.assetManager.registerLocator("/", FileLocator.class);
-//        this.assetManager.registerLoader(MDLLoader.class, "mdl");
-//        this.assetManager.registerLoader(VTFLoader.class, "vtf");
-//        this.assetManager.registerLoader(BSPLoader.class, "bsp");
-    }
-
     @Override
     public void simpleInitApp() {
         registerLoaders();
@@ -120,6 +112,13 @@ public class MDLTest extends SimpleApplication {
         this.setDisplayFps(false);
         initInput();
     }
+
+        private void registerLoaders() {
+//        this.assetManager.registerLocator("/", FileLocator.class);
+//        this.assetManager.registerLoader(MDLLoader.class, "mdl");
+//        this.assetManager.registerLoader(VTFLoader.class, "vtf");
+//        this.assetManager.registerLoader(BSPLoader.class, "bsp");
+        }
 
     private void initInput() {      
         rootNode.rotateUpTo(Vector3f.UNIT_Z.negate());
@@ -138,14 +137,40 @@ public class MDLTest extends SimpleApplication {
         chaseCam.setMaxDistance(100);
     }
 
-    public static class MDLLoader implements AssetLoader {
-
-        public MDLLoader() {
+    private void loadModel(final File f) {
+        try {
+            String stripped = f.getPath().substring(0, f.getPath().lastIndexOf('.'));
+            Geometry[] mdls = {(Geometry) new MDLLoader().load(stripped),
+                               new Geometry("Box", new Box(1, 1, 1))};
+            int i = 0;
+            for(final Geometry mdl : mdls) {
+                mdl.setLocalTranslation(20 * i++, 0, 0);
+                Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                if(new File(stripped + ".vtf").exists()) {
+                    Texture tex = (Texture) new VTFLoader().load(stripped + ".vtf");
+                    mat.setTexture("ColorMap", tex);
+                }
+                mdl.setMaterial(mat);
+                this.enqueue(new Callable<Void>() {
+                    public Void call() {
+                        rootNode.attachChild(mdl);
+                        return null;
+                    }
+                });
+            }
+        } catch(IOException ex) {
+            Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static class MDLLoader implements AssetLoader {
 
         private static final Logger LOG = Logger.getLogger(MDLLoader.class.getName());
 
-        @Override
+                public MDLLoader() {
+                }
+
+                @Override
         public Object load(AssetInfo info) throws IOException {
             String name = "mdl/" + info.getKey().getName().substring(0,
                                                                      info.getKey().getName().length() - 4);
@@ -224,12 +249,12 @@ public class MDLTest extends SimpleApplication {
 
     public static class VTFLoader implements AssetLoader {
 
-        public VTFLoader() {
-        }
-
         private static final Logger LOG = Logger.getLogger(VTFLoader.class.getName());
 
-        @Override
+                public VTFLoader() {
+                }
+
+                @Override
         public Object load(AssetInfo info) throws IOException {
             File f = new File("mdl/" + info.getKey().getName());
             LOG.info(f.toString());
@@ -272,32 +297,6 @@ public class MDLTest extends SimpleApplication {
             return t;
         }
 
-    }
-
-    private void loadModel(final File f) {
-        try {
-            String stripped = f.getPath().substring(0, f.getPath().lastIndexOf('.'));
-            Geometry[] mdls = {(Geometry) new MDLLoader().load(stripped),
-                               new Geometry("Box", new Box(1, 1, 1))};
-            int i = 0;
-            for(final Geometry mdl : mdls) {
-                mdl.setLocalTranslation(20 * i++, 0, 0);
-                Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                if(new File(stripped + ".vtf").exists()) {
-                    Texture tex = (Texture) new VTFLoader().load(stripped + ".vtf");
-                    mat.setTexture("ColorMap", tex);
-                }
-                mdl.setMaterial(mat);
-                this.enqueue(new Callable<Void>() {
-                    public Void call() {
-                        rootNode.attachChild(mdl);
-                        return null;
-                    }
-                });
-            }
-        } catch(IOException ex) {
-            Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
 }

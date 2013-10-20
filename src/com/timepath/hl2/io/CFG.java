@@ -7,26 +7,37 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class CFG {
 
     private static final Logger LOG = Logger.getLogger(CFG.class.getName());
 
-    ArrayList<Alias> aliases = new ArrayList<Alias>();
+    public static void main(String[] args) {
+        readFromString(
+                "alias one \"alias three four\"; alias two // yay\nalias b; alias c alias c alias d alias v taunt");
+    }
 
-    public class Alias {
+    public static void readFromString(String s) {
+        parse(new Scanner(s));
+    }
 
-        /**
-         * 32 characters
-         */
-        String name;
+    public static void readFromStream(InputStream in) {
+        readFromStream(in, "UTF-8");
+    }
 
-        String cmd;
-
-        public Alias() {
+    public static void readFromStream(InputStream in, String encoding) {
+        Scanner s = null;
+        try {
+            s = new Scanner(in, encoding);
+            parse(s);
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            if(s != null) {
+                s.close();
+            }
         }
-
     }
 
     private static void parse(Scanner s) {
@@ -83,31 +94,20 @@ public class CFG {
         return i;
     }
 
-    public static void main(String[] args) {
-        readFromString(
-                "alias one \"alias three four\"; alias two // yay\nalias b; alias c alias c alias d alias v taunt");
-    }
+    ArrayList<Alias> aliases = new ArrayList<Alias>();
 
-    public static void readFromString(String s) {
-        parse(new Scanner(s));
-    }
+    public class Alias {
 
-    public static void readFromStream(InputStream in) {
-        readFromStream(in, "UTF-8");
-    }
+        /**
+         * 32 characters
+         */
+        String name;
 
-    public static void readFromStream(InputStream in, String encoding) {
-        Scanner s = null;
-        try {
-            s = new Scanner(in, encoding);
-            parse(s);
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            if(s != null) {
-                s.close();
-            }
+        String cmd;
+
+        public Alias() {
         }
+
     }
 
 }

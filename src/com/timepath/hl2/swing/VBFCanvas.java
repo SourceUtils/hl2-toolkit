@@ -3,14 +3,7 @@ package com.timepath.hl2.swing;
 import com.timepath.hl2.io.VBF;
 import com.timepath.hl2.io.VBF.BitmapGlyph;
 import com.timepath.hl2.io.VTF;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -24,13 +17,37 @@ import javax.swing.SwingUtilities;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     private static final long serialVersionUID = 1L;
 
     private static final Logger LOG = Logger.getLogger(VBFCanvas.class.getName());
+
+    private static final int padding = 32 * 0;
+
+    private static final AffineTransform at = AffineTransform.getTranslateInstance(padding, padding);
+
+    /**
+     * No derive method on 1.5
+     */
+    private static final AlphaComposite acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
+
+    private static final AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                                                                          0.5f);
+
+    private static final AlphaComposite acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+
+    private ArrayList<BitmapGlyph> selected = new ArrayList<BitmapGlyph>();
+
+    private VBF vbf;
+
+    private Image img;
+
+    private VTF vtf;
+
+    private Point last;
 
     /**
      * Creates new form VBFTest
@@ -40,22 +57,6 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         this.addMouseMotionListener(this);
     }
 
-    private static final int padding = 32 * 0;
-
-    private static AffineTransform at = AffineTransform.getTranslateInstance(padding, padding);
-
-    /**
-     * No derive method on 1.5
-     */
-    private static AlphaComposite acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
-
-    private static AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                                                                          0.5f);
-
-    private static AlphaComposite acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
-
-    private ArrayList<BitmapGlyph> selected = new ArrayList<BitmapGlyph>();
-
     public void select(BitmapGlyph g) {
         selected.clear();
         if(g != null) {
@@ -64,69 +65,10 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         }
     }
 
-    @Override
-    protected void paintComponent(Graphics graphics) {
-        Graphics2D g = (Graphics2D) graphics;
-        g.setComposite(acNormal);
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, this.getWidth(), this.getHeight());
-//        g.setTransform(at);
-        if(img == null && vtf != null) {
-            try {
-                img = vtf.getImage(vtf.mipCount - 1);
-            } catch(IOException ex) {
-                Logger.getLogger(VBFCanvas.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        public void setVBF(VBF b) {
+            this.vbf = b;
+            this.revalidate();
         }
-        if(this.vbf != null) {
-            g.setColor(Color.GRAY);
-            g.fillRect(0, 0, vbf.getWidth(), vbf.getHeight());
-        }
-        if(img != null) {
-            g.drawImage(img, 0, 0, this);
-        }
-        if(this.vbf != null) {
-            for(BitmapGlyph glyph : vbf.getGlyphs()) {
-                if(glyph == null) {
-                    continue;
-                }
-                Rectangle bounds = glyph.getBounds();
-                if(bounds == null || bounds.isEmpty()) {
-                    continue;
-                }
-                g.setComposite(acNormal);
-                g.setColor(Color.GREEN);
-                g.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-                if(selected.contains(glyph)) {
-                    g.setComposite(acSelected);
-                    g.fillRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-                }
-//                 TODO: Negative font folor
-//                Map<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
-//                map.put(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON);
-//                map.put(TextAttribute.FOREGROUND, Color.BLACK);
-//                map.put(TextAttribute.BACKGROUND, Color.TRANSLUCENT);
-//                Font f = this.getFont().deriveFont(map);
-//                g.setFont(f);
-//                g.setXORMode(Color.WHITE);
-                g.setComposite(acText);
-                g.setColor(Color.GREEN);
-                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1,
-                             bounds.y + bounds.height - 1);
-            }
-        }
-    }
-
-    private VBF vbf;
-
-    public void setVBF(VBF b) {
-        this.vbf = b;
-        this.revalidate();
-    }
-
-    private Image img;
-
-    private VTF vtf;
 
     public void setVTF(VTF t) {
         this.vtf = t;
@@ -158,8 +100,6 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void mouseClicked(MouseEvent me) {
     }
-
-    private Point last;
 
     public void mouseDragged(MouseEvent me) {
         Point p = me.getPoint();
@@ -215,6 +155,59 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
             return null;
         }
         return this.selected.get(0);
+    }
+
+    @Override
+    protected void paintComponent(Graphics graphics) {
+        Graphics2D g = (Graphics2D) graphics;
+        g.setComposite(acNormal);
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+//        g.setTransform(at);
+        if(img == null && vtf != null) {
+            try {
+                img = vtf.getImage(vtf.mipCount - 1);
+            } catch(IOException ex) {
+                Logger.getLogger(VBFCanvas.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        if(this.vbf != null) {
+            g.setColor(Color.GRAY);
+            g.fillRect(0, 0, vbf.getWidth(), vbf.getHeight());
+        }
+        if(img != null) {
+            g.drawImage(img, 0, 0, this);
+        }
+        if(this.vbf != null) {
+            for(BitmapGlyph glyph : vbf.getGlyphs()) {
+                if(glyph == null) {
+                    continue;
+                }
+                Rectangle bounds = glyph.getBounds();
+                if(bounds == null || bounds.isEmpty()) {
+                    continue;
+                }
+                g.setComposite(acNormal);
+                g.setColor(Color.GREEN);
+                g.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
+                if(selected.contains(glyph)) {
+                    g.setComposite(acSelected);
+                    g.fillRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
+                }
+//                 TODO: Negative font folor
+//                Map<TextAttribute, Object> map = new Hashtable<TextAttribute, Object>();
+//                map.put(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON);
+//                map.put(TextAttribute.FOREGROUND, Color.BLACK);
+//                map.put(TextAttribute.BACKGROUND, Color.TRANSLUCENT);
+//                Font f = this.getFont().deriveFont(map);
+//                g.setFont(f);
+//                g.setXORMode(Color.WHITE);
+                g.setComposite(acText);
+                g.setColor(Color.GREEN);
+                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1,
+                             bounds.y + bounds.height - 1);
+            }
+        }
     }
 
 }

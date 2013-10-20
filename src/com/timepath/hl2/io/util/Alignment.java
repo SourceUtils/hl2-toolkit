@@ -2,7 +2,7 @@ package com.timepath.hl2.io.util;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public enum Alignment {
 

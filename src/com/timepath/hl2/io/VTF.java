@@ -1,34 +1,38 @@
 package com.timepath.hl2.io;
 
-import com.timepath.EnumFlags;
 import com.timepath.EnumFlag;
+import com.timepath.EnumFlags;
 import com.timepath.StringUtils;
 import com.timepath.image.ImageUtils;
+import com.timepath.io.utils.ViewableData;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import com.timepath.io.utils.ViewableData;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.EnumSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 /**
  * TODO: .360.vtf files seem to be a slightly different format... and LZMA compressed.
  *
- * @author timepath
+ * @author TimePath
  */
 public class VTF implements ViewableData {
 
     private static final Logger LOG = Logger.getLogger(VTF.class.getName());
+    
+    private static int HEADER = (('V') | ('T' << 8) | ('F' << 16) | ('\0' << 24));
 
+    private static int expectedCrcHead = (('C') | ('R' << 8) | ('C' << 16) | ('\2' << 24));
+    
     public static VTF load(String string) throws IOException {
         return load(new FileInputStream(string));
     }
@@ -40,9 +44,57 @@ public class VTF implements ViewableData {
         }
         return null;
     }
-    
-    private static int HEADER = (('V') | ('T' << 8) | ('F' << 16) | ('\0' << 24));
-    
+
+    //<editor-fold defaultstate="collapsed" desc="Helpers">
+    private static int nextPowerOf2(int n) {
+        n |= (n >> 16);
+        n |= (n >> 8);
+        n |= (n >> 4);
+        n |= (n >> 2);
+        n |= (n >> 1);
+        ++n;
+        return n;
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="Properties">
+    public int[] version;
+
+    public int headerSize;
+
+    public int width;
+
+    public int height;
+
+    public int flags;
+
+    public int frameCount;
+
+    /**
+     * Zero indexed
+     */
+    public int frameFirst;
+
+    public float[] reflectivity;
+
+    public float bumpScale;
+
+    public Format format;
+
+    public int mipCount;
+
+    public Format thumbFormat;
+
+    public int thumbWidth;
+
+    public int thumbHeight;
+
+    public int depth;
+    //</editor-fold>
+
+    private Image thumbImage;
+
+    private ByteBuffer buf;
+
     public boolean loadFromStream(InputStream is) throws IOException {
         if(((is.read()) | (is.read() << 8) | (is.read() << 16) | (is.read() << 24)) != HEADER) {
 //            LOG.fine("Invalid VTF file");
@@ -86,43 +138,6 @@ public class VTF implements ViewableData {
         LOG.info(StringUtils.fromDoubleArray(debug, "VTF:"));
         return true;
     }
-
-    //<editor-fold defaultstate="collapsed" desc="Properties">
-    public int[] version;
-
-    public int headerSize;
-
-    public int width;
-
-    public int height;
-
-    public int flags;
-
-    public int frameCount;
-
-    /**
-     * Zero indexed
-     */
-    public int frameFirst;
-
-    public float[] reflectivity;
-
-    public float bumpScale;
-
-    public Format format;
-
-    public int mipCount;
-
-    public Format thumbFormat;
-
-    public int thumbWidth;
-
-    public int thumbHeight;
-
-    public int depth;
-    //</editor-fold>
-
-    private Image thumbImage;
 
     public Image getThumbImage() throws IOException {
         if(thumbImage == null) {
@@ -210,9 +225,6 @@ public class VTF implements ViewableData {
         }
         return image;
     }
-
-    private static int expectedCrcHead = (('C') | ('R' << 8) | ('C' << 16) | ('\2' << 24));
-
     public void getControls() throws IOException {
         buf.position(this.headerSize - 8); // 8 bytes for CRC or other things. I have no idea what the data after the first 64 bytes up until here are for
         int crcHead = buf.getInt();
@@ -225,17 +237,13 @@ public class VTF implements ViewableData {
         }
     }
 
-    private ByteBuffer buf;
-
-    //<editor-fold defaultstate="collapsed" desc="Helpers">
-    private static int nextPowerOf2(int n) {
-        n |= (n >> 16);
-        n |= (n >> 8);
-        n |= (n >> 4);
-        n |= (n >> 2);
-        n |= (n >> 1);
-        ++n;
-        return n;
+    public Icon getIcon() {
+        try {
+            return new ImageIcon(this.getThumbImage());
+        } catch(IOException ex) {
+            LOG.log(Level.WARNING, null, ex);
+        }
+        return null;
     }
 
     public static enum Format {
@@ -379,14 +387,5 @@ public class VTF implements ViewableData {
 
     }
     //</editor-fold>
-
-    public Icon getIcon() {
-        try {
-            return new ImageIcon(this.getThumbImage());
-        } catch(IOException ex) {
-            LOG.log(Level.WARNING, null, ex);
-        }
-        return null;
-    }
 
 }

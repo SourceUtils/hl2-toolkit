@@ -1,15 +1,11 @@
 package com.timepath.hl2.io.util;
 
 import com.timepath.hl2.io.RES;
+import com.timepath.hl2.io.VTF;
 import com.timepath.io.utils.ViewableData;
 import com.timepath.steam.io.util.Property;
-import com.timepath.hl2.io.VTF;
 import com.timepath.steam.io.util.VDFNode;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Image;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +17,7 @@ import javax.swing.UIManager;
 
 /**
  *
- * @author timepath
+ * @author TimePath
  */
 public class Element extends VDFNode implements ViewableData {
 
@@ -49,11 +45,11 @@ public class Element extends VDFNode implements ViewableData {
         this.info = info;
     }
 
-    private Dimension screen = new Dimension(640, 480);
+    private final Dimension screen = new Dimension(640, 480);
 
-    private Dimension internal = new Dimension(640, 480);
+    private final Dimension internal = new Dimension(640, 480);
 
-    private double scale = 1;
+    private final double scale = 1;
 
     public String save() {
         String str = "";
@@ -597,6 +593,7 @@ public class Element extends VDFNode implements ViewableData {
         }
     }
 
+    @Override
     public Element getParent() {
         return parent;
     }

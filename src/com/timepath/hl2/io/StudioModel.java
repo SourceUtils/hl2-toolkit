@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  * http://trac.openscenegraph.org/projects/osg/browser/OpenSceneGraph/trunk/src/osgPlugins/mdl
  * https://github.com/w23/OpenSource/tree/master/src
  *
- * @author timepath
+ * @author TimePath
  */
 public class StudioModel {
 
@@ -34,40 +34,6 @@ public class StudioModel {
     private static final int MAX_NUM_BONES_PER_TRI = 9;
 
     private static final int VERTEX_STRIDE = 64;
-
-    private MDL mdl;
-    
-    private VVD vvd;
-
-    public float[] getVertices() {
-        return vvd.verts;
-    }
-
-    public float[] getNormals() {
-        return vvd.norm;
-    }
-
-    public float[] getTangents() {
-        return vvd.tangents;
-    }
-
-    public float[] getTextureCoordinates() {
-        return vvd.uv;
-    }
-
-    private VTX vtx;
-
-    public int[] getIndices() {
-        if(vtx == null) {
-            return null;
-        }
-        int[] b = new int[vtx.indices.size()];
-        for(int i = 0; i < vtx.indices.size(); i++) {
-            Integer l = vtx.indices.get(i);
-            b[i] = l.intValue();
-        }
-        return b;
-    }
 
     public static StudioModel load(String fileName) throws IOException {
         LOG.log(Level.INFO, "\n\nLoading StudioModel {0}", fileName);
@@ -89,6 +55,40 @@ public class StudioModel {
         return s;
     }
 
+    private MDL mdl;
+    
+    private VVD vvd;
+
+    private VTX vtx;
+
+    public float[] getVertices() {
+        return vvd.verts;
+    }
+
+    public float[] getNormals() {
+        return vvd.norm;
+    }
+
+    public float[] getTangents() {
+        return vvd.tangents;
+    }
+
+    public float[] getTextureCoordinates() {
+        return vvd.uv;
+    }
+
+    public int[] getIndices() {
+        if(vtx == null) {
+            return null;
+        }
+        int[] b = new int[vtx.indices.size()];
+        for(int i = 0; i < vtx.indices.size(); i++) {
+            Integer l = vtx.indices.get(i);
+            b[i] = l.intValue();
+        }
+        return b;
+    }
+
     private static class MDL {
         
         private static final Logger LOG = Logger.getLogger(MDL.class.getName());
@@ -106,27 +106,14 @@ public class StudioModel {
             return mdl;
         }
 
+        private MDL() {
+        }
+
     }
 
-    /**
-     * http://blog.tojicode.com/2011/09/source-engine-in-webgl-tech-talk.html
-     *
-     * "the indicies don't point directly at a vertex offset, but instead give
-     * an index into a "vertex table", which itself contains the actual index.
-     * Even that number, however, is not a true index since you also have to
-     * manually calculate another offset into the vertex array based on the
-     * number of vertices in all prior meshes."
-     *
-     * @author timepath
-     */
     private static class VTX {
 
         private static final Logger LOG = Logger.getLogger(VTX.class.getName());
-
-        private ArrayList<Integer> indices = new ArrayList<Integer>();
-
-        private VTX() {
-        }
 
         private static VTX load(File file) throws IOException {
             LOG.log(Level.INFO, "\n\nLoading VTX {0}", file);
@@ -278,22 +265,16 @@ public class StudioModel {
             return vtx;
         }
 
+        private ArrayList<Integer> indices = new ArrayList<Integer>();
+
+        private VTX() {
+        }
+
     }
 
-    /**
-     * Valve Studio Model Vertex Data File
-     * IDSV, or IDCV when compressed
-     *
-     * @author timepath
-     */
     private static class VVD {
 
-        public float[] verts, norm, uv, tangents;
-
         private static final Logger LOG = Logger.getLogger(VVD.class.getName());
-
-        private VVD() {
-        }
 
         public static VVD load(File file) throws IOException {
             LOG.log(Level.INFO, "\n\nLoading VVD {0}", file);
@@ -327,10 +308,10 @@ public class StudioModel {
             vvd.uv = new float[vertexCount * 2];
 
             LOG.log(Level.INFO, "{0},{1},{2},{3},{4},{5},{6},{7}", new Object[] {id, version,
-                                                                                 checksum,
-                                                                                 Arrays.toString(
-                numLODVertexes), numFixups, fixupTableStart, vertexDataStart, tangentDataStart});
-
+                                                                                     checksum,
+                                                                                     Arrays.toString(
+                                                                                             numLODVertexes), numFixups, fixupTableStart, vertexDataStart, tangentDataStart});
+            
             LOG.log(Level.INFO, "{0} vs {1}", new Object[] {buf.position(), fixupTableStart});
 
             // Fixup Table
@@ -370,13 +351,18 @@ public class StudioModel {
             buf.position(tangentDataStart);
             for(int t = 0; t < vertexCount; t++) {
                 float[] m_vecTangent = {buf.getFloat(), buf.getFloat(), buf.getFloat(),
-                                        buf.getFloat()};
+                                                                        buf.getFloat()};
                 System.arraycopy(m_vecTangent, 0, vvd.tangents, t * 4, m_vecTangent.length);
             }
 
             LOG.log(Level.INFO, "Underflow: {0}", new Object[] {buf.remaining()});
 
             return vvd;
+        }
+
+        public float[] verts, norm, uv, tangents;
+
+        private VVD() {
         }
 
     }

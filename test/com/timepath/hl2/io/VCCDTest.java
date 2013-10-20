@@ -2,21 +2,18 @@ package com.timepath.hl2.io;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import java.util.logging.Logger;
+import org.junit.*;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  *
  * @author TimePath
  */
 public class VCCDTest {
-    
-    public VCCDTest() {
-    }
+
+    private static final Logger LOG = Logger.getLogger(VCCDTest.class.getName());
     
     @BeforeClass
     public static void setUpClass() {
@@ -25,6 +22,9 @@ public class VCCDTest {
     @AfterClass
     public static void tearDownClass() {
     }
+    
+        public VCCDTest() {
+        }
     
     @Before
     public void setUp() {
@@ -36,6 +36,7 @@ public class VCCDTest {
 
     /**
      * Tests whether loading and saving produces the same output
+     * @throws java.lang.Exception
      */
     @Test
     public void testLoadSave() throws Exception {
