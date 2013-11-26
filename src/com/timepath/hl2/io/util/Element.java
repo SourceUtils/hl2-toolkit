@@ -4,7 +4,7 @@ import com.timepath.hl2.io.RES;
 import com.timepath.hl2.io.VTF;
 import com.timepath.io.utils.ViewableData;
 import com.timepath.steam.io.util.Property;
-import com.timepath.steam.io.util.VDFNode;
+import com.timepath.steam.io.util.VDFNode1;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,13 +19,13 @@ import javax.swing.UIManager;
  *
  * @author TimePath
  */
-public class Element extends VDFNode implements ViewableData {
+public class Element extends VDFNode1 implements ViewableData {
 
     private static final Logger LOG = Logger.getLogger(Element.class.getName());
 
     public static Map<String, Element> areas = new HashMap<String, Element>();
 
-    public static Element importVdf(VDFNode vdf) {
+    public static Element importVdf(VDFNode1 vdf) {
         Element e = new Element();
         e.ps = vdf.getProperties();
         e.setFile(vdf.getFile());

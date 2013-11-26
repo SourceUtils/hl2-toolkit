@@ -1,6 +1,6 @@
 package com.timepath.hl2.io;
 
-import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.VDF1;
 import com.timepath.steam.io.util.Property;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -181,7 +181,7 @@ public class VCCD {
      * @throws java.io.FileNotFoundException
      */
     public static ArrayList<CaptionEntry> importFile(String file) throws FileNotFoundException {
-        VDF v = new VDF();
+        VDF1 v = new VDF1();
         v.readExternal(new FileInputStream(new File(file)), "UTF-16");
         ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
         ArrayList<Property> props = (v.getRoot().get(0).get(1)).getProperties();

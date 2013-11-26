@@ -2,8 +2,8 @@ package com.timepath.hl2.io;
 
 import com.timepath.hl2.io.util.HudFont;
 import com.timepath.io.utils.Savable;
-import com.timepath.steam.io.VDF;
-import com.timepath.steam.io.util.VDFNode;
+import com.timepath.steam.io.VDF1;
+import com.timepath.steam.io.util.VDFNode1;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -28,7 +28,7 @@ import javax.swing.tree.TreeNode;
  *
  * @author TimePath
  */
-public class RES extends VDF implements Savable {
+public class RES extends VDF1 implements Savable {
 
     public static final HashMap<String, HudFont> fonts = new HashMap<String, HudFont>();
 
@@ -41,24 +41,24 @@ public class RES extends VDF implements Savable {
      */
     private static void clientScheme(DefaultMutableTreeNode props) {
         LOG.info("Found clientscheme");
-        if(!(props instanceof VDFNode)) {
+        if(!(props instanceof VDFNode1)) {
             LOG.log(Level.WARNING, "TreeNode not instanceof VDFNode", props);
             return;
         }
-        VDFNode root = ((VDFNode) props).get("Scheme").get("Fonts");
+        VDFNode1 root = ((VDFNode1) props).get("Scheme").get("Fonts");
         for(int i = 0; i < root.getChildCount(); i++) {
             TreeNode node = root.getChildAt(i);
-            if(!(node instanceof VDFNode)) {
+            if(!(node instanceof VDFNode1)) {
                 continue;
             }
-            VDFNode fontNode = (VDFNode) node;
-            VDFNode detailNode = null;
+            VDFNode1 fontNode = (VDFNode1) node;
+            VDFNode1 detailNode = null;
             for(int j = 0; j < fontNode.getChildCount(); j++) {
                 TreeNode detail = fontNode.getChildAt(j);
-                if(!(detail instanceof VDFNode)) {
+                if(!(detail instanceof VDFNode1)) {
                     continue;
                 }
-                detailNode = (VDFNode) detail;
+                detailNode = (VDFNode1) detail;
                 break; // XXX: hardcoded detail level (the first one)
             }
             if(detailNode == null) {
