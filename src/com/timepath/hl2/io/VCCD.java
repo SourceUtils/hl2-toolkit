@@ -74,7 +74,7 @@ public class VCCD {
             e.setOffset(buf.getShort());
             e.setLength(buf.getShort());
             entries[i] = e;
-            LOG.log(Level.FINE, "Loading {0}, {1} ({2}->{3})", new Object[] {
+            LOG.log(Level.FINEST, "Loading {0}, {1} ({2}->{3})", new Object[] {
                 i, e.getKey(), e.getOffset(), e.getOffset() + e.getLength()});
         }
         buf.position(dataOffset);
@@ -103,22 +103,38 @@ public class VCCD {
     }
 
     public static ByteBuffer save(List<CaptionEntry> entries) throws UnsupportedEncodingException {
-        Collections.sort(entries); // Ensure alphabetical order
+        int requiredBlocks = 0, blockSize = DEFAULT_BLOCK_SIZE;
+        if(!entries.isEmpty()) { // Don't waste time if empty
+            Collections.sort(entries); // Ensure alphabetical order
 
-        // Pack into blocks
-        int blockSize = DEFAULT_BLOCK_SIZE;
-        int totalLength = 0, requiredBlocks = 1, blockPtr;
-        for(CaptionEntry e : entries) {
-            blockPtr = totalLength % blockSize;
-            if(blockPtr + e.getLength() > blockSize) {
-                e.setOffset(0);
-                totalLength = (requiredBlocks - 1) * blockSize;
-                requiredBlocks++;
-            } else {
-                e.setOffset(blockPtr);
+            CaptionEntry longest = null;
+            int thisLength, totalLength = 0, waste, totalWaste = 0;
+            for(CaptionEntry e : entries) { // Pack into blocks
+                thisLength = e.getLength();
+                if(thisLength >= blockSize) {
+                    LOG.log(Level.WARNING, "Token overflow: {0}", e);
+                    continue;
+                }
+                // XXX: The official compiler will not use the last byte in a block
+                if(totalLength + thisLength >= requiredBlocks * blockSize) { // If overflow
+                    waste = (requiredBlocks * blockSize) - totalLength; // Move to end of block
+                    totalWaste += waste;
+                    totalLength += waste;
+                    requiredBlocks++; // Expand
+                }
+                e.setBlock(requiredBlocks - 1); // Zero indexed
+                e.setOffset(totalLength % blockSize);
+                totalLength += thisLength;
+
+                if(longest == null || longest.getLength() < e.getLength()) {
+                    longest = e;
+                }
             }
-            e.setBlock(requiredBlocks - 1);
-            totalLength += e.getLength();
+            LOG.log(Level.INFO, "Found {0} strings", entries.size());
+            LOG.log(Level.INFO, "Longest string ''{0}'' = ({1})",
+                    new Object[] {longest.getTrueKey(), longest.getLength()});
+            LOG.log(Level.INFO, "{0} bytes wasted",
+                    new Object[] {totalWaste});
         }
 
         int dataOffset = (HEADER_SIZE + (entries.size() * ENTRY_SIZE));
@@ -148,11 +164,11 @@ public class VCCD {
             buf.putInt(e.getBlock());
             buf.putShort((short) (e.getOffset() & 0xFFFF));
             buf.putShort((short) (e.getLength() & 0xFFFF));
-            LOG.log(Level.FINE, "Saving {0}, {1} ({2}->{3})", new Object[] {
-                i++, e.getKey(), e.getOffset(), e.getOffset() + e.getLength()});
+            LOG.log(Level.FINEST, "Saving #{0} ({1}) - block: {2}, region: {3} + {4} -> {5}", new Object[] {
+                i++, e.getTrueKey(), e.getBlock(), e.getOffset(), e.getLength(), e.getOffset() + e.getLength()});
         }
         buf.put(new byte[dataOffset - buf.position()]);
-        byte[] nul = new byte[2];
+        byte[] nul = "\0".getBytes(VALUE_CHARSET);
         for(CaptionEntry e : entries) {
             int p = (dataOffset + (e.getBlock() * blockSize) + e.getOffset());
             buf.position(p);
@@ -177,7 +193,7 @@ public class VCCD {
      * @param file
      *
      * @return
-     * <p>
+     *         <p>
      * @throws java.io.FileNotFoundException
      */
     public static ArrayList<CaptionEntry> importFile(String file) throws FileNotFoundException {
@@ -186,9 +202,9 @@ public class VCCD {
         ArrayList<CaptionEntry> children = new ArrayList<CaptionEntry>();
         ArrayList<Property> props = (v.getRoot().get(0).get(1)).getProperties();
         ArrayList<String> usedKeys = new ArrayList<String>();
-        for(int i = props.size() - 1; i >= 0; i--) {
+        for(int i = props.size() - 1; i >= 0; i--) { // Do it in reverse to make overriding easier
             Property p = props.get(i);
-            LOG.log(Level.FINER, "Adding {0}", p);
+            LOG.log(Level.FINER, "Adding {0}", p.toString());
             CaptionEntry e = new CaptionEntry();
             String key = p.getKey().replaceAll("\"", "");
             if(key.equals("//") || key.equals("\\n") || usedKeys.contains(key)) {
@@ -228,9 +244,9 @@ public class VCCD {
             return (int) key;
         }
 
-                public void setKey(long key) {
-                    this.key = key;
-                }
+        public void setKey(long key) {
+            this.key = key;
+        }
 
         public String getTrueKey() {
             return trueKey;
@@ -288,12 +304,12 @@ public class VCCD {
         @Override
         public String toString() {
             return new StringBuilder()
-                    .append("[H: ").append(key)
-                    .append(", b: ").append(block)
-                    .append(", o: ").append(offset)
-                    .append(", l: ").append(length).append("]")
-                    .append("(").append(trueKey != null ? "'" + trueKey + "'" : "?").append(")")
-                    .append(" = '").append(value).append("'").toString();
+                .append("[H: ").append(key)
+                .append(", b: ").append(block)
+                .append(", o: ").append(offset)
+                .append(", l: ").append(length).append("]")
+                .append("(").append(trueKey != null ? "'" + trueKey + "'" : "?").append(")")
+                .append(" = '").append(value).append("'").toString();
         }
 
         public int compareTo(CaptionEntry t) {
