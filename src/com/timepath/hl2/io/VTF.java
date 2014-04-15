@@ -135,7 +135,7 @@ public class VTF implements ViewableData {
             {"MipCount = ", mipCount},
         };
         
-        LOG.info(StringUtils.fromDoubleArray(debug, "VTF:"));
+        LOG.fine(StringUtils.fromDoubleArray(debug, "VTF:"));
         return true;
     }
 
@@ -178,7 +178,7 @@ public class VTF implements ViewableData {
             int w = sizesX[i];
             int h = sizesY[i];
             
-            LOG.log(Level.INFO, "{0}, {1}", new Object[] {w, h});
+            LOG.log(Level.FINE, "{0}, {1}", new Object[] {w, h});
 
             int nBytes;
 
@@ -186,7 +186,7 @@ public class VTF implements ViewableData {
                 nBytes = Math.max(w, 4) * Math.max(h, 4) / 2; // Each 'block' is 4*4 pixels + some other data. 16 pixels become 8 bytes [64 bits] (2 * 16 bit colours, 4*4 2 bit indicies)
             } else if(this.format == Format.IMAGE_FORMAT_DXT5) {
                 nBytes = Math.max(w, 4) * Math.max(h, 4); // Each 'block' is 4*4 pixels + some other data. 16 pixels become 16 bytes [128 bits] (2 * 8 bit alpha values, 4x4 3 bit alpha indicies, 2 * 16 bit colours, 4*4 2 bit indicies)
-            } else if(this.format == Format.IMAGE_FORMAT_BGRA8888) {
+            } else if(this.format == Format.IMAGE_FORMAT_BGRA8888 || this.format == Format.IMAGE_FORMAT_RGBA8888) {
                 nBytes = w * h * 4; // Each pixel is 4 bytes: rgba
             } else if(this.format == Format.IMAGE_FORMAT_BGR888) {
                 nBytes = w * h * 3; // Each pixel is 3 bytes: rgb
@@ -213,6 +213,8 @@ public class VTF implements ViewableData {
                     bi = ImageUtils.loadDXT5(imageData, w, h);
                 } else if(this.format == Format.IMAGE_FORMAT_BGRA8888) {
                     bi = ImageUtils.loadBGRA(imageData, w, h);
+                } else if(this.format == Format.IMAGE_FORMAT_RGBA8888) {
+                    bi = ImageUtils.loadRGBA(imageData, w, h);
                 } else if(this.format == Format.IMAGE_FORMAT_BGR888) {
                     bi = ImageUtils.loadBGR(imageData, w, h);
                 } else if(this.format == Format.IMAGE_FORMAT_UV88) {
