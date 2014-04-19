@@ -7,6 +7,7 @@ import com.jme3.input.ChaseCamera;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.renderer.RenderManager;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
@@ -18,8 +19,6 @@ import com.timepath.hl2.io.studiomodel.StudioModel;
 import com.timepath.plaf.x.filechooser.NativeFileChooser;
 import java.awt.Canvas;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.*;
@@ -27,6 +26,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import org.lwjgl.opengl.GL11;
 
 /**
  *
@@ -116,6 +116,12 @@ public class MDLTest extends SimpleApplication {
         chaseCam.setMaxDistance(100);
     }
 
+    @Override
+    public void simpleRender(RenderManager rm) {
+        GL11.glFrontFace(GL11.GL_CW);
+        super.simpleRender(rm);
+    }
+
     private void loadModel(final File f) {
         try {
             String stripped = f.getPath().substring(0, f.getPath().lastIndexOf('.'));
@@ -203,7 +209,6 @@ public class MDLTest extends SimpleApplication {
             mesh.updateCounts();
 
             Geometry geom = new Geometry(name + "-geom", mesh);
-            geom.scale(-1);
             return geom;
         }
 
@@ -227,15 +232,6 @@ public class MDLTest extends SimpleApplication {
         public Object load(String f) throws IOException {
             VTF v = VTF.load(new FileInputStream(f));
             BufferedImage img = (BufferedImage) v.getImage(v.mipCount - 1);
-
-            double sx = 1, sy = 1, rot = -FastMath.HALF_PI;
-            if(sx + sy != 2 || rot != 0) {
-                AffineTransform tx = AffineTransform.getScaleInstance(sx, sy);
-                tx.translate(Math.min(sx, 0) * img.getWidth(), Math.min(sy, 0) * img.getHeight());
-                tx.rotate(rot, img.getWidth() / 2, img.getHeight() / 2);
-                img = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR).filter(img, null);
-            }
-
             byte[] rawData = new byte[img.getWidth() * img.getHeight() * 4];
 
             int idx = 0;
