@@ -51,7 +51,7 @@ public class MDLTest extends SimpleApplication {
         Canvas canvas = context.getCanvas();
         canvas.setSize(settings.getWidth(), settings.getHeight());
         Logger.getLogger("com.jme3").setLevel(Level.INFO);
-        
+
         final JFrame frame = new JFrame("Model test");
         JMenuBar mb = new JMenuBar();
         frame.setJMenuBar(mb);
@@ -111,7 +111,7 @@ public class MDLTest extends SimpleApplication {
         chaseCam.setMinVerticalRotation(-FastMath.HALF_PI + FastMath.ZERO_TOLERANCE);
         chaseCam.setDefaultVerticalRotation(0);
         chaseCam.setMaxVerticalRotation(FastMath.HALF_PI);
-        chaseCam.setDefaultHorizontalRotation(FastMath.HALF_PI);        
+        chaseCam.setDefaultHorizontalRotation(FastMath.HALF_PI);
         chaseCam.setDefaultDistance(10);
         chaseCam.setMaxDistance(100);
     }
@@ -203,6 +203,7 @@ public class MDLTest extends SimpleApplication {
             mesh.updateCounts();
 
             Geometry geom = new Geometry(name + "-geom", mesh);
+            geom.scale(-1);
             return geom;
         }
 
@@ -225,19 +226,22 @@ public class MDLTest extends SimpleApplication {
 
         public Object load(String f) throws IOException {
             VTF v = VTF.load(new FileInputStream(f));
-            BufferedImage src = (BufferedImage) v.getImage(v.mipCount - 1);
+            BufferedImage img = (BufferedImage) v.getImage(v.mipCount - 1);
 
-            AffineTransform tx = AffineTransform.getScaleInstance(-1, -1);
-            tx.translate(-src.getWidth(), -src.getHeight());
-            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-            BufferedImage i = src;//op.filter(src, null);
+            double sx = 1, sy = 1, rot = -FastMath.HALF_PI;
+            if(sx + sy != 2 || rot != 0) {
+                AffineTransform tx = AffineTransform.getScaleInstance(sx, sy);
+                tx.translate(Math.min(sx, 0) * img.getWidth(), Math.min(sy, 0) * img.getHeight());
+                tx.rotate(rot, img.getWidth() / 2, img.getHeight() / 2);
+                img = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR).filter(img, null);
+            }
 
-            byte[] rawData = new byte[i.getWidth() * i.getHeight() * 4];
+            byte[] rawData = new byte[img.getWidth() * img.getHeight() * 4];
 
             int idx = 0;
-            for(int x = 0; x < i.getWidth(); x++) {
-                for(int y = 0; y < i.getHeight(); y++) {
-                    int d = i.getRGB(x, y);
+            for(int x = 0; x < img.getWidth(); x++) {
+                for(int y = 0; y < img.getHeight(); y++) {
+                    int d = img.getRGB(x, y);
                     rawData[idx++] = (byte) ((d >> 16) & 0xFF);
                     rawData[idx++] = (byte) ((d >> 8) & 0xFF);
                     rawData[idx++] = (byte) (d & 0xFF);
@@ -248,11 +252,12 @@ public class MDLTest extends SimpleApplication {
             scratch.clear();
             scratch.put(rawData);
             scratch.rewind();
+            
             // Create the Image object
             Image textureImage = new Image();
             textureImage.setFormat(Image.Format.RGB8);
-            textureImage.setWidth(i.getWidth());
-            textureImage.setHeight(i.getHeight());
+            textureImage.setWidth(img.getWidth());
+            textureImage.setHeight(img.getHeight());
             textureImage.setData(scratch);
             Texture2D t = new Texture2D(textureImage);
             return t;

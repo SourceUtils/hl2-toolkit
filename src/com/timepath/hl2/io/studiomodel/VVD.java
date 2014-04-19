@@ -36,7 +36,7 @@ class VVD {
     final OrderedInputStream is;
 
     final ByteBuffer verts, normals, tangents;
-    
+
     final FloatBuffer uv;
 
     private VVD(InputStream in) throws IOException, InstantiationException, IllegalAccessException {
@@ -60,11 +60,11 @@ class VVD {
             int numVertexes = vertCount;
             if(header.numFixups != 0) { // Fixup Table
                 position(header.fixupTableStart + (i * 12));
-                
+
                 int fixlod = is.readInt(); // used to skip culled root lod
                 sourceVertexID = is.readInt(); // absolute index from start of vertex/tangent blocks
                 numVertexes = is.readInt();
-                
+
                 if(fixlod < lod) {
                     continue;
                 }
@@ -87,13 +87,13 @@ class VVD {
                 is.readFully(normBuf);
                 normals.put(normBuf);
 
-//                byte[] uvBuf = new byte[2 * 4];
-//                is.readFully(uvBuf);
-                uv.put(is.readFloat()).put(-is.readFloat() + 1);
+                float u = 1 - is.readFloat();
+                float v = is.readFloat();
+                uv.put(u).put(v);
 
                 // Tangent table, 16 byte rows
                 position(header.tangentDataStart + (sourceVertexID + j) * 16);
-                
+
                 byte[] tanBuf = new byte[4 * 4];
                 is.readFully(tanBuf);
                 tangents.put(tanBuf);
