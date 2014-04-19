@@ -14,33 +14,18 @@ public class StudioModel {
 
     static final int MAX_NUM_LODS = 8;
 
-    public static StudioModel load(String fileName) throws IOException {
-        return new StudioModel(fileName);
-    }
+    public final MDL mdl;
 
-    private MDL mdl;
+    public final VTX vtx;
 
-    private VTX vtx;
+    public final VVD vvd;
 
-    private VVD vvd;
+    private final ByteBuffer indexBuffer;
 
-    final ByteBuffer indexBuffer;
-
-    private StudioModel(String fileName) throws IOException {
-        LOG.log(Level.INFO, "\n\nLoading StudioModel {0}", fileName);
-
-        File mdlf = new File(fileName + ".mdl");
-        if(mdlf.exists()) {
-            mdl = MDL.load(mdlf);
-        }
-        File vvdf = new File(fileName + ".vvd");
-        if(vvdf.exists()) {
-            vvd = VVD.load(vvdf);
-        }
-        File vtxf = new File(fileName + ".dx90.vtx");
-        if(vtxf.exists()) {
-            vtx = VTX.load(vtxf);
-        }
+    public StudioModel(InputStream mdlStream, InputStream vvdStream, InputStream vtxStream) throws IOException {
+        mdl = MDL.load(mdlStream);
+        vvd = VVD.load(vvdStream);
+        vtx = VTX.load(vtxStream);
         int lod = 0;
         setRootLOD(lod);
         indexBuffer = buildIndices(lod);
@@ -101,8 +86,7 @@ public class StudioModel {
                                 (byte) (s & 0xFF),
                                 (byte) ((s & 0xFF00) >> 8),
                                 (byte) ((s & 0xFF0000) >> 16),
-                                (byte) ((s & 0xFF000000) >> 24),
-                            });
+                                (byte) ((s & 0xFF000000) >> 24),});
                         } catch(IOException ex) {
                             LOG.log(Level.SEVERE, null, ex);
                             return null;

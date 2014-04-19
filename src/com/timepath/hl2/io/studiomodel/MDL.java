@@ -14,7 +14,9 @@ import java.util.logging.Logger;
 
 import static com.timepath.hl2.io.studiomodel.StudioModel.MAX_NUM_LODS;
 
-class MDL {
+public class MDL {
+
+    public static Level verbosity = Level.FINE;
 
     private static final Logger LOG = Logger.getLogger(MDL.class.getName());
 
@@ -25,7 +27,7 @@ class MDL {
 
     public static MDL load(InputStream in) throws IOException {
         try {
-            return new MDL(in);
+            return new MDL(new BufferedInputStream(in));
         } catch(InstantiationException ex) {
             LOG.log(Level.SEVERE, null, ex);
         } catch(IllegalAccessException ex) {
@@ -38,7 +40,7 @@ class MDL {
 
     private final ArrayList<MStudioTexture> textures;
 
-    final StudioHeader header;
+    public final StudioHeader header;
 
     final OrderedInputStream is;
 
@@ -50,9 +52,9 @@ class MDL {
         is.order(ByteOrder.LITTLE_ENDIAN);
 
         header = is.readStruct(new StudioHeader());
-        LOG.log(Level.INFO, "StudioHeader header = \"{0}\";", header.toString());
+        LOG.log(verbosity, "StudioHeader header = \"{0}\";", header.toString());
 
-        LOG.log(Level.INFO, "MStudioTexture[] textures = new MStudioTexture[{0}];", header.numtextures);
+        LOG.log(verbosity, "MStudioTexture[] textures = new MStudioTexture[{0}];", header.numtextures);
         position(header.textureindex);
         textures = new ArrayList<MStudioTexture>(header.numtextures);
         for(int i = 0; i < header.numtextures; i++) {
@@ -62,10 +64,10 @@ class MDL {
             position(offset + tex.sznameindex);
             tex.textureName = is.readString();
             position(offset + Struct.sizeOf(tex));
-            LOG.log(Level.INFO, "textures[{0}] = \"{1}\";", new Object[] {i, tex.textureName});
+            LOG.log(verbosity, "textures[{0}] = \"{1}\";", new Object[] {i, tex.textureName});
         }
 
-        LOG.log(Level.INFO, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures);
+        LOG.log(verbosity, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures);
         position(header.cdtextureindex);
         textureDirs = new ArrayList<MStudioTextureDir>(header.numcdtextures);
         for(int i = 0; i < header.numcdtextures; i++) {
@@ -75,25 +77,25 @@ class MDL {
             position(texDir.diroffset);
             texDir.textureDir = is.readString();
             position(offset + Struct.sizeOf(texDir));
-            LOG.log(Level.INFO, "textureDirs[{0}] = \"{1}\";", new Object[] {i, texDir.textureDir});
+            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", new Object[] {i, texDir.textureDir});
         }
 
-        LOG.log(Level.INFO, "int[] skinTable = new int[{0}];", header.numskinref * header.numskinfamilies);
+        LOG.log(verbosity, "int[] skinTable = new int[{0}];", header.numskinref * header.numskinfamilies);
         position(header.skinindex);
         int skinTable[] = new int[header.numskinref * header.numskinfamilies];
         for(int i = 0; i < skinTable.length; i++) {
             skinTable[i] = is.readShort();
-            LOG.log(Level.INFO, "skinTable[{0}] = {1};", new Object[] {i, skinTable[i]});
+            LOG.log(verbosity, "skinTable[{0}] = {1};", new Object[] {i, skinTable[i]});
         }
 
-        LOG.info("MStudioBodyParts[]");
+        LOG.log(verbosity, "MStudioBodyParts[]");
         position(header.bodypartindex);
         mdlBodyParts = new ArrayList<MStudioBodyParts>(header.numbodyparts);
         for(int i = 0; i < header.numbodyparts; i++) {
             MStudioBodyParts bodyPart = is.readStruct(new MStudioBodyParts());
             mdlBodyParts.add(bodyPart);
 
-            LOG.log(Level.INFO, "MStudioBodyParts[{0}/{1}].models[]", new Object[] {
+            LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[]", new Object[] {
                 1 + i, header.numbodyparts
             });
             position(bodyPart.offset + bodyPart.modelindex);
@@ -102,14 +104,14 @@ class MDL {
                 MStudioModel model = is.readStruct(new MStudioModel());
                 bodyPart.models.add(model);
 
-                LOG.log(Level.INFO, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", new Object[] {
+                LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", new Object[] {
                     1 + i, header.numbodyparts,
                     1 + j, bodyPart.nummodels
                 });
                 position(model.offset + model.meshindex);
                 model.meshes = new ArrayList<MStudioMesh>(model.nummeshes);
                 for(int k = 0; k < model.nummeshes; k++) {
-                    LOG.log(Level.INFO, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", new Object[] {
+                    LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", new Object[] {
                         1 + i, header.numbodyparts,
                         1 + j, bodyPart.nummodels,
                         1 + k, model.nummeshes
@@ -122,7 +124,7 @@ class MDL {
             position(bodyPart.offset + Struct.sizeOf(bodyPart));
         }
     }
-    
+
     private int position() {
         try {
             return is.position();
@@ -132,12 +134,12 @@ class MDL {
     }
 
     private void position(int index) {
-//        LOG.log(Level.INFO, "seeking to {0}", index);
+//        LOG.log(verbosity, "seeking to {0}", index);
         try {
             is.reset();
             is.skipBytes(index - is.position());
         } catch(IOException ex) {
-            Logger.getLogger(MDL.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -147,7 +149,7 @@ class MDL {
 
     }
 
-    class StudioHeader {
+    public class StudioHeader {
 
         @StructField(index = 0) int id;
 
@@ -155,7 +157,7 @@ class MDL {
 
         @StructField(index = 2) int checksum;
 
-        @StructField(index = 3, limit = 64) String name;
+        public @StructField(index = 3, limit = 64) String name;
 
         @StructField(index = 4) int length;
 
@@ -277,7 +279,7 @@ class MDL {
         @StructField(index = 0) int sznameindex, nummodels, base, modelindex;
 
         List<MStudioModel> models;
-        
+
         int offset = position();
 
     }
@@ -303,7 +305,7 @@ class MDL {
         List<MStudioMesh> meshes;
 
         int vertexoffset;
-        
+
         int offset = position();
 
     }

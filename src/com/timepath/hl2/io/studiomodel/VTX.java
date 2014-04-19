@@ -18,6 +18,8 @@ import static com.timepath.hl2.io.studiomodel.StudioModel.MAX_NUM_BONES_PER_VERT
 
 class VTX {
 
+    public static Level verbosity = Level.FINE;
+
     private static final Logger LOG = Logger.getLogger(VTX.class.getName());
 
     public static VTX load(File file) throws IOException {
@@ -27,7 +29,7 @@ class VTX {
 
     public static VTX load(InputStream in) throws IOException {
         try {
-            return new VTX(in);
+            return new VTX(new BufferedInputStream(in));
         } catch(InstantiationException ex) {
             LOG.log(Level.SEVERE, null, ex);
         } catch(IllegalAccessException ex) {
@@ -49,11 +51,11 @@ class VTX {
 
         header = is.readStruct(new VtxHeader());
 
-        LOG.log(Level.INFO, header.toString());
+        LOG.log(verbosity, header.toString());
 
         // Parts
         bodyParts = new ArrayList<BodyPart>(header.numBodyParts);
-//        LOG.log(Level.INFO,
+//        LOG.log(verbosity,
 //                "\t\t\tparts[] = {2}: {0} vs {1}",
 //                new Object[] {is.position(), offset, header.numBodyParts});
 
@@ -64,7 +66,7 @@ class VTX {
 
             // Models
             part.models = new ArrayList<Model>(part.numModels);
-//            LOG.log(Level.INFO,
+//            LOG.log(verbosity,
 //                    "\t\t\tparts[{3}].models[] = {2}: {0} vs {1}",
 //                    new Object[] {is.position(),  offset + part.modelOffset, part.numModels, partIdx});
 
@@ -75,7 +77,7 @@ class VTX {
 
                 // LODs
                 model.lods = new ArrayList<ModelLOD>(model.numLODs);
-//                LOG.log(Level.INFO,
+//                LOG.log(verbosity,
 //                        "\t\t\tparts[{3}].models[{4}].lods[] = {2}: {0} vs {1}",
 //                        new Object[] {is.position(), offset + model.lodOffset, model.numLODs,
 //                                      partIdx, modelIdx});
@@ -87,7 +89,7 @@ class VTX {
 
                     // Meshes
                     lod.meshes = new ArrayList<Mesh>(lod.numMeshes);
-//                    LOG.log(Level.INFO,
+//                    LOG.log(verbosity,
 //                            "\t\t\tparts[{3}].model[{4}].lod[{5}].meshes[] = {2}: {0} vs {1}",
 //                            new Object[] {is.position(), offset + lod.meshOffset, lod.numMeshes,
 //                                          partIdx, modelIdx, lodIdx});
@@ -99,7 +101,7 @@ class VTX {
 
                         // Strip groups
                         mesh.stripGroups = new ArrayList<StripGroup>(mesh.numStripGroups);
-//                        LOG.log(Level.INFO,
+//                        LOG.log(verbosity,
 //                                "\t\t\tparts[{3}].model[{4}].lod[{5}].meshes[{6}].stripGroups[] = {2}: {0} vs {1}",
 //                                new Object[] {is.position(), offset + mesh.stripGroupHeaderOffset, mesh.numStripGroups,
 //                                              partIdx, modelIdx, lodIdx, meshIdx});
@@ -109,7 +111,7 @@ class VTX {
                             StripGroup stripGroup = is.readStruct(new StripGroup());
                             mesh.stripGroups.add(stripGroup);
 
-                            LOG.log(Level.INFO,
+                            LOG.log(verbosity,
                                     "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},",
                                     new Object[] {stripGroup.offset,
                                                   stripGroup.offset + stripGroup.vertOffset,
@@ -118,7 +120,7 @@ class VTX {
 
                             // Strips
                             stripGroup.strips = new ArrayList<Strip>(stripGroup.numStrips);
-//                            LOG.log(Level.INFO,
+//                            LOG.log(verbosity,
 //                                    "\t\t\tparts[{3}].model[{4}].lod[{5}].meshes[{6}].stripGroups[{7}].strips[] = {2}: {0} vs {1}",
 //                                    new Object[] {is.position(), offset + stripGroup.stripOffset, stripGroup.numStrips,
 //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
@@ -131,7 +133,7 @@ class VTX {
 
                             // Verts
                             stripGroup.verts = new ArrayList<Vertex>(stripGroup.numVerts);
-//                            LOG.log(Level.INFO,
+//                            LOG.log(verbosity,
 //                                    "\t\t\tparts[{3}].model[{4}].lod[{5}].meshes[{6}].stripGroups[{7}].verts[] = {2}: {0} vs {1}",
 //                                    new Object[] {is.position(), offset + stripGroup.vertOffset, stripGroup.numVerts,
 //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
@@ -144,7 +146,7 @@ class VTX {
 
                             // Indices
                             byte[] indicesBuf = new byte[stripGroup.numIndices * 2];
-//                            LOG.log(Level.INFO,
+//                            LOG.log(verbosity,
 //                                    "\t\t\tparts[{3}].model[{4}].lod[{5}].meshes[{6}].stripGroups[{7}].indices[] = {2}: {0} vs {1}",
 //                                    new Object[] {is.position(), offset + stripGroup.indexOffset, stripGroup.numIndices,
 //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
@@ -163,7 +165,7 @@ class VTX {
             }
             position(part.offset + Struct.sizeOf(part));
         }
-        LOG.log(Level.INFO, "Underflow: {0}", new Object[] {is.available()});
+        LOG.log(verbosity, "Underflow: {0}", new Object[] {is.available()});
     }
 
     private int position() {
@@ -175,13 +177,25 @@ class VTX {
     }
 
     private void position(int index) {
-//        LOG.log(Level.INFO, "seeking to {0}", index);
+//        LOG.log(verbosity, "seeking to {0}", index);
         try {
             is.reset();
             is.skipBytes(index - is.position());
         } catch(IOException ex) {
             Logger.getLogger(MDL.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    class BodyPart {
+
+        int offset = position();
+
+        List<Model> models;
+
+        @StructField(index = 0) int numModels;
+
+        @StructField(index = 1) int modelOffset;
+
     }
 
     class Mesh {
@@ -224,6 +238,26 @@ class VTX {
 
     }
 
+    class Strip {
+
+        @StructField(index = 0) int numIndices;
+
+        @StructField(index = 1) int indexOffset;
+
+        @StructField(index = 2) int numVerts;
+
+        @StructField(index = 3) int vertOffset;
+
+        @StructField(index = 4) short numBones;
+
+        @StructField(index = 5) byte flags;
+
+        @StructField(index = 6) int numBoneStateChanges;
+
+        @StructField(index = 7) int boneStateChangeOffset;
+
+    }
+
     class StripGroup {
 
         int offset = position();
@@ -247,38 +281,6 @@ class VTX {
         @StructField(index = 5) int stripOffset;
 
         @StructField(index = 6) byte flags;
-
-    }
-
-    class BodyPart {
-
-        int offset = position();
-
-        List<Model> models;
-
-        @StructField(index = 0) int numModels;
-
-        @StructField(index = 1) int modelOffset;
-
-    }
-
-    class Strip {
-
-        @StructField(index = 0) int numIndices;
-
-        @StructField(index = 1) int indexOffset;
-
-        @StructField(index = 2) int numVerts;
-
-        @StructField(index = 3) int vertOffset;
-
-        @StructField(index = 4) short numBones;
-
-        @StructField(index = 5) byte flags;
-
-        @StructField(index = 6) int numBoneStateChanges;
-
-        @StructField(index = 7) int boneStateChangeOffset;
 
     }
 

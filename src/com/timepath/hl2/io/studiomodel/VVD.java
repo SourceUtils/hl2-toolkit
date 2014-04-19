@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 
 class VVD {
 
+    public static Level verbosity = Level.FINE;
+    
     private static final Logger LOG = Logger.getLogger(VVD.class.getName());
 
     public static VVD load(File file) throws IOException {
@@ -24,7 +26,7 @@ class VVD {
 
     public static VVD load(InputStream in) throws IOException {
         try {
-            return new VVD(in);
+            return new VVD(new BufferedInputStream(in));
         } catch(InstantiationException ex) {
             LOG.log(Level.SEVERE, null, ex);
         } catch(IllegalAccessException ex) {
@@ -45,7 +47,7 @@ class VVD {
         is.order(ByteOrder.LITTLE_ENDIAN);
 
         VertexFileHeader header = is.readStruct(new VertexFileHeader());
-        LOG.log(Level.INFO, "VertexFileHeader header = {0}", header.toString());
+        LOG.log(verbosity, "VertexFileHeader header = {0}", header.toString());
 
         int lod = 0;
         int vertCount = header.numLODVertexes[lod];
@@ -87,8 +89,8 @@ class VVD {
                 is.readFully(normBuf);
                 normals.put(normBuf);
 
-                float v = is.readFloat();
                 float u = is.readFloat();
+                float v = 1 - is.readFloat();
                 uv.put(u).put(v);
 
                 // Tangent table, 16 byte rows
@@ -104,11 +106,11 @@ class VVD {
         normals.flip();
         uv.flip();
         tangents.flip();
-        LOG.log(Level.INFO, "Underflow: {0}", new Object[] {is.available()});
+        LOG.log(verbosity, "Underflow: {0}", new Object[] {is.available()});
     }
 
     private void position(int index) {
-//        LOG.log(Level.INFO, "seeking to {0}", index);
+//        LOG.log(verbosity, "seeking to {0}", index);
         try {
             is.reset();
             is.skipBytes(index - is.position());
