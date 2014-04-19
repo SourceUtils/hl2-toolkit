@@ -1,4 +1,5 @@
 /build/
 /dist/
 /nbproject/private/
-/liblwjgl.so
+/*.so
+/hs_err_pid*.log
