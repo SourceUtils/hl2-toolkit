@@ -87,9 +87,9 @@ class VVD {
                 is.readFully(normBuf);
                 normals.put(normBuf);
 
-                float u = is.readFloat();
                 float v = is.readFloat();
-                uv.put(v).put(u);
+                float u = is.readFloat();
+                uv.put(u).put(v);
 
                 // Tangent table, 16 byte rows
                 position(header.tangentDataStart + (sourceVertexID + j) * 16);

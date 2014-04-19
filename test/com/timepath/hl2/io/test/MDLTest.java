@@ -5,9 +5,9 @@ import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
 import com.jme3.input.ChaseCamera;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.renderer.RenderManager;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
@@ -26,7 +26,6 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
-import org.lwjgl.opengl.GL11;
 
 /**
  *
@@ -116,42 +115,36 @@ public class MDLTest extends SimpleApplication {
         chaseCam.setMaxDistance(100);
     }
 
-    @Override
-    public void simpleRender(RenderManager rm) {
-        GL11.glFrontFace(GL11.GL_CW);
-        super.simpleRender(rm);
-    }
-
     private void loadModel(final File f) {
+        float s = 10;
+        final Geometry box = new Geometry("Box", new Box(0.5f * s, 0.5f * s, 0.5f * s));
+        box.setLocalTranslation(0, 0, -20);
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.randomColor());
+        box.setMaterial(mat);
+
         try {
             String stripped = f.getPath().substring(0, f.getPath().lastIndexOf('.'));
-            Texture tex = (Texture) new VTFLoader().load(stripped + ".vtf");
-            float s = 10;
-            Geometry[] mdls = {
-                (Geometry) new MDLLoader().load(stripped),
-                new Geometry("Box", new Box(0.5f * s, 0.5f * s, 0.5f * s))
-            };
-            int i = 0;
-            for(final Geometry mdl : mdls) {
-                mdl.setLocalTranslation(0, 0, -20 * i++);
-                Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                if(new File(stripped + ".vtf").exists()) {
-                    mat.setTexture("ColorMap", tex);
-                } else {
-                    mat.setColor("Color", ColorRGBA.randomColor());
-                }
-//                mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Front);
-//                mat.getAdditionalRenderState().setWireframe(true); 
-                mdl.setMaterial(mat);
-                this.enqueue(new Callable<Void>() {
-                    public Void call() {
-                        rootNode.attachChild(mdl);
-                        return null;
-                    }
-                });
+            final Geometry mdl = (Geometry) new MDLLoader().load(stripped);
+            Material skin = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            skin.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Front);
+            if(new File(stripped + ".vtf").exists()) {
+                Texture tex = (Texture) new VTFLoader().load(stripped + ".vtf");
+                skin.setTexture("ColorMap", tex);
+            } else {
+                skin.setColor("Color", ColorRGBA.randomColor());
+                skin.getAdditionalRenderState().setWireframe(true);
             }
+            mdl.setMaterial(skin);
+            this.enqueue(new Callable<Void>() {
+                public Void call() {
+                    rootNode.attachChild(mdl);
+                    rootNode.attachChild(box);
+                    return null;
+                }
+            });
         } catch(IOException ex) {
-            Logger.getLogger(MDLTest.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -180,8 +173,6 @@ public class MDLTest extends SimpleApplication {
             StudioModel m = StudioModel.load(name);
 
             Mesh mesh = new Mesh();
-//            mesh.setMode(Mesh.Mode.Lines);
-            mesh.setPointSize(4);
 
             FloatBuffer posBuf = m.getVertices();
             if(posBuf != null) {
@@ -225,7 +216,6 @@ public class MDLTest extends SimpleApplication {
         public Object load(AssetInfo info) throws IOException {
             File f = new File("mdl/" + info.getKey().getName());
             LOG.info(f.toString());
-
             return load(f.getPath());
         }
 
@@ -248,7 +238,7 @@ public class MDLTest extends SimpleApplication {
             scratch.clear();
             scratch.put(rawData);
             scratch.rewind();
-            
+
             // Create the Image object
             Image textureImage = new Image();
             textureImage.setFormat(Image.Format.RGB8);
