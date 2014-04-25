@@ -5,177 +5,101 @@ import com.timepath.io.BitBuffer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.text.MessageFormat;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
- * https://code.google.com/p/coldemoplayer
- * https://code.google.com/p/coldemoplayer/source/browse/trunk/compLexity%20Demo%20Player/demo/SourceDemo.cs
- * https://code.google.com/p/coldemoplayer/source/browse/trunk/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h
+ * <p/>
+ * https://github.com/jpcy/coldemoplayer
+ * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo/SourceDemo.cs
+ * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
  * <p/>
  * https://github.com/stgn/netdecode
  * https://github.com/stgn/netdecode/issues/1
  * https://github.com/stgn/netdecode/blob/master/DemoFile.cs
  * https://github.com/stgn/netdecode/blob/master/Packet.cs
  * <p/>
- * http://hg.alliedmods.net/hl2sdks/hl2sdk-css/file/1901d5b74430/public/demofile/demoformat.h
- *
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
+ * <p/>
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/networkstringtabledefs.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/keyvaluescompiler.h
+ * <p/>
+ * https://forums.alliedmods.net/showthread.php?t=232925
+ * <p>
  * @author TimePath
  */
 public class HL2DEM {
 
-    private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
+    private static final int DEMO_PROTOCOL = 3;
 
     private static final String HEADER = "HL2DEMO\0";
 
-    private static final int DEMO_PROTOCOL = 3;
+    private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
+
+    private static DemoHeader header;
 
     public static HL2DEM load(File f) throws IOException {
+        LOG.log(Level.INFO, "Parsing {0}", f);
         ByteBuffer buffer = DataUtils.mapFile(f);
-        HL2DEM dem = new HL2DEM();
+        return new HL2DEM(buffer);
+    }
 
-        //<editor-fold defaultstate="collapsed" desc="Header">
-        ByteBuffer header = DataUtils.getSlice(buffer, 1072);
+    private List<Message> frames = new LinkedList<Message>();
 
-        String head = DataUtils.getText(DataUtils.getSlice(header, 8));
-        if(!head.equals(HEADER)) {
-            LOG.log(Level.WARNING, "Unexpected header");
-            return null;
-        }
-        int demoProtocol = header.getInt();
-        if(demoProtocol != DEMO_PROTOCOL) {
-            LOG.log(Level.WARNING, "Unknown demo version {0}", demoProtocol);
-            return null;
-        }
-        int networkProtocol = header.getInt();
-        LOG.log(Level.INFO, "Network protocol: {0}", networkProtocol);
-
-        ByteBuffer serverNameBuffer = DataUtils.getSlice(header, 260);
-        String serverName = DataUtils.getText(serverNameBuffer).trim();
-        LOG.log(Level.INFO, "Server: {0}", serverName);
-        ByteBuffer clientNameBuffer = DataUtils.getSlice(header, 260);
-        String clientName = DataUtils.getText(clientNameBuffer).trim();
-        LOG.log(Level.INFO, "Client: {0}", clientName);
-        ByteBuffer mapNameBuffer = DataUtils.getSlice(header, 260);
-        String mapName = DataUtils.getText(mapNameBuffer).trim();
-        LOG.log(Level.INFO, "Map: {0}", mapName);
-        ByteBuffer gameDirectoryBuffer = DataUtils.getSlice(header, 260);
-        String gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
-        LOG.log(Level.INFO, "Game: {0}", gameDirectory);
-
-        float playbackTime = header.getFloat();
-        LOG.log(Level.INFO, "Playback time: {0}", playbackTime);
-        int ticks = header.getInt();
-        LOG.log(Level.INFO, "Ticks: {0}", ticks);
-        int frames = header.getInt();
-        LOG.log(Level.INFO, "Frames: {0}", frames);
-        int signonLength = header.getInt();
-        LOG.log(Level.INFO, "Signon length: {0}", signonLength);
-        //</editor-fold>
+    public HL2DEM(ByteBuffer buffer) {
+        header = new DemoHeader(DataUtils.getSlice(buffer, 1072));
 
         while(true) {
-            // frame header
-            Message msg = new Message();
-            msg.type = MessageType.get(buffer.get());
-            if(msg.type == null) {
-                throw new IOException("Unknown demo message type encountered.");
-            }
-            if(msg.type == MessageType.Stop) {
-                LOG.log(Level.INFO, "Stopping at {0}, {1} remaining bytes", new Object[] {
-                    buffer.position(), buffer.remaining()});
+            Message frame = new Message(buffer);
+            frames.add(frame);
+            if(frame.type == MessageType.Stop) {
                 break;
             }
-            msg.tick = buffer.getInt();
-
-            switch(msg.type) {
-                case Signon:
+            if(frame.type == MessageType.Synctick) {
+                continue;
+            }
+            switch(frame.type) {
                 case Packet:
-                case Console:
-                case UserCmd:
-                case DataTables:
-                case StringTables:
-                    switch(msg.type) {
-                        case Packet:
-                        case Signon:
-                            buffer.get(new byte[84]); // command/sequence info
-                            break;
-                        case UserCmd:
-                            buffer.get(new byte[4]); // unknown
-                            break;
-                    }
-                    msg.data = buffer.get(new byte[buffer.getInt()]);
-                    if(buffer.position() < 2000000) {
-                        continue;
-                    }
-                    switch(msg.type) {
-                        case UserCmd:
-                            LOG.log(Level.INFO, "UserCommand at {0} ({1})", new Object[] {msg.tick,
-                                                                                          buffer.position()});
-                            BitBuffer bb = new BitBuffer((ByteBuffer) msg.data);
-                            Level l = Level.INFO;
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Command number: {0}", bb.ReadBits(32));
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Tick count: {0}", bb.ReadBits(32));
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Viewangle pitch: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Viewangle yaw: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Viewangle roll: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Foward move: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Side move: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Up move: {0}", bb.ReadFloat());
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Buttons: 0x{0}", Integer.toOctalString(bb.ReadBits(32)));
-                            }
-                            if(bb.ReadBool()) {
-                                LOG.log(l, "Impulse: {0}", bb.ReadBits(8));
-                            }
-                            break;
-                    }
+                case Signon:
+                    buffer.get(new byte[21 * 4]); // command / sequence info
                     break;
-                case Synctick:
+                case UserCmd:
+                    buffer.get(new byte[4]); // outgoing sequence number
                     break;
             }
 
+            int size = buffer.getInt();
+            if(size == 0) {
+                continue;
+            }
+
+            byte[] data = new byte[size];
+            buffer.get(data);
+            frame.data = ByteBuffer.wrap(data);
+            frame.data.order(ByteOrder.LITTLE_ENDIAN);
+
+            frame.parse();
         }
-        return dem;
     }
 
-    private HL2DEM() {
-    }
-    static class Message {
-
-        MessageType type;
-
-        int tick;
-
-        Object data;
-
-        Message() {
-        }
-
+    /**
+     * @return the frames
+     */
+    public List<Message> getFrames() {
+        return Collections.unmodifiableList(frames);
     }
 
-    static enum MessageType {
+    public static enum MessageType {
 
         Signon(1),
         Packet(2),
         Synctick(3),
-        Console(4),
+        ConsoleCmd(4),
         UserCmd(5),
         DataTables(6),
         Stop(7),
@@ -197,12 +121,11 @@ public class HL2DEM {
         }
 
     }
-    //</editor-fold>
 
     /**
      * hl2sdk-ob-valve/public/inputsystem/ButtonCode.h
      */
-    enum Buttons {
+    private static enum Buttons {
 
         KEY_NONE(0),
         KEY_0(1),
@@ -328,8 +251,7 @@ public class HL2DEM {
         KEY_XBUTTON_START(121),
         KEY_XBUTTON_STICK1(122),
         KEY_XBUTTON_STICK2(123),
-        // 123
-        // 146
+        // 124 - 145
         KEY_XBUTTON_UP(146),
         KEY_XBUTTON_RIGHT(147),
         KEY_XBUTTON_DOWN(148),
@@ -346,6 +268,385 @@ public class HL2DEM {
         KEY_XSTICK2_UP(159);
 
         Buttons(int i) {
+        }
+
+    }
+
+    private static class DemoHeader {
+
+        final String clientName;
+
+        final int demoProtocol;
+
+        final int frames;
+
+        final String gameDirectory;
+
+        final String head;
+
+        final String mapName;
+
+        final int networkProtocol;
+
+        final float playbackTime;
+
+        final String serverName;
+
+        final int signonLength;
+
+        final int ticks;
+
+        DemoHeader(ByteBuffer slice) {
+            head = DataUtils.getText(DataUtils.getSlice(slice, 8));
+            if(!head.equals(HEADER)) {
+                LOG.log(Level.WARNING, "Unexpected header");
+            }
+            demoProtocol = slice.getInt();
+            if(demoProtocol != DEMO_PROTOCOL) {
+                LOG.log(Level.WARNING, "Unknown demo version {0}", demoProtocol);
+            }
+            networkProtocol = slice.getInt();
+            LOG.log(Level.INFO, "Network protocol: {0}", networkProtocol);
+
+            ByteBuffer serverNameBuffer = DataUtils.getSlice(slice, 260);
+            serverName = DataUtils.getText(serverNameBuffer).trim();
+            LOG.log(Level.INFO, "Server: {0}", serverName);
+
+            ByteBuffer clientNameBuffer = DataUtils.getSlice(slice, 260);
+            clientName = DataUtils.getText(clientNameBuffer).trim();
+            LOG.log(Level.INFO, "Client: {0}", clientName);
+
+            ByteBuffer mapNameBuffer = DataUtils.getSlice(slice, 260);
+            mapName = DataUtils.getText(mapNameBuffer).trim();
+            LOG.log(Level.INFO, "Map: {0}", mapName);
+
+            ByteBuffer gameDirectoryBuffer = DataUtils.getSlice(slice, 260);
+            gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
+            LOG.log(Level.INFO, "Game: {0}", gameDirectory);
+
+            playbackTime = slice.getFloat();
+            LOG.log(Level.INFO, "Playback time: {0}", playbackTime);
+
+            ticks = slice.getInt();
+            LOG.log(Level.INFO, "Ticks: {0}", ticks);
+
+            frames = slice.getInt();
+            LOG.log(Level.INFO, "Frames: {0}", frames);
+
+            signonLength = slice.getInt();
+            LOG.log(Level.INFO, "Signon length: {0}", signonLength);
+        }
+
+    }
+
+    static abstract class PacketHandler {
+
+        boolean read(BitBuffer bb, List<Object> l) {
+            return false;
+        }
+
+    }
+
+    static enum Packet {
+
+        net_NOP(0, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                return true;
+            }
+        }), net_Disconnect(1, new PacketHandler() {
+        }), net_File(2, new PacketHandler() {
+        }), net_Tick(3, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Tick: " + bb.getInt());
+                l.add("Host frametime: " + bb.getShort());
+                l.add("Host frametime StdDev: " + bb.getShort());
+                return true;
+            }
+        }), net_StringCmd(4, new PacketHandler() {
+        }), net_SetConVar(5, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                short n = bb.getByte();
+                while(n-- > 0) {
+                    l.add(bb.getString() + ": " + bb.getString());
+                }
+                return true;
+            }
+        }), net_SignonState(6, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Signon state: " + (bb.getByte() & 0xFF));
+                l.add("Spawn count: " + ((long) bb.getInt()));
+                return true;
+            }
+        }), svc_Print(7, new PacketHandler() { // 16 in newer protocols
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                l.add(bb.getString());
+                return true;
+            }
+        }), svc_ServerInfo(8, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                short version = (short) bb.getBits(16);
+                l.add("Version: " + version);
+                l.add("Server count: " + (int) bb.getBits(32));
+                l.add("SourceTV: " + bb.getBoolean());
+                l.add("Dedicated: " + bb.getBoolean());
+                l.add("Server client CRC: 0x" + Integer.toHexString(bb.getInt()));
+                l.add("Max classes: " + bb.getBits(16));
+                if(version < 18) {
+                    l.add("Server map CRC: 0x" + Integer.toHexString(bb.getInt()));
+                } else {
+                    bb.getBits(128); // TODO: display out map md5 hash
+                }
+                l.add("Current player count: " + bb.getBits(8));
+                l.add("Max player count: " + bb.getBits(8));
+                l.add("Interval per tick: " + bb.getFloat());
+                l.add("Platform: " + (char) bb.getBits(8));
+                l.add("Game directory: " + bb.getString());
+                l.add("Map name: " + bb.getString());
+                l.add("Skybox name: " + bb.getString());
+                l.add("Hostname: " + bb.getString());
+                l.add("Has replay: " + bb.getBoolean()); // ???: protocol version
+                return true;
+            }
+        }), svc_SendTable(9, new PacketHandler() {
+        }), svc_ClassInfo(10, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                int n = bb.getShort();
+                l.add("Number of server classes: " + n);
+                boolean cc = bb.getBoolean();
+                l.add("Create classes on client: " + cc);
+                if(!cc) {
+                    return false;
+//                    while(n-- > 0) {
+//                    l.add("Class ID: " + bb.getBits(Math.log(n, 2) + 1));
+//                    l.add("Class name: " + bb.getString());
+//                    l.add("Datatable name: " + bb.getString());
+//                    }
+                }
+                return true;
+            }
+        }), svc_SetPause(11, new PacketHandler() {
+        }), svc_CreateStringTable(12, new PacketHandler() {
+//
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Table name: " + bb.getString());
+                int m = bb.getShort();
+                l.add("Max entries: " + m);
+                int n = (int) bb.getBits((int) ((Math.log(m) / Math.log(2)) + 1));
+                l.add("Number of entries: " + n);
+                long length = bb.getBits(20);
+                l.add("Length in bits: " + length);
+                boolean f = bb.getBoolean();
+                l.add("Userdata fixed size: " + f);
+                if(f) {
+                    l.add("Userdata size: " + bb.getBits(12));
+                    l.add("Userdata bits: " + bb.getBits(4));
+                }
+
+                // ???: this is not in Source 2007 netmessages.h/cpp it seems. protocol version?
+                l.add("Compressed: " + bb.getBoolean());
+                bb.getBits(n);
+                return true;
+            }
+        }), svc_UpdateStringTable(13, new PacketHandler() {
+        }), svc_VoiceInit(14, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Codec: " + bb.getString());
+                l.add("Quality: " + bb.getByte());
+                return true;
+            }
+        }), svc_VoiceData(15, new PacketHandler() {
+        }), svc_Unknown16(16, new PacketHandler() { // svc_Print in newer protocols
+        }), svc_Sounds(17, new PacketHandler() {
+
+            @Override
+            public boolean read(BitBuffer bb, List<Object> l) {
+                boolean reliable = bb.getBoolean();
+                l.add("Reliable: " + reliable);
+                int count = (reliable ? 1 : bb.getByte());
+                l.add("Number of sounds: " + count);
+                int length = reliable ? bb.getByte() : bb.getShort();
+                l.add("Length in bits: " + length);
+
+                bb.getBits(length); // TODO
+                return true;
+            }
+        }), svc_SetView(18, new PacketHandler() {
+        }), svc_FixAngle(19, new PacketHandler() {
+        }), svc_CrosshairAngle(20, new PacketHandler() {
+        }), svc_BSPDecal(21, new PacketHandler() {
+        }), svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
+        }), svc_UserMessage(23, new PacketHandler() {
+        }), svc_EntityMessage(24, new PacketHandler() {
+        }), svc_GameEvent(25, new PacketHandler() {
+        }), svc_PacketEntities(26, new PacketHandler() {
+        }), svc_TempEntities(27, new PacketHandler() {
+        }), svc_Prefetch(28, new PacketHandler() {
+        }), svc_Menu(29, new PacketHandler() {
+        }), svc_GameEventList(30, new PacketHandler() {
+        }), svc_GetCvarValue(31, new PacketHandler() {
+        }), svc_CmdKeyValues(32, new PacketHandler() {
+        });
+
+        final PacketHandler handler;
+
+        private final int[] i;
+
+        Packet(int i, PacketHandler handler) {
+            this(new int[] {i}, handler);
+        }
+
+        Packet(int[] i, PacketHandler handler) {
+            this.i = i;
+            this.handler = handler;
+        }
+
+        public static Packet get(int i) {
+            for(Packet t : Packet.values()) {
+                for(int j : t.i) {
+                    if(j == i) {
+                        return t;
+                    }
+                }
+            }
+            return null;
+        }
+
+    }
+
+    public static class Message {
+
+        public ByteBuffer data;
+
+        public final List<Object> meta = new LinkedList<Object>();
+
+        /**
+         * Actually 3 bytes
+         */
+        public final int tick;
+
+        public final MessageType type;
+
+        private Message(ByteBuffer buffer) {
+            int b = buffer.get();
+            type = MessageType.get(b);
+            if(type == null) {
+                LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", b);
+            }
+            tick = buffer.getShort() + (buffer.get() << 16);
+
+            if(type != MessageType.Stop) {
+                buffer.get();
+            }
+            LOG.log(Level.FINE, "{0} at tick {1} ({2}), {3} remaining bytes",
+                    new Object[] {type, tick, buffer.position(), buffer.remaining()});
+        }
+
+        public void parse() {
+            if(data == null) {
+                return;
+            }
+            switch(type) {
+                case Signon:
+                case Packet: {
+                    BitBuffer bb = new BitBuffer(data);
+                    while(true) {
+                        if(bb.remaining() < 1) {
+                            break;
+                        }
+                        int mid = (int) bb.getBits(header.networkProtocol >= 16 ? 6 : 5);
+                        Packet p = Packet.get(mid);
+                        if(p == null) {
+                            meta.add(MessageFormat.format("Unknown message type {0}", mid));
+                            break;
+                        }
+                        List<Object> list = new LinkedList<Object>();
+                        list.add(p);
+                        boolean complete = p.handler.read(bb, list);
+                        if(!complete) {
+                            list.add(MessageFormat.format("Incomplete read", mid));
+                        }
+                        meta.add(list);
+                        if(!complete) {
+                            break;
+                        }
+                    }
+                }
+                break;
+                case ConsoleCmd: {
+                    ByteBuffer b = data;
+                    Level l = Level.FINE;
+                    String cmd = DataUtils.getText(b).trim();
+                    meta.add(cmd);
+                    if(b.remaining() > 0) {
+                        LOG.log(l, "Underflow: {0}, {1}", new Object[] {b.remaining(), b.position()});
+                    }
+                }
+                break;
+                case UserCmd: {
+                    BitBuffer bb = new BitBuffer(data);
+                    Level l = Level.FINE;
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Command number: {0}", bb.getInt()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Tick count: {0}", bb.getInt()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Viewangle pitch: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Viewangle yaw: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Viewangle roll: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Foward move: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Side move: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Up move: {0}", bb.getFloat()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Buttons: 0x{0}", Integer.toHexString(bb.getInt())));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Impulse: {0}", bb.getByte()));
+                    }
+                    if(bb.remaining() > 0) {
+                        meta.add(MessageFormat.format("Underflow: {0}", bb.remaining()));
+                    }
+                }
+                break;
+                // TODO
+                case DataTables:
+                case StringTables:
+                    break;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return MessageFormat.format("{0}, tick {1}, {2} bytes", type, tick, data != null ? data.limit() : 0);
         }
 
     }
