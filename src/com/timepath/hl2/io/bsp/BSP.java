@@ -3,14 +3,13 @@ package com.timepath.hl2.io.bsp;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
 import com.timepath.steam.io.storage.ACF;
+import com.timepath.vfs.ZipFS;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 /**
  *
@@ -45,17 +44,7 @@ public class BSP implements LumpHandler {
                 LOG.log(Level.INFO, "Unzipping {0}", new Object[] {l});
                 byte[] data = new byte[l.length];
                 in.readFully(data);
-                ZipInputStream zs = new ZipInputStream(new ByteArrayInputStream(data));
-                
-                byte[] buffer = new byte[2048];
-
-                for(ZipEntry e; (e = zs.getNextEntry()) != null;) {
-                    LOG.log(Level.FINE, "{0}", e);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream((int) Math.max(e.getCompressedSize(), 0));
-                    for(int len = 0; (len = zs.read(buffer)) > 0;) {
-                        baos.write(buffer, 0, len);
-                    }
-                }
+                ZipFS zfs = new ZipFS(data);
             }
         });
     }
