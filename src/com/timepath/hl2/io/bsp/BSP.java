@@ -100,17 +100,20 @@ public class BSP implements LumpHandler {
         /**
          * BSP file identifier: VBSP
          */
-        @StructField(index = 0) int ident;
+        @StructField(index = 0)
+        int ident;
 
         /**
          * BSP file identifier: VBSP
          */
-        @StructField(index = 2) Lump[] lumps = new Lump[HEADER_LUMPS];
+        @StructField(index = 2)
+        Lump[] lumps = new Lump[HEADER_LUMPS];
 
         /**
          * The map's revision (iteration, version) number
          */
-        @StructField(index = 3) int mapRevision;
+        @StructField(index = 3)
+        int mapRevision;
 
         /**
          * BSP file version
