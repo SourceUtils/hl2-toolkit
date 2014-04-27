@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * <p/>
  * @author TimePath
  */
-public class BSP {
+public abstract class BSP {
 
     private static final Logger LOG = Logger.getLogger(BSP.class.getName());
 
@@ -37,6 +37,10 @@ public class BSP {
             for(int i = 0; i < header.lumps.length; i++) {
                 header.lumps[i].type = LumpType.values()[i];
             }
+            
+            LOG.info("Processing map...");
+            bsp.process();
+            
             return bsp;
         } catch(InstantiationException ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -46,11 +50,19 @@ public class BSP {
         return null;
     }
 
+    public IntBuffer indexBuffer;
+
+    public FloatBuffer vertexBuffer;
+
     protected BSPHeader header;
 
     protected OrderedInputStream in;
 
     protected BSP() {
+    }
+
+    public IntBuffer getIndices() {
+        return indexBuffer;
     }
 
     /**
@@ -107,17 +119,11 @@ public class BSP {
         return header.mapRevision;
     }
 
-    public FloatBuffer vertexBuffer;
-
     public FloatBuffer getVertices() {
         return vertexBuffer;
     }
 
-    public IntBuffer indexBuffer;
-
-    public IntBuffer getIndices() {
-        return indexBuffer;
-    }
+    protected abstract void process() throws IOException;
 
     private static class BSPHeader {
 
