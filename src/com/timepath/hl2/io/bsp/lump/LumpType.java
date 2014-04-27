@@ -46,7 +46,7 @@ public enum LumpType {
     /**
      * Face array
      */
-    LUMP_FACES(7),
+    LUMP_FACES(7, new FaceHandler()),
     /**
      * Lightmap samples
      */
@@ -66,11 +66,11 @@ public enum LumpType {
     /**
      * Edge array
      */
-    LUMP_EDGES(12),
+    LUMP_EDGES(12, new EdgeHandler()),
     /**
      * Index of edges
      */
-    LUMP_SURFEDGES(13),
+    LUMP_SURFEDGES(13, new SurfaceEdgeHandler()),
     /**
      * Brush models (geometry of brush entities)
      */
@@ -275,7 +275,7 @@ public enum LumpType {
     private static final Logger LOG = Logger.getLogger(LumpType.class.getName());
 
     private final LumpHandler handler;
-    
+
     public LumpHandler getHandler() {
         return handler;
     }
