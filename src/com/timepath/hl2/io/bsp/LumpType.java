@@ -1,6 +1,12 @@
 package com.timepath.hl2.io.bsp;
 
+import com.timepath.hl2.io.bsp.lump.EntitiesHandler;
+import com.timepath.hl2.io.bsp.lump.PakfileHandler;
+import com.timepath.io.OrderedInputStream;
+import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -11,7 +17,7 @@ public enum LumpType {
     /**
      * Map entities
      */
-    LUMP_ENTITIES(0),
+    LUMP_ENTITIES(0, new EntitiesHandler()),
     /**
      * Plane array
      */
@@ -171,7 +177,7 @@ public enum LumpType {
     /**
      * Embedded uncompressed Zip-format file
      */
-    LUMP_PAKFILE(40),
+    LUMP_PAKFILE(40, new PakfileHandler()),
     /**
      * Clipped portal polygon vertices
      */
@@ -265,15 +271,33 @@ public enum LumpType {
      */
     LUMP_DISP_MULTIBLEND(63);
 
+    private static final Logger LOG = Logger.getLogger(LumpType.class.getName());
+
+    public final LumpHandler<?> handler;
+
     final int id;
 
     LumpType(int i) {
+        this(i, null);
+    }
+
+    LumpType(int i, LumpHandler<?> handler) {
         this.id = i;
+        this.handler = handler;
     }
 
     @Override
     public String toString() {
         return MessageFormat.format("{0} ({1})", name(), id);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T handle(Lump l, OrderedInputStream in) throws IOException {
+        if(handler == null) {
+            LOG.log(Level.WARNING, "No handler for {0}", this);
+            return null;
+        }
+        return (T) handler.handle(l, in);
     }
 
 }

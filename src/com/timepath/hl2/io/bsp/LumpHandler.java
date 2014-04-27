@@ -6,9 +6,10 @@ import java.io.IOException;
 /**
  *
  * @author TimePath
+ * @param <T> The return type of this handler
  */
-interface LumpHandler {
+public interface LumpHandler<T> {
     
-    void handle(Lump t, OrderedInputStream in) throws IOException;
+    T handle(Lump t, OrderedInputStream in) throws IOException;
     
 }

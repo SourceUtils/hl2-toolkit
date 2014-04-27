@@ -11,27 +11,27 @@ public class Lump {
      * Lump ident code. Usually \0\0\0\0, else uncompressed lump data size in integer form, then LZMA
      */
     @StructField(index = 3)
-    int ident;
+    public int ident;
 
     /**
      * Length of lump (bytes)
      */
     @StructField(index = 1)
-    int length;
+    public int length;
 
     /**
      * Offset into file (bytes)
      */
     @StructField(index = 0)
-    int offset;
-
-    LumpType type;
+    public int offset;
 
     /**
      * Lump format version
      */
     @StructField(index = 2)
-    int version;
+    public int version;
+
+    LumpType type;
 
     @Override
     public String toString() {

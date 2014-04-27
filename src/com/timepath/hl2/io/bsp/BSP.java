@@ -2,13 +2,8 @@ package com.timepath.hl2.io.bsp;
 
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
-import com.timepath.steam.io.storage.ACF;
-import com.timepath.vfs.ZipFS;
 import java.io.*;
 import java.nio.ByteOrder;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -20,79 +15,68 @@ import java.util.logging.Logger;
  * <p/>
  * @author TimePath
  */
-public class BSP implements LumpHandler {
-
-    private static int HEADER_LUMPS = 64;
+public class BSP {
 
     private static final Logger LOG = Logger.getLogger(BSP.class.getName());
 
-    private static final Map<LumpType, LumpHandler> handlers;
-
-    static {
-        handlers = new EnumMap<LumpType, LumpHandler>(LumpType.class);
-
-        handlers.put(LumpType.LUMP_ENTITIES, new LumpHandler() {
-
-            public void handle(Lump l, OrderedInputStream in) throws IOException {
-                String s = in.readString();
-            }
-        });
-
-        handlers.put(LumpType.LUMP_PAKFILE, new LumpHandler() {
-
-            public void handle(Lump l, OrderedInputStream in) throws IOException {
-                LOG.log(Level.INFO, "Unzipping {0}", new Object[] {l});
-                byte[] data = new byte[l.length];
-                in.readFully(data);
-                ZipFS zfs = new ZipFS(data);
-            }
-        });
-    }
-
-    public static void main(String[] args) throws Exception {
-        BSP b = new BSP(ACF.fromManifest(440).get("tf/maps/ctf_2fort.bsp").stream());
-
-        for(Lump l : b.header.lumps) {
-            b.readLump(l);
-        }
-    }
-
-    BSPHeader header;
-
-    OrderedInputStream in;
-
-    public BSP(InputStream is) throws IOException, InstantiationException, IllegalAccessException {
-        in = new OrderedInputStream(new BufferedInputStream(is));
+    public static BSP load(InputStream is) throws IOException, InstantiationException, IllegalAccessException {
+        OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
         in.order(ByteOrder.LITTLE_ENDIAN);
         in.mark(in.available());
-        header = in.readStruct(new BSPHeader());
+        BSPHeader header = in.readStruct(new BSPHeader());
+
+        // TODO: Other BSP types
+        VBSP bsp = new VBSP();
+        bsp.in = in;
+        bsp.header = header;
 
         // TODO: Struct parser callbacks
         for(int i = 0; i < header.lumps.length; i++) {
             header.lumps[i].type = LumpType.values()[i];
         }
+        return bsp;
     }
 
-    private BSP() {
+    protected BSPHeader header;
+
+    protected OrderedInputStream in;
+
+    protected BSP() {
     }
 
-    public void handle(Lump l, OrderedInputStream in) throws IOException {
-        LumpHandler handler = handlers.get(l.type);
-        if(handler == null) {
-            LOG.log(Level.FINE, "No handler for {0}", l);
-        } else {
-            handler.handle(l, in);
-        }
-    }
-
-    void readLump(Lump l) throws IOException {
-        if(l.isEmpty()) {
-            return;
+    /**
+     *
+     * Examples:
+     * <br/>
+     * {@code String ents = b.<String>getLump(LumpType.LUMP_ENTITIES);}
+     * <br/>
+     * {@code String ents = (String) b.getLump(LumpType.LUMP_ENTITIES);}
+     * <br/>
+     * {@code String ents = b.getLump(LumpType.LUMP_ENTITIES);}
+     * <p/>
+     * @param <T>  Expected return type. TODO: Wouldn't it be nice if we just knew?
+     * @param type The lump
+     * <p/>
+     * @return The lump
+     * <p/>
+     * @throws IOException
+     */
+    public <T> T getLump(LumpType type) throws IOException {
+        Lump lump = header.lumps[type.id];
+        if(lump.isEmpty()) {
+            return null;
         }
         in.reset();
-        in.skipBytes(l.offset);
+        in.skipBytes(lump.offset);
+        return type.<T>handle(lump, in);
+    }
 
-        handle(l, in);
+    /**
+     *
+     * @return The map revision
+     */
+    public int getRevision() {
+        return header.mapRevision;
     }
 
     private static class BSPHeader {
@@ -107,7 +91,7 @@ public class BSP implements LumpHandler {
          * BSP file identifier: VBSP
          */
         @StructField(index = 2)
-        Lump[] lumps = new Lump[HEADER_LUMPS];
+        Lump[] lumps = new Lump[64];
 
         /**
          * The map's revision (iteration, version) number
