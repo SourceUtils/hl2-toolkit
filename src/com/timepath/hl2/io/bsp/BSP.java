@@ -4,8 +4,7 @@ import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
 import java.io.*;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
+import java.nio.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,13 +107,16 @@ public class BSP {
         return header.mapRevision;
     }
 
+    public FloatBuffer vertexBuffer;
+
     public FloatBuffer getVertices() {
-        try {
-            return getLump(LumpType.LUMP_VERTEXES);
-        } catch(IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-            return null;
-        }
+        return vertexBuffer;
+    }
+
+    public IntBuffer indexBuffer;
+
+    public IntBuffer getIndices() {
+        return indexBuffer;
     }
 
     private static class BSPHeader {
