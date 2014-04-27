@@ -30,7 +30,7 @@ public enum LumpType {
     /**
      * Vertex array
      */
-    LUMP_VERTEXES(3),
+    LUMP_VERTEXES(3, new VertexHander()),
     /**
      * Compressed visibility bit arrays
      */

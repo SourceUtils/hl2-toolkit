@@ -10,6 +10,6 @@ import java.io.IOException;
  */
 public interface LumpHandler<T> {
     
-    T handle(Lump t, OrderedInputStream in) throws IOException;
+    T handle(Lump l, OrderedInputStream in) throws IOException;
     
 }

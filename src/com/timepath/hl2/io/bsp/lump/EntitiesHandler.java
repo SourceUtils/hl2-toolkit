@@ -6,7 +6,11 @@ import com.timepath.io.OrderedInputStream;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public class EntitiesHandler implements LumpHandler<String> {
+/**
+ *
+ * @author TimePath
+ */
+class EntitiesHandler implements LumpHandler<String> {
 
     private static final Logger LOG = Logger.getLogger(EntitiesHandler.class.getName());
 

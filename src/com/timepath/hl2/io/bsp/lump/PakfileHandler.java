@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  *
  * @author TimePath
  */
-public class PakfileHandler implements LumpHandler<ZipFS> {
+class PakfileHandler implements LumpHandler<ZipFS> {
 
     private static final Logger LOG = Logger.getLogger(PakfileHandler.class.getName());
 

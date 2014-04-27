@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.studiomodel;
 
+import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.DataUtils;
 import com.timepath.io.ByteBufferInputStream;
 import com.timepath.io.OrderedInputStream;
@@ -143,11 +144,6 @@ public class MDL {
         }
     }
 
-    static class Vector3f {
-
-        @StructField(index = 0) float x, y, z;
-
-    }
 
     public class StudioHeader {
 

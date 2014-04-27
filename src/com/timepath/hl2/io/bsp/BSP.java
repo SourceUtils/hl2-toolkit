@@ -5,6 +5,8 @@ import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
 import java.io.*;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -20,22 +22,29 @@ public class BSP {
 
     private static final Logger LOG = Logger.getLogger(BSP.class.getName());
 
-    public static BSP load(InputStream is) throws IOException, InstantiationException, IllegalAccessException {
-        OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
-        in.order(ByteOrder.LITTLE_ENDIAN);
-        in.mark(in.available());
-        BSPHeader header = in.readStruct(new BSPHeader());
-
-        // TODO: Other BSP types
-        VBSP bsp = new VBSP();
-        bsp.in = in;
-        bsp.header = header;
-
-        // TODO: Struct parser callbacks
-        for(int i = 0; i < header.lumps.length; i++) {
-            header.lumps[i].type = LumpType.values()[i];
+    public static BSP load(InputStream is) throws IOException {
+        try {
+            OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
+            in.order(ByteOrder.LITTLE_ENDIAN);
+            in.mark(in.available());
+            BSPHeader header = in.readStruct(new BSPHeader());
+            
+            // TODO: Other BSP types
+            VBSP bsp = new VBSP();
+            bsp.in = in;
+            bsp.header = header;
+            
+            // TODO: Struct parser callbacks
+            for(int i = 0; i < header.lumps.length; i++) {
+                header.lumps[i].type = LumpType.values()[i];
+            }
+            return bsp;
+        } catch(InstantiationException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        } catch(IllegalAccessException ex) {
+            LOG.log(Level.SEVERE, null, ex);
         }
-        return bsp;
+        return null;
     }
 
     protected BSPHeader header;
@@ -73,6 +82,15 @@ public class BSP {
      */
     public int getRevision() {
         return header.mapRevision;
+    }
+
+    public FloatBuffer getVertices() {
+        try {
+            return getLump(LumpType.LUMP_VERTEXES);
+        } catch(IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return null;
+        }
     }
 
     /**

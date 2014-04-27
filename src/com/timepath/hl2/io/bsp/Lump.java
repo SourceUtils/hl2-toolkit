@@ -4,6 +4,10 @@ import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.io.struct.StructField;
 import java.util.logging.Logger;
 
+/**
+ *
+ * @author TimePath
+ */
 public class Lump {
 
     private static final Logger LOG = Logger.getLogger(Lump.class.getName());
