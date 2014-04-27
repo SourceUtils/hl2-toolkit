@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.bsp;
 
+import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
 import java.io.*;
@@ -63,7 +64,7 @@ public class BSP {
      */
     @SuppressWarnings("unchecked")
     public <T> T getLump(LumpType type) throws IOException {
-        return this.<T>getLump(type, (LumpHandler<T>) type.handler);
+        return this.<T>getLump(type, (LumpHandler<T>) type.getHandler());
     }
 
     /**
@@ -89,7 +90,7 @@ public class BSP {
         if(handler == null) {
             return null;
         }
-        Lump lump = header.lumps[type.id];
+        Lump lump = header.lumps[type.getID()];
         if(lump.isEmpty()) {
             return null;
         }

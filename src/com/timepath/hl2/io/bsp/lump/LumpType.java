@@ -1,7 +1,7 @@
-package com.timepath.hl2.io.bsp;
+package com.timepath.hl2.io.bsp.lump;
 
-import com.timepath.hl2.io.bsp.lump.EntitiesHandler;
-import com.timepath.hl2.io.bsp.lump.PakfileHandler;
+import com.timepath.hl2.io.bsp.Lump;
+import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -12,6 +12,7 @@ import java.util.logging.Logger;
  *
  * @author TimePath
  */
+@SuppressWarnings("rawtypes")
 public enum LumpType {
 
     /**
@@ -273,17 +274,25 @@ public enum LumpType {
 
     private static final Logger LOG = Logger.getLogger(LumpType.class.getName());
 
-    public final LumpHandler<?> handler;
+    private final LumpHandler handler;
+    
+    public LumpHandler getHandler() {
+        return handler;
+    }
 
-    final int id;
+    private final int id;
 
     LumpType(int i) {
         this(i, null);
     }
 
-    LumpType(int i, LumpHandler<?> handler) {
+    LumpType(int i, LumpHandler handler) {
         this.id = i;
         this.handler = handler;
+    }
+
+    public int getID() {
+        return id;
     }
 
     @Override

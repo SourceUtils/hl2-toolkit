@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.bsp;
 
+import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.steam.io.storage.ACF;
 import com.timepath.vfs.ZipFS;
 import java.util.logging.Logger;
