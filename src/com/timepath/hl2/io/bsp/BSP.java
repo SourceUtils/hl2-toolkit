@@ -54,21 +54,16 @@ public class BSP {
      * <br/>
      * {@code String ents = b.getLump(LumpType.LUMP_ENTITIES);}
      * <p/>
-     * @param <T>  Expected return type. TODO: Wouldn't it be nice if we just knew?
+     * @param <T>  Expected return type. TODO: Wouldn't it be nice if we just knew at compile time?
      * @param type The lump
      * <p/>
      * @return The lump
      * <p/>
      * @throws IOException
      */
+    @SuppressWarnings("unchecked")
     public <T> T getLump(LumpType type) throws IOException {
-        Lump lump = header.lumps[type.id];
-        if(lump.isEmpty()) {
-            return null;
-        }
-        in.reset();
-        in.skipBytes(lump.offset);
-        return type.<T>handle(lump, in);
+        return this.<T>getLump(type, (LumpHandler<T>) type.handler);
     }
 
     /**
@@ -77,6 +72,30 @@ public class BSP {
      */
     public int getRevision() {
         return header.mapRevision;
+    }
+
+    /**
+     * Intended for overriding to change handler functionality
+     * <p/>
+     * @param <T>
+     * @param type
+     * @param handler
+     * <p/>
+     * @return
+     * <p/>
+     * @throws IOException
+     */
+    protected <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
+        if(handler == null) {
+            return null;
+        }
+        Lump lump = header.lumps[type.id];
+        if(lump.isEmpty()) {
+            return null;
+        }
+        in.reset();
+        in.skipBytes(lump.offset);
+        return handler.handle(lump, in);
     }
 
     private static class BSPHeader {
