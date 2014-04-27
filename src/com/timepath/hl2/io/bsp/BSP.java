@@ -28,12 +28,12 @@ public class BSP {
             in.order(ByteOrder.LITTLE_ENDIAN);
             in.mark(in.available());
             BSPHeader header = in.readStruct(new BSPHeader());
-            
+
             // TODO: Other BSP types
             VBSP bsp = new VBSP();
             bsp.in = in;
             bsp.header = header;
-            
+
             // TODO: Struct parser callbacks
             for(int i = 0; i < header.lumps.length; i++) {
                 header.lumps[i].type = LumpType.values()[i];
@@ -77,6 +77,30 @@ public class BSP {
     }
 
     /**
+     * Intended for overriding to change handler functionality
+     * <p/>
+     * @param <T>
+     * @param type
+     * @param handler
+     * <p/>
+     * @return
+     * <p/>
+     * @throws IOException
+     */
+    public <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
+        if(handler == null) {
+            return null;
+        }
+        Lump lump = header.lumps[type.getID()];
+        if(lump.isEmpty()) {
+            return null;
+        }
+        in.reset();
+        in.skipBytes(lump.offset);
+        return handler.handle(lump, in);
+    }
+
+    /**
      *
      * @return The map revision
      */
@@ -91,30 +115,6 @@ public class BSP {
             LOG.log(Level.SEVERE, null, ex);
             return null;
         }
-    }
-
-    /**
-     * Intended for overriding to change handler functionality
-     * <p/>
-     * @param <T>
-     * @param type
-     * @param handler
-     * <p/>
-     * @return
-     * <p/>
-     * @throws IOException
-     */
-    protected <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
-        if(handler == null) {
-            return null;
-        }
-        Lump lump = header.lumps[type.getID()];
-        if(lump.isEmpty()) {
-            return null;
-        }
-        in.reset();
-        in.skipBytes(lump.offset);
-        return handler.handle(lump, in);
     }
 
     private static class BSPHeader {
