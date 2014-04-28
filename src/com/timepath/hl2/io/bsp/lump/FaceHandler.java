@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 class FaceHandler implements LumpHandler<Face[]> {
 
     private static final Logger LOG = Logger.getLogger(FaceHandler.class.getName());
+    
+    private static final int MAX_MAP_FACES = 65536;
 
     public Face[] handle(Lump l, OrderedInputStream in) throws IOException {
         try {

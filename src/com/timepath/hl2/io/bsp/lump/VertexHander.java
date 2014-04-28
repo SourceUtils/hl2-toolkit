@@ -15,6 +15,8 @@ import java.util.logging.Logger;
 class VertexHander implements LumpHandler<FloatBuffer> {
 
     private static final Logger LOG = Logger.getLogger(VertexHander.class.getName());
+    
+    private static final int MAX_MAP_VERTS = 65536;
 
     public FloatBuffer handle(Lump l, OrderedInputStream in) throws IOException {
         ByteBuffer verts = ByteBuffer.allocateDirect(l.length);

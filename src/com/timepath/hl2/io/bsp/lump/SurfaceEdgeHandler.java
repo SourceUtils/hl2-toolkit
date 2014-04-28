@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 class SurfaceEdgeHandler implements LumpHandler<int[]> {
 
     private static final Logger LOG = Logger.getLogger(SurfaceEdgeHandler.class.getName());
+    
+    private static final int MAX_MAP_SURFEDGES = 512000;
 
     public int[] handle(Lump l, OrderedInputStream in) throws IOException {
         int[] e = new int[l.length / 4];

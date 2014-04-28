@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 class EdgeHandler implements LumpHandler<Edge[]> {
 
     private static final Logger LOG = Logger.getLogger(EdgeHandler.class.getName());
+    
+    private static final int MAX_MAP_EDGES = 256000;
 
     public Edge[] handle(Lump l, OrderedInputStream in) throws IOException {
         try {
