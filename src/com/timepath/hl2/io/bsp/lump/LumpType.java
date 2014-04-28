@@ -22,7 +22,7 @@ public enum LumpType {
     /**
      * Plane array
      */
-    LUMP_PLANES(1),
+    LUMP_PLANES(1, new PlaneHandler()),
     /**
      * Index to texture names
      */
