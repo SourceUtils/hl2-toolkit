@@ -1,15 +1,13 @@
 package com.timepath.hl2.swing;
 
-import com.timepath.hl2.io.VBF;
-import com.timepath.hl2.io.VBF.BitmapGlyph;
 import com.timepath.hl2.io.VTF;
+import com.timepath.hl2.io.font.VBF;
+import com.timepath.hl2.io.font.VBF.BitmapGlyph;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.geom.AffineTransform;
+import java.awt.event.*;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -21,33 +19,25 @@ import javax.swing.SwingUtilities;
  */
 public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListener {
 
-    private static final long serialVersionUID = 1L;
-
     private static final Logger LOG = Logger.getLogger(VBFCanvas.class.getName());
 
-    private static final int padding = 32 * 0;
-
-    private static final AffineTransform at = AffineTransform.getTranslateInstance(padding, padding);
-
-    /**
-     * No derive method on 1.5
-     */
     private static final AlphaComposite acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
 
-    private static final AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                                                                          0.5f);
+    private static final AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 
     private static final AlphaComposite acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
 
-    private ArrayList<BitmapGlyph> selected = new ArrayList<BitmapGlyph>();
-
-    private VBF vbf;
+    private static final long serialVersionUID = 1L;
 
     private Image img;
 
-    private VTF vtf;
-
     private Point last;
+
+    private List<BitmapGlyph> selected = new LinkedList<BitmapGlyph>();
+
+    private VBF vbf;
+
+    private VTF vtf;
 
     /**
      * Creates new form VBFTest
@@ -57,28 +47,8 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         this.addMouseMotionListener(this);
     }
 
-    public void select(BitmapGlyph g) {
-        selected.clear();
-        if(g != null) {
-            selected.add(g);
-            this.repaint(g.getBounds());
-        }
-    }
-
-        public void setVBF(VBF b) {
-            this.vbf = b;
-            this.revalidate();
-        }
-
-    public void setVTF(VTF t) {
-        this.vtf = t;
-        this.vbf.setWidth(vtf.width);
-        this.vbf.setHeight(vtf.height);
-        this.repaint();
-    }
-
-    public ArrayList<BitmapGlyph> get(Point p) {
-        ArrayList<BitmapGlyph> intersected = new ArrayList<BitmapGlyph>();
+    public List<BitmapGlyph> get(Point p) {
+        List<BitmapGlyph> intersected = new LinkedList<BitmapGlyph>();
         if(vbf == null || vbf.getGlyphs() == null) {
             return intersected;
         }
@@ -98,6 +68,25 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         return new Dimension(vbf.getWidth(), vbf.getHeight());
     }
 
+    public BitmapGlyph getSelected() {
+        if(this.selected.isEmpty()) {
+            return null;
+        }
+        return this.selected.get(0);
+    }
+
+    public void setVBF(VBF b) {
+        this.vbf = b;
+        this.revalidate();
+    }
+
+    public void setVTF(VTF t) {
+        this.vtf = t;
+        this.vbf.setWidth(vtf.width);
+        this.vbf.setHeight(vtf.height);
+        this.repaint();
+    }
+
     public void mouseClicked(MouseEvent me) {
     }
 
@@ -106,39 +95,17 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         if(last != null) {
             me.translatePoint(-last.x, -last.y);
         }
-        last = p;
         for(BitmapGlyph sel : selected) {
-            sel.getBounds().x += me.getPoint().x;
-            sel.getBounds().y += me.getPoint().y;
-        }
-        this.repaint();
-    }
-
-    public void mousePressed(MouseEvent me) {
-        last = me.getPoint();
-        ArrayList<BitmapGlyph> old = new ArrayList<BitmapGlyph>(selected);
-        if(SwingUtilities.isLeftMouseButton(me)) {
-            ArrayList<BitmapGlyph> clicked = get(me.getPoint());
-            for(BitmapGlyph g : clicked) {
-                if(selected.contains(g)) {
-                    return;
-                }
-            }
-            if(me.isControlDown()) {
-                selected.addAll(clicked);
+            if(SwingUtilities.isRightMouseButton(me)) {
+                sel.getBounds().width += me.getPoint().x;
+                sel.getBounds().height += me.getPoint().y;
             } else {
-                selected = clicked;
-            }
-            for(BitmapGlyph g : old) {
-                this.repaint(g.getBounds());
-            }
-            for(BitmapGlyph g : selected) {
-                this.repaint(g.getBounds());
+                sel.getBounds().x += me.getPoint().x;
+                sel.getBounds().y += me.getPoint().y;
             }
         }
-    }
-
-    public void mouseReleased(MouseEvent me) {
+        last = p;
+        this.repaint();
     }
 
     public void mouseEntered(MouseEvent me) {
@@ -150,11 +117,40 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
     public void mouseMoved(MouseEvent me) {
     }
 
-    public BitmapGlyph getSelected() {
-        if(this.selected.isEmpty()) {
-            return null;
+    public void mousePressed(MouseEvent me) {
+        last = me.getPoint();
+        if(!SwingUtilities.isLeftMouseButton(me)) {
+            return;
         }
-        return this.selected.get(0);
+        List<BitmapGlyph> old = new LinkedList<BitmapGlyph>(selected);
+        List<BitmapGlyph> clicked = get(me.getPoint());
+        for(BitmapGlyph g : clicked) {
+            if(selected.contains(g)) {
+                return;
+            }
+        }
+        if(me.isControlDown()) {
+            selected.addAll(clicked);
+        } else {
+            selected = clicked;
+        }
+        for(BitmapGlyph g : old) {
+            this.repaint(g.getBounds());
+        }
+        for(BitmapGlyph g : selected) {
+            this.repaint(g.getBounds());
+        }
+    }
+
+    public void mouseReleased(MouseEvent me) {
+    }
+
+    public void select(BitmapGlyph g) {
+        selected.clear();
+        if(g != null) {
+            selected.add(g);
+            this.repaint(g.getBounds());
+        }
     }
 
     @Override
@@ -163,12 +159,11 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         g.setComposite(acNormal);
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
-//        g.setTransform(at);
         if(img == null && vtf != null) {
             try {
                 img = vtf.getImage(vtf.mipCount - 1);
             } catch(IOException ex) {
-                Logger.getLogger(VBFCanvas.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
         if(this.vbf != null) {
@@ -204,8 +199,7 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 //                g.setXORMode(Color.WHITE);
                 g.setComposite(acText);
                 g.setColor(Color.GREEN);
-                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1,
-                             bounds.y + bounds.height - 1);
+                g.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1, bounds.y + bounds.height - 1);
             }
         }
     }
