@@ -174,15 +174,6 @@ public class VBSP extends BSP {
     }
 
     private void done(List<Float> vertices, List<Integer> indices) {
-        if(vertices != null && !vertices.isEmpty()) {
-            vertexBuffer = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer();
-            for(float v : vertices) {
-                vertexBuffer.put(v);
-            }
-            vertexBuffer.flip();
-            LOG.log(Level.INFO, "Map: vertices {0}", new Object[] {vertices.size()});
-        }
-
         if(indices != null && !indices.isEmpty()) {
             indexBuffer = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer();
             for(int i : indices) {
@@ -190,6 +181,15 @@ public class VBSP extends BSP {
             }
             indexBuffer.flip();
             LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", new Object[] {indices.size(), indices.size() / 3});
+        }
+
+        if(vertices != null && !vertices.isEmpty()) {
+            vertexBuffer = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer();
+            for(float v : vertices) {
+                vertexBuffer.put(v);
+            }
+            vertexBuffer.flip();
+            LOG.log(Level.INFO, "Map: vertices {0}", new Object[] {vertices.size()});
         }
     }
 
