@@ -1,20 +1,13 @@
-package com.timepath.hl2.io;
+package com.timepath.hl2.io.image;
 
 import com.timepath.EnumFlags;
 import com.timepath.StringUtils;
-import com.timepath.hl2.io.image.CompiledVtfFlags;
-import com.timepath.hl2.io.image.ImageFormat;
-import com.timepath.image.ImageUtils;
 import com.timepath.io.utils.ViewableData;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.io.*;
+import java.nio.*;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -210,24 +203,9 @@ public class VTF implements ViewableData {
 
             LOG.log(Level.FINE, "{0}, {1}", new Object[] {w, h});
 
-            int nBytes;
-
-            if(this.format == ImageFormat.IMAGE_FORMAT_DXT1) {
-                nBytes = Math.max(w, 4) * Math.max(h, 4) / 2; // Each 'block' is 4*4 pixels + some other data. 16 pixels become 8 bytes [64 bits] (2 * 16 bit colours, 4*4 2 bit indicies)
-            } else if(this.format == ImageFormat.IMAGE_FORMAT_DXT5) {
-                nBytes = Math.max(w, 4) * Math.max(h, 4); // Each 'block' is 4*4 pixels + some other data. 16 pixels become 16 bytes [128 bits] (2 * 8 bit alpha values, 4x4 3 bit alpha indicies, 2 * 16 bit colours, 4*4 2 bit indicies)
-            } else if(this.format == ImageFormat.IMAGE_FORMAT_BGRA8888 || this.format
-                                                                              == ImageFormat.IMAGE_FORMAT_RGBA8888) {
-                nBytes = w * h * 4; // Each pixel is 4 bytes: rgba
-            } else if(this.format == ImageFormat.IMAGE_FORMAT_BGR888) {
-                nBytes = w * h * 3; // Each pixel is 3 bytes: rgb
-            } else if(this.format == ImageFormat.IMAGE_FORMAT_UV88) {
-                nBytes = w * h * 2; // Each pixel is 3 bytes: rgb
-            } else {
-                LOG.log(Level.WARNING, "Unrecognised VTF format {0}", this.format);
-                return null;
-            }
-            if(i == level) {
+            int nBytes = format.getBytes(w, h);
+            
+            if(i == this.mipCount - level - 1) {
                 byte[] imageData = new byte[nBytes * this.frameCount];
                 try {
                     buf.get(imageData);
@@ -235,23 +213,10 @@ public class VTF implements ViewableData {
                     LOG.log(Level.SEVERE, "Underflow; {0}", nBytes);
                 }
                 System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes);
+                LOG.log(Level.INFO, "VTF format {0}", this.format);
                 image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = (Graphics2D) image.getGraphics();
-                BufferedImage bi = null;
-                if(this.format == ImageFormat.IMAGE_FORMAT_DXT1) {
-                    bi = ImageUtils.loadDXT1(imageData, w, h);
-                } else if(this.format == ImageFormat.IMAGE_FORMAT_DXT5) {
-                    bi = ImageUtils.loadDXT5(imageData, w, h);
-                } else if(this.format == ImageFormat.IMAGE_FORMAT_BGRA8888) {
-                    bi = ImageUtils.loadBGRA(imageData, w, h);
-                } else if(this.format == ImageFormat.IMAGE_FORMAT_RGBA8888) {
-                    bi = ImageUtils.loadRGBA(imageData, w, h);
-                } else if(this.format == ImageFormat.IMAGE_FORMAT_BGR888) {
-                    bi = ImageUtils.loadBGR(imageData, w, h);
-                } else if(this.format == ImageFormat.IMAGE_FORMAT_UV88) {
-                    bi = ImageUtils.loadUV(imageData, w, h);
-                }
-                g.drawImage(bi, 0, 0, w, h, null);
+                g.drawImage(format.load(imageData, w, h), 0, 0, w, h, null);
             } else {
                 buf.get(new byte[nBytes * this.frameCount]);
             }
@@ -292,7 +257,7 @@ public class VTF implements ViewableData {
             buf.position(this.headerSize);
             byte[] thumbData = new byte[Math.max(this.thumbWidth, 4) * Math.max(this.thumbHeight, 4) / 2]; // DXT1. Each 'block' is 4*4 pixels. 16 pixels become 8 bytes
             buf.get(thumbData);
-            thumbImage = ImageUtils.loadDXT1(thumbData, this.thumbWidth, this.thumbHeight);
+            thumbImage = DXTLoader.loadDXT1(thumbData, this.thumbWidth, this.thumbHeight);
         }
         return thumbImage;
     }

@@ -1,5 +1,6 @@
 package com.timepath.hl2.io;
 
+import com.timepath.hl2.io.image.VTF;
 import com.timepath.io.utils.Savable;
 import com.timepath.steam.io.VDF1;
 import com.timepath.steam.io.util.VDFNode1;

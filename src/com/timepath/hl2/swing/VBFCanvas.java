@@ -1,6 +1,6 @@
 package com.timepath.hl2.swing;
 
-import com.timepath.hl2.io.VTF;
+import com.timepath.hl2.io.image.VTF;
 import com.timepath.hl2.io.font.VBF;
 import com.timepath.hl2.io.font.VBF.BitmapGlyph;
 import java.awt.*;
