@@ -6,6 +6,7 @@ import com.timepath.steam.io.VDF1;
 import com.timepath.steam.io.util.VDFNode1;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -30,7 +31,7 @@ import javax.swing.tree.TreeNode;
  */
 public class RES extends VDF1 implements Savable {
 
-    public static final HashMap<String, HudFont> fonts = new HashMap<String, HudFont>();
+    public static final Map<String, HudFont> fonts = new HashMap<String, HudFont>(0);
 
     private static final Logger LOG = Logger.getLogger(RES.class.getName());
 

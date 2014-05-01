@@ -5,9 +5,8 @@ import com.timepath.hl2.io.util.Element;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -73,7 +72,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         return result;
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="Variables">
     public double scale = 1;
 
@@ -110,14 +109,14 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     //<editor-fold defaultstate="collapsed" desc="Element management">
     // List of elements
-    private final ArrayList<Element> elements = new ArrayList<Element>();
+    private final List<Element> elements = new LinkedList<Element>();
 
     // List of currently selected elements
-    private final ArrayList<Element> selectedElements = new ArrayList<Element>();
+    private final List<Element> selectedElements = new LinkedList<Element>();
 
     private Element hoveredElement;
     //</editor-fold>
-    
+
     public VGUICanvas() {
         initInput();
         this.setPreferredSize(new Dimension(640, 480));
@@ -161,7 +160,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 //        long gcm = gcm(hudRes.width, hudRes.height);
         long resX = screen.width;
         long resY = screen.height;
-        double m = (double) resX / (double) resY;
+        double m = resX / (double) resY;
 //        System.out.println(resX + "/" + resY + "=" + m);
 //        System.out.println((resX / gcm) + ":" + (resY / gcm) + " = " + Math.round(m * 480) + "x" + 480);
 
@@ -191,7 +190,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         this.requestFocusInWindow();
         Point p = new Point(event.getPoint());
         p.translate(-offX, -offY);
-        int button = event.getButton();
 
         if(SwingUtilities.isLeftMouseButton(event)) {
             dragStart = new Point(p.x, p.y);
@@ -225,7 +223,6 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     public void mouseReleased(MouseEvent event) {
         Point p = new Point(event.getPoint());
         p.translate(-offX, -offY);
-        int button = event.getButton();
 
         if(SwingUtilities.isLeftMouseButton(event)) {
             this.setCursor(Cursor.getDefaultCursor());
@@ -238,10 +235,9 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             Rectangle original = new Rectangle(selectRect);
             selectRect.width = 0;
             selectRect.height = 0;
-            for(int i = 0; i < selectedElements.size(); i++) {
-                Element e = selectedElements.get(i);
-                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll(
-                        "\"", "").endsWith(".res")) { // XXX: hacky
+            for(Element e : selectedElements) {
+                if(selectedElements.contains(e.getParent()) && !e.getParent().getName().replaceAll("\"", "")
+                    .endsWith(".res")) { // XXX: hacky
                     continue;
                 }
                 translate(e, _offX, _offY);
@@ -283,7 +279,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     public void placed() {
     }
 
-    public ArrayList<Element> getElements() {
+    public List<Element> getElements() {
         return elements;
     }
 
@@ -303,15 +299,15 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         }
     }
 
-    public void removeElements(ArrayList<Element> e) {
-        for(int i = 0; i < e.size(); i++) {
-            removeElement(e.get(i));
+    public void removeElements(List<Element> list) {
+        for(Element e : list) {
+            removeElement(e);
         }
     }
 
     public void clearElements() {
-        for(int i = 0; i < elements.size(); i++) {
-            removeElement(elements.get(i));
+        for(Element element : elements) {
+            removeElement(element);
         }
     }
 
@@ -341,7 +337,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         this.addElement(element); // weird but it has to be done
     }
 
-    public ArrayList<Element> getSelected() {
+    public List<Element> getSelected() {
         return selectedElements;
     }
 
@@ -384,10 +380,10 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     }
 
     public void deselectAll() {
-        ArrayList<Element> temp = new ArrayList<Element>(selectedElements);
+        List<Element> temp = new ArrayList<Element>(selectedElements);
         selectedElements.clear();
-        for(int i = 0; i < temp.size(); i++) {
-            this.doRepaint(temp.get(i).getBounds());
+        for(Element temp1 : temp) {
+            this.doRepaint(temp1.getBounds());
         }
     }
 
@@ -399,8 +395,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         if(p1 != null && p2 != null) {
             Rectangle originalSelectRect = new Rectangle(selectRect);
             selectRect = fitRect(p1, p2, selectRect);
-            for(int i = 0; i < elements.size(); i++) {
-                Element e = elements.get(i);
+            for(Element e : elements) {
                 if(selectRect.intersects(e.getBounds())) {
                     select(e); // TODO: not perfect, I want the selection inverted as it goes over
                 } else {
@@ -418,10 +413,9 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     }
 
     // Checks if poing p is inside the bounds of any element
-    public ArrayList<Element> pick(Point p, ArrayList<Element> elements) {
-        ArrayList<Element> potential = new ArrayList<Element>();
-        for(int i = 0; i < elements.size(); i++) {
-            Element e = elements.get(i);
+    public List<Element> pick(Point p, List<Element> elements) {
+        List<Element> potential = new LinkedList<Element>();
+        for(Element e : elements) {
             if(e.getBounds().contains(p)) {
                 potential.add(e);
             }
@@ -429,7 +423,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         return potential;
     }
 
-    public Element chooseBest(ArrayList<Element> potential) {
+    public Element chooseBest(List<Element> potential) {
         int pSize = potential.size();
         if(pSize == 0) {
             return null;
@@ -456,13 +450,13 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         if(e.getXAlignment() == Alignment.Right) {
             dx *= -1;
         }
-        double scaleX = ((double) screen.width / (double) internal.width);
+        double scaleX = (screen.width / (double) internal.width);
         dx = Math.round(dx / scaleX);
         e.setLocalX(e.getLocalX() + dx);
         if(e.getYAlignment() == Alignment.Right) {
             dy *= -1;
         }
-        double scaleY = ((double) screen.height / (double) internal.height);
+        double scaleY = (screen.height / (double) internal.height);
         dy = Math.round(dy / scaleY);
         e.setLocalY(e.getLocalY() + dy);
         //        this.doRepaint(originalBounds);
@@ -472,9 +466,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     public void removeAllElements() {
         ArrayList<Element> temp = new ArrayList<Element>(elements);
-        elements.removeAll(elements);
-        for(int i = 0; i < temp.size(); i++) {
-            Element e = temp.get(i);
+        elements.clear();
+        for(Element e : temp) {
             this.doRepaint(e.getBounds());
         }
     }
@@ -483,7 +476,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     private BufferedImage toCompatibleImage(BufferedImage image) {
         // obtain the current system graphical settings
         GraphicsConfiguration gfx_config = GraphicsEnvironment.getLocalGraphicsEnvironment().
-                getDefaultScreenDevice().getDefaultConfiguration();
+            getDefaultScreenDevice().getDefaultConfiguration();
 
         /*
          * if image is already compatible and optimized for current system
@@ -511,8 +504,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     private Rectangle getOutliers() {
         Rectangle r = new Rectangle(internal.width, internal.height);
-        for(int i = 0; i < elements.size(); i++) {
-            r.add(elements.get(i).getBounds());
+        for(Element element : elements) {
+            r.add(element.getBounds());
         }
         return r;
     }
@@ -531,8 +524,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int proposedWidth = Math.round((float) h / (float) i.getHeight(null) * (float) i.getWidth(
-                null));
+        int proposedWidth = Math.round(h / (float) i.getHeight(null) * i.getWidth(null));
         int excess = Math.abs(proposedWidth - w) / 2;
         g.drawImage(i, -excess, 0, w + (2 * excess), h, this); // should scale most images correctly
         g.dispose();
@@ -564,8 +556,8 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         int cross = 0;
         int maxX = w - (w % i);
         int maxY = h - (h % i);
-        double multX = (screen.width / internal.width);
-        double multY = (screen.height / internal.height);
+        double multX = (screen.width / (double) internal.width);
+        double multY = (screen.height / (double) internal.height);
         for(int y = -1; y <= (maxY / i); y++) {
             for(int x = -1; x <= (maxX / i); x++) {
                 int dx = (int) Math.round(((maxX * x * i * multX) / maxX));
@@ -581,13 +573,13 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     private void paintElement(Element e, Graphics2D g) {
         if(e.getWidth() > 0 && e.getHeight() > 0) { // invisible? don't waste time
             int elementX = (int) Math.round(
-                    (double) e.getX() * ((double) screen.width / (double) internal.width) * scale);
+                e.getX() * (screen.width / internal.width) * scale);
             int elementY = (int) Math.round(
-                    (double) e.getY() * ((double) screen.height / (double) internal.height) * scale);
+                e.getY() * (screen.height / internal.height) * scale);
             int elementW = (int) Math.round(
-                    (double) e.getWidth() * ((double) screen.width / (double) internal.width) * scale);
+                e.getWidth() * (screen.width / internal.width) * scale);
             int elementH = (int) Math.round(
-                    (double) e.getHeight() * ((double) screen.height / (double) internal.height) * scale);
+                e.getHeight() * (screen.height / internal.height) * scale);
             if(selectedElements.contains(e)) {
                 elementX += _offX;
                 elementY += _offY;
@@ -662,7 +654,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         //        }
     }
     //</editor-fold>
-    
+
     //<editor-fold defaultstate="collapsed" desc="Input">
     private void initInput() {
         this.addMouseListener(this);
@@ -710,7 +702,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         } else {
             g.setColor(Color.WHITE.darker().darker());
             g.fillRect(offX, offY, (int) Math.round(screen.width * scale), (int) Math.round(
-                    screen.height * scale));
+                       screen.height * scale));
         }
 
         if(gridbg == null) {
@@ -726,9 +718,9 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             ge.translate(offX, offY);
 
             Collections.sort(elements, layerSort);
-            for(int i = 0; i < elements.size(); i++) {
+            for(Element element : elements) {
                 ge.setComposite(acSimple);
-                paintElement(elements.get(i), ge);
+                paintElement(element, ge);
             }
 
             ge.dispose();

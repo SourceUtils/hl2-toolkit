@@ -1,6 +1,5 @@
 package com.timepath.hl2.io.captions;
 
-import com.timepath.hl2.io.captions.VCCD;
 import java.io.*;
 import java.util.Arrays;
 import java.util.logging.Logger;

@@ -26,7 +26,7 @@ class EdgeHandler implements LumpHandler<Edge[]> {
         } catch(IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        return null;
+        return new Edge[0];
     }
 
 }

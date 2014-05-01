@@ -253,6 +253,34 @@ public class VCCD {
             return e1.compareToIgnoreCase(e2);
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if(obj instanceof VCCDEntry) {
+                VCCDEntry o = (VCCDEntry) obj;
+                if(hash != o.hash) {
+                    return false;
+                }
+                if((value != null && o.value == null) || (o.value != null && value == null)) {
+                    return false;
+                }
+                if(value == null && o.value == null) {
+                    return true;
+                }
+                return value.equals(o.value);
+            }
+            return false;
+        }
+        
+        
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 71 * hash + this.hash;
+            hash = 71 * hash + (this.value != null ? this.value.hashCode() : 0);
+            return hash;
+        }
+
         public int getBlock() {
             return block;
         }

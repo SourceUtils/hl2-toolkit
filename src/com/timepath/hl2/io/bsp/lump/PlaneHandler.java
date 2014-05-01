@@ -26,7 +26,7 @@ class PlaneHandler implements LumpHandler<Plane[]> {
         } catch(IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        return null;
+        return new Plane[0];
     }
 
 }

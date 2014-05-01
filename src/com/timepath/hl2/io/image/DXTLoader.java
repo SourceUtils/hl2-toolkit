@@ -1,6 +1,5 @@
 package com.timepath.hl2.io.image;
 
-import com.timepath.hl2.io.image.ImageFormat;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -59,18 +58,18 @@ public class DXTLoader {
 
                 if(color_0 > color_1) {
                     colour[2] = new Color(
-                        Math.round(((2 * colour[0].getRed()) + colour[1].getRed()) / 3),
-                        Math.round(((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3),
-                        Math.round(((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
+                        (((2 * colour[0].getRed()) + colour[1].getRed()) / 3),
+                        (((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3),
+                        (((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
                     colour[3] = new Color(
-                        Math.round(((2 * colour[1].getRed()) + colour[0].getRed()) / 3),
-                        Math.round(((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3),
-                        Math.round(((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
+                        (((2 * colour[1].getRed()) + colour[0].getRed()) / 3),
+                        (((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3),
+                        (((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
                 } else {
                     colour[2] = new Color(
-                        Math.round((colour[0].getRed() + colour[1].getRed()) / 2),
-                        Math.round((colour[0].getGreen() + colour[1].getGreen()) / 2),
-                        Math.round((colour[0].getBlue() + colour[1].getBlue()) / 2));
+                        ((colour[0].getRed() + colour[1].getRed()) / 2),
+                        ((colour[0].getGreen() + colour[1].getGreen()) / 2),
+                        ((colour[0].getBlue() + colour[1].getBlue()) / 2));
                     colour[3] = new Color(0, 0, 0, 0);
                 }
 
@@ -191,17 +190,17 @@ public class DXTLoader {
                 a[0] = (b[pos++] & 0xFF); // 64 bits of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table)
                 a[1] = (b[pos++] & 0xFF);
                 if(a[0] > a[1]) {
-                    a[2] = Math.round((6 * a[0] + 1 * a[1]) / 7);
-                    a[3] = Math.round((5 * a[0] + 2 * a[1]) / 7);
-                    a[4] = Math.round((4 * a[0] + 3 * a[1]) / 7);
-                    a[5] = Math.round((3 * a[0] + 4 * a[1]) / 7);
-                    a[6] = Math.round((2 * a[0] + 5 * a[1]) / 7);
-                    a[7] = Math.round((1 * a[0] + 6 * a[1]) / 7);
+                    a[2] = ((6 * a[0] + 1 * a[1]) / 7);
+                    a[3] = ((5 * a[0] + 2 * a[1]) / 7);
+                    a[4] = ((4 * a[0] + 3 * a[1]) / 7);
+                    a[5] = ((3 * a[0] + 4 * a[1]) / 7);
+                    a[6] = ((2 * a[0] + 5 * a[1]) / 7);
+                    a[7] = ((1 * a[0] + 6 * a[1]) / 7);
                 } else {
-                    a[2] = Math.round((4 * a[0] + 1 * a[1]) / 5);
-                    a[3] = Math.round((3 * a[0] + 2 * a[1]) / 5);
-                    a[4] = Math.round((2 * a[0] + 3 * a[1]) / 5);
-                    a[5] = Math.round((1 * a[0] + 4 * a[1]) / 5);
+                    a[2] = ((4 * a[0] + 1 * a[1]) / 5);
+                    a[3] = ((3 * a[0] + 2 * a[1]) / 5);
+                    a[4] = ((2 * a[0] + 3 * a[1]) / 5);
+                    a[5] = ((1 * a[0] + 4 * a[1]) / 5);
                     a[6] = 0;
                     a[7] = 255;
                 }
@@ -234,18 +233,18 @@ public class DXTLoader {
 
                 if(color_0 > color_1) {
                     colour[2] = new Color(
-                        Math.round(((2 * colour[0].getRed()) + colour[1].getRed()) / 3),
-                        Math.round(((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3),
-                        Math.round(((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
+                        (((2 * colour[0].getRed()) + colour[1].getRed()) / 3),
+                        (((2 * colour[0].getGreen()) + colour[1].getGreen()) / 3),
+                        (((2 * colour[0].getBlue()) + colour[1].getBlue()) / 3));
                     colour[3] = new Color(
-                        Math.round(((2 * colour[1].getRed()) + colour[0].getRed()) / 3),
-                        Math.round(((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3),
-                        Math.round(((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
+                        (((2 * colour[1].getRed()) + colour[0].getRed()) / 3),
+                        (((2 * colour[1].getGreen()) + colour[0].getGreen()) / 3),
+                        (((2 * colour[1].getBlue()) + colour[0].getBlue()) / 3));
                 } else {
                     colour[2] = new Color(
-                        Math.round((colour[0].getRed() + colour[1].getRed()) / 2),
-                        Math.round((colour[0].getGreen() + colour[1].getGreen()) / 2),
-                        Math.round((colour[0].getBlue() + colour[1].getBlue()) / 2));
+                        ((colour[0].getRed() + colour[1].getRed()) / 2),
+                        ((colour[0].getGreen() + colour[1].getGreen()) / 2),
+                        ((colour[0].getBlue() + colour[1].getBlue()) / 2));
                     colour[3] = new Color(0, 0, 0);
                 }
 

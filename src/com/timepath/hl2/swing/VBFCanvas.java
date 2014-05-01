@@ -1,8 +1,8 @@
 package com.timepath.hl2.swing;
 
-import com.timepath.hl2.io.image.VTF;
 import com.timepath.hl2.io.font.VBF;
 import com.timepath.hl2.io.font.VBF.BitmapGlyph;
+import com.timepath.hl2.io.image.VTF;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         if(img == null && vtf != null) {
             try {
-                img = vtf.getImage(vtf.getMipCount() - 1);
+                img = vtf.getImage(0);
             } catch(IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }

@@ -1,7 +1,7 @@
 package com.timepath.hl2.io.studiomodel;
 
-import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.DataUtils;
+import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.ByteBufferInputStream;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.Struct;
@@ -17,7 +17,7 @@ import static com.timepath.hl2.io.studiomodel.StudioModel.MAX_NUM_LODS;
 
 public class MDL {
 
-    public static Level verbosity = Level.FINE;
+    public Level verbosity = Level.FINE;
 
     private static final Logger LOG = Logger.getLogger(MDL.class.getName());
 

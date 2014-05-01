@@ -2,6 +2,7 @@ package com.timepath.hl2.io;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,8 +49,8 @@ public class CFG {
 
     }
 
-    private static ArrayList<Token> lex(String input) {
-        ArrayList<Token> tokens = new ArrayList<Token>();
+    private static List<Token> lex(String input) {
+        List<Token> tokens = new LinkedList<Token>();
 
         StringBuilder tokenPatternsBuffer = new StringBuilder();
         TokenType[] values = TokenType.values();
@@ -89,7 +90,7 @@ public class CFG {
             s = new Scanner(in, encoding);
             parse(s);
         } catch(Exception ex) {
-            ex.printStackTrace();
+            LOG.log(Level.SEVERE, null, ex);
         } finally {
             if(s != null) {
                 s.close();
@@ -167,7 +168,7 @@ public class CFG {
         return sb.toString();
     }
 
-    ArrayList<Alias> aliases = new ArrayList<Alias>();
+    List<Alias> aliases = new LinkedList<Alias>();
 
     public class Alias {
 

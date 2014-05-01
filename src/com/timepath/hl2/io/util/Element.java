@@ -7,8 +7,9 @@ import com.timepath.steam.io.util.Property;
 import com.timepath.steam.io.util.VDFNode1;
 import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +24,7 @@ public class Element extends VDFNode1 implements ViewableData {
 
     private static final Logger LOG = Logger.getLogger(Element.class.getName());
 
-    public static Map<String, Element> areas = new HashMap<String, Element>();
+    public static final Map<String, Element> areas = new HashMap<String, Element>(0);
 
     public static Element importVdf(VDFNode1 vdf) {
         Element e = new Element();
@@ -96,13 +97,13 @@ public class Element extends VDFNode1 implements ViewableData {
 
     public Rectangle getBounds() {
         int minX = (int) Math.round(
-                this.getX() * ((double) screen.width / (double) internal.width) * scale);
+                this.getX() * (screen.width / internal.width) * scale);
         int minY = (int) Math.round(
-                this.getY() * ((double) screen.height / (double) internal.height) * scale);
+                this.getY() * (screen.height / internal.height) * scale);
         int maxX = (int) Math.round(
-                this.getWidth() * ((double) screen.width / (double) internal.width) * scale);
+                this.getWidth() * (screen.width / internal.width) * scale);
         int maxY = (int) Math.round(
-                this.getHeight() * ((double) screen.height / (double) internal.height) * scale);
+                this.getHeight() * (screen.height / internal.height) * scale);
         return new Rectangle(minX, minY, maxX + 1, maxY + 1);
     }
 
@@ -126,7 +127,7 @@ public class Element extends VDFNode1 implements ViewableData {
     public int getX() {
         if(getParent() == null || getParent().name.replaceAll("\"", "").endsWith(".res")) {
             if(this.getXAlignment() == Alignment.Center) {
-                return (getLocalX() + Math.round(internal.width / 2));
+                return (getLocalX() + (internal.width / 2));
             } else if(this.getXAlignment() == Alignment.Right) {
                 return (internal.width - getLocalX());
             } else {
@@ -158,7 +159,7 @@ public class Element extends VDFNode1 implements ViewableData {
     public int getY() {
         if(getParent() == null || getParent().name.replaceAll("\"", "").endsWith(".res")) {
             if(this.getYAlignment() == Alignment.Center) {
-                return (getLocalY() + Math.round(internal.height / 2));
+                return (getLocalY() + (internal.height / 2));
             } else if(this.getYAlignment() == Alignment.Right) {
                 return (internal.height - getLocalY());
             } else {
@@ -549,9 +550,9 @@ public class Element extends VDFNode1 implements ViewableData {
         }
     }
 
-    private ArrayList<Property> ps = new ArrayList<Property>();
+    private List<Property> ps = new LinkedList<Property>();
 
-    public ArrayList<Property> getProps() {
+    public List<Property> getProps() {
         return ps;
     }
 
@@ -587,9 +588,10 @@ public class Element extends VDFNode1 implements ViewableData {
                 entry.setValue(this.getLabelText());
             } else if("ControlName".equalsIgnoreCase(k)) {
                 entry.setValue(this.getControlName());
-            } else if("font".equalsIgnoreCase(k)) {
-//                entry.setValue(this.getFont()); // TODO
             }
+//            else if("font".equalsIgnoreCase(k)) {
+//                entry.setValue(this.getFont()); // TODO
+//            }
         }
     }
 

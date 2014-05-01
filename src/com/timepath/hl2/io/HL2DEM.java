@@ -41,7 +41,7 @@ public class HL2DEM {
 
     private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
 
-    private static DemoHeader header;
+    private DemoHeader header;
 
     public static HL2DEM load(File f) throws IOException {
         LOG.log(Level.INFO, "Parsing {0}", f);
@@ -530,7 +530,7 @@ public class HL2DEM {
 
     }
 
-    public static class Message {
+    public class Message {
 
         public ByteBuffer data;
 
@@ -601,7 +601,6 @@ public class HL2DEM {
                 break;
                 case UserCmd: {
                     BitBuffer bb = new BitBuffer(data);
-                    Level l = Level.FINE;
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Command number: {0}", bb.getInt()));
                     }

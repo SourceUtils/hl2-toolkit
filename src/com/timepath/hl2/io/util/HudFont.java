@@ -87,6 +87,9 @@ public class HudFont {
         } catch(Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
+        if(f1 == null) {
+            return null;
+        }
         LOG.log(Level.INFO, "Loaded {0}", name);
         return f1.deriveFont(fontSize);
     }

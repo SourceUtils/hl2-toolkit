@@ -26,7 +26,7 @@ class FaceHandler implements LumpHandler<Face[]> {
         } catch(IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        return null;
+        return new Face[0];
     }
 
 }
