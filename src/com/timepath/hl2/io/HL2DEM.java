@@ -12,29 +12,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/networkstringtabledefs.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/keyvaluescompiler.h
- * <p/>
- * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp
- * <p/>
- * https://github.com/jpcy/coldemoplayer
- * https://github.com/stgn/netdecode
- * https://github.com/tritao/netdecode
- * <p/>
- * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo/SourceDemo.cs
- * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
- * <p/>
- * https://github.com/tritao/netdecode/blob/master/DemoFile.cs
- * https://github.com/tritao/netdecode/blob/master/Packet.cs
- * <p/>
- * https://forums.alliedmods.net/showthread.php?t=232925
- * <p>
- * @author TimePath
- */
 public class HL2DEM {
 
     private static final int DEMO_PROTOCOL = 3;
@@ -827,6 +804,60 @@ public class HL2DEM {
 
     }
 
+    /**
+     * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/in_buttons.h
+     */
+    private static enum Input {
+
+        ATTACK,
+        JUMP,
+        DUCK,
+        FORWARD,
+        BACK,
+        USE,
+        CANCEL,
+        LEFT,
+        RIGHT,
+        MOVELEFT,
+        MOVERIGHT,
+        ATTACK2,
+        RUN,
+        RELOAD,
+        ALT1,
+        ALT2,
+        SCORE,
+        SPEED,
+        WALK,
+        /**
+         * Zoom key for HUD zoom
+         */
+        ZOOM,
+        /**
+         * Weapon defines these bits
+         */
+        WEAPON1,
+        /**
+         * Weapon defines these bits
+         */
+        WEAPON2,
+        BULLRUSH,
+        GRENADE1,
+        GRENADE2,
+        ATTACK3;
+
+        private static List<Input> fromInt(int bits) {
+            int i = 0;
+            List<Input> l = new LinkedList<Input>();
+            for(Input name : values()) {
+                if(((1 << i++) & bits) != 0) {
+                    l.add(name);
+                }
+            }
+            return l;
+        }
+
+    }
+
     private static class DemoHeader {
 
         final String clientName;
@@ -1020,7 +1051,7 @@ public class HL2DEM {
                     }
 
                     if(bb.getBoolean()) {
-                        meta.add(MessageFormat.format("Buttons: 0x{0}", Integer.toHexString(bb.getInt())));
+                        meta.add(MessageFormat.format("Buttons: {0}", Input.fromInt(bb.getInt())));
                     }
 
                     if(bb.getBoolean()) {
