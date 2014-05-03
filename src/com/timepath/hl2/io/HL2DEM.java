@@ -16,8 +16,10 @@ import java.util.logging.Logger;
  *
  * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h
  * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/networkstringtabledefs.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/keyvaluescompiler.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/networkstringtabledefs.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/keyvaluescompiler.h
+ * <p/>
+ * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp
  * <p/>
  * https://github.com/jpcy/coldemoplayer
  * https://github.com/stgn/netdecode
@@ -37,13 +39,23 @@ public class HL2DEM {
 
     private static final int DEMO_PROTOCOL = 3;
 
+    private static final int EVENT_INDEX_BITS = 8;
+
     private static final String HEADER = "HL2DEMO\0";
 
     private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
 
+    private static final int MAX_DECAL_INDEX_BITS = 9;
+
     private static final int MAX_EDICT_BITS = 11;
 
     private static final int MAX_GAME_EVENTS = (int) Math.pow(2, 9) - 1;
+
+    private static final int MAX_SOUND_INDEX_BITS = 14;
+
+    private static final int NET_MAX_PALYLOAD_BITS = 17;
+
+    private static final int SP_MODEL_INDEX_BITS = 12;
 
     /**
      * TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h
@@ -326,10 +338,27 @@ public class HL2DEM {
             public boolean read(BitBuffer bb, List<Object> l) {
                 return true;
             }
+
         }),
         net_Disconnect(1, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Reason: " + bb.getString());
+                return true;
+            }
+
         }),
         net_File(2, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Transfer ID: " + bb.getInt());
+                l.add("Filename: " + bb.getString());
+                l.add("Requested: " + bb.getBoolean());
+                return true;
+            }
+
         }),
         net_Tick(3, new PacketHandler() {
 
@@ -340,6 +369,7 @@ public class HL2DEM {
                 l.add("Host frametime StdDev: " + bb.getShort());
                 return true;
             }
+
         }),
         net_StringCmd(4, new PacketHandler() {
 
@@ -348,7 +378,7 @@ public class HL2DEM {
                 l.add("Command: " + bb.getString());
                 return true;
             }
-            
+
         }),
         net_SetConVar(5, new PacketHandler() {
 
@@ -360,15 +390,17 @@ public class HL2DEM {
                 }
                 return true;
             }
+
         }),
         net_SignonState(6, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
-                l.add("Signon state: " + (bb.getByte() & 0xFF));
+                l.add("Signon state: " + SignonState.values()[bb.getByte() & 0xFF]);
                 l.add("Spawn count: " + ((long) bb.getInt()));
                 return true;
             }
+
         }),
         svc_Print(7, new PacketHandler() { // 16 in newer protocols
 
@@ -377,6 +409,7 @@ public class HL2DEM {
                 l.add(bb.getString());
                 return true;
             }
+
         }),
         svc_ServerInfo(8, new PacketHandler() {
 
@@ -405,7 +438,9 @@ public class HL2DEM {
                 l.add("Has replay: " + bb.getBoolean()); // ???: protocol version
                 return true;
             }
+
         }),
+        // TODO
         svc_SendTable(9, new PacketHandler() {
         }),
         svc_ClassInfo(10, new PacketHandler() {
@@ -426,19 +461,21 @@ public class HL2DEM {
                 }
                 return true;
             }
+
         }),
+        // TODO
         svc_SetPause(11, new PacketHandler() {
         }),
         svc_CreateStringTable(12, new PacketHandler() {
-//
+
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
                 l.add("Table name: " + bb.getString());
                 int m = bb.getShort();
                 l.add("Max entries: " + m);
-                int n = (int) bb.getBits((int) ((Math.log(m) / Math.log(2)) + 1));
-                l.add("Number of entries: " + n);
-                long length = bb.getBits(20);
+                int encodeBits = (int) bb.getBits((int) ((Math.log(m) / Math.log(2)) + 1));
+                l.add("Number of entries: " + encodeBits);
+                long length = bb.getBits(NET_MAX_PALYLOAD_BITS + 3);
                 l.add("Length in bits: " + length);
                 boolean f = bb.getBoolean();
                 l.add("Userdata fixed size: " + f);
@@ -448,11 +485,13 @@ public class HL2DEM {
                 }
 
                 // ???: this is not in Source 2007 netmessages.h/cpp it seems. protocol version?
-                l.add("Compressed: " + bb.getBoolean());
-                bb.getBits(n);
+//                l.add("Compressed: " + bb.getBoolean());
+                bb.getBits(encodeBits); // TODO
                 return true;
             }
+
         }),
+        // TODO
         svc_UpdateStringTable(13, new PacketHandler() {
         }),
         svc_VoiceInit(14, new PacketHandler() {
@@ -463,6 +502,7 @@ public class HL2DEM {
                 l.add("Quality: " + bb.getByte());
                 return true;
             }
+
         }),
         svc_VoiceData(15, new PacketHandler() {
 
@@ -477,7 +517,12 @@ public class HL2DEM {
             }
 
         }),
-        svc_Unknown16(16, new PacketHandler() { // svc_Print in newer protocols
+        /**
+         * TODO: One of these
+         * svc_HLTV: HLTV control messages
+         * svc_Print: split screen style message
+         */
+        svc_Unknown16(16, new PacketHandler() { // 
         }),
         svc_Sounds(17, new PacketHandler() {
 
@@ -493,6 +538,7 @@ public class HL2DEM {
                 bb.getBits(length); // TODO
                 return true;
             }
+
         }),
         svc_SetView(18, new PacketHandler() {
 
@@ -504,7 +550,16 @@ public class HL2DEM {
 
         }),
         svc_FixAngle(19, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Relative: " + bb.getBoolean());
+                bb.getBits(48); // TODO
+                return true;
+            }
+
         }),
+        // TODO
         svc_CrosshairAngle(20, new PacketHandler() {
         }),
         svc_BSPDecal(21, new PacketHandler() {
@@ -543,18 +598,27 @@ public class HL2DEM {
             }
 
             @Override
-            boolean read(BitBuffer bb, List<Object> l) {
+            boolean read(BitBuffer bb, List<Object> l, DemoHeader header) {
                 l.add("Position: " + ReadVecCoord(bb));
-                l.add("Decal texture index: " + bb.getBits(9));
+                l.add("Decal texture index: " + bb.getBits(MAX_DECAL_INDEX_BITS));
                 if(bb.getBoolean()) {
-                    l.add("Entity index: " + bb.getBits(11));
-                    l.add("Model index: " + bb.getBits(12));
+                    l.add("Entity index: " + bb.getBits(MAX_EDICT_BITS));
+                    int bits = SP_MODEL_INDEX_BITS;
+                    if(header.demoProtocol <= 21) {
+                        bits--;
+                    }
+                    l.add("Model index: " + bb.getBits(bits));
                 }
                 l.add("Low priority: " + bb.getBoolean());
                 return true;
             }
 
         }),
+        /**
+         * TODO: One of these
+         * svc_TerrainMod: modification to the terrain/displacement
+         * svc_SplitScreen: split screen style message
+         */
         svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
         }),
         svc_UserMessage(23, new PacketHandler() {
@@ -572,6 +636,7 @@ public class HL2DEM {
             }
 
         }),
+        // TODO
         svc_EntityMessage(24, new PacketHandler() {
         }),
         svc_GameEvent(25, new PacketHandler() {
@@ -613,10 +678,42 @@ public class HL2DEM {
 
         }),
         svc_TempEntities(27, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Number of entries: " + bb.getBits(EVENT_INDEX_BITS));
+                int length = (int) bb.getBits(NET_MAX_PALYLOAD_BITS);
+                l.add("Length in bits: " + length);
+                l.add("remaining bits: " + bb.remainingBits());
+                bb.getBits(Math.min(length, bb.remainingBits())); // TODO: underflows
+                return true;
+            }
+
         }),
         svc_Prefetch(28, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l, DemoHeader header) {
+                int bits = MAX_SOUND_INDEX_BITS;
+                if(header.networkProtocol <= 22) {
+                    bits = 13;
+                }
+                l.add("Sound index: " + bb.getBits(bits));
+                return true;
+            }
+
         }),
         svc_Menu(29, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Menu type: " + bb.getBits(16));
+                int length = (int) bb.getBits(16);
+                l.add("Length in bytes: " + length);
+                bb.getBits(length << 3); // TODO
+                return true;
+            }
+
         }),
         svc_GameEventList(30, new PacketHandler() {
 
@@ -654,7 +751,16 @@ public class HL2DEM {
 
         }),
         svc_GetCvarValue(31, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add(MessageFormat.format("Cookie: 0x{0}", Integer.toHexString(bb.getInt())));
+                l.add(bb.getString());
+                return true;
+            }
+
         }),
+        // TODO
         svc_CmdKeyValues(32, new PacketHandler() {
         });
 
@@ -681,6 +787,43 @@ public class HL2DEM {
             }
             return null;
         }
+
+    }
+
+    private static enum SignonState {
+
+        /**
+         * 0: No state yet; about to connect
+         */
+        NONE,
+        /**
+         * 1: Client challenging server; all OOB packets
+         */
+        CHALLENGE,
+        /**
+         * 2: Client is connected to server; netchans ready
+         */
+        CONNECTED,
+        /**
+         * 3: Just got serverinfo and string tables
+         */
+        NEW,
+        /**
+         * 4: Received signon buffers
+         */
+        PRESPAWN,
+        /**
+         * 5: Ready to receive entity packets
+         */
+        SPAWN,
+        /**
+         * 6: Fully connected; first non-delta packet received
+         */
+        FULL,
+        /**
+         * 7: Server is changing level; please wait
+         */
+        CHANGELEVEL;
 
     }
 
@@ -757,6 +900,10 @@ public class HL2DEM {
             return false;
         }
 
+        boolean read(BitBuffer bb, List<Object> l, DemoHeader header) {
+            return read(bb, l);
+        }
+
     }
 
     public class Message {
@@ -802,19 +949,26 @@ public class HL2DEM {
                         int mid = (int) bb.getBits(header.networkProtocol >= 16 ? 6 : 5);
                         Packet p = Packet.get(mid);
                         if(p == null) {
-                            meta.add(MessageFormat.format("Unknown message type {0}", mid));
+                            String str = MessageFormat.format("Unknown message type {0} at {1}", mid, tick);
+                            LOG.log(Level.WARNING, str);
+                            meta.add(str);
                             break;
                         }
                         List<Object> list = new LinkedList<Object>();
                         list.add(p);
                         boolean complete = false;
                         try {
-                            complete = p.handler.read(bb, list);
+                            complete = p.handler.read(bb, list, header);
                             if(!complete) {
-                                list.add(MessageFormat.format("Incomplete read", mid));
+                                String str = MessageFormat.format("Incomplete read of {0} at {1}", p, tick);
+                                LOG.log(Level.WARNING, str);
+                                list.add(str);
                             }
                         } catch(Exception e) {
-                            list.add("Exception occured");
+                            String str = MessageFormat.format("Exception {0} in {1} at {2}", e, p, tick);
+                            LOG.log(Level.WARNING, str);
+                            LOG.log(Level.WARNING, null, e);
+                            list.add(str);
                         }
                         meta.add(list);
                         if(!complete) {
