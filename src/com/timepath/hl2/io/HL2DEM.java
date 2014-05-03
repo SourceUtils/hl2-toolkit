@@ -323,9 +323,12 @@ public class HL2DEM {
             public boolean read(BitBuffer bb, List<Object> l) {
                 return true;
             }
-        }), net_Disconnect(1, new PacketHandler() {
-        }), net_File(2, new PacketHandler() {
-        }), net_Tick(3, new PacketHandler() {
+        }),
+        net_Disconnect(1, new PacketHandler() {
+        }),
+        net_File(2, new PacketHandler() {
+        }),
+        net_Tick(3, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -334,8 +337,10 @@ public class HL2DEM {
                 l.add("Host frametime StdDev: " + bb.getShort());
                 return true;
             }
-        }), net_StringCmd(4, new PacketHandler() {
-        }), net_SetConVar(5, new PacketHandler() {
+        }),
+        net_StringCmd(4, new PacketHandler() {
+        }),
+        net_SetConVar(5, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -345,7 +350,8 @@ public class HL2DEM {
                 }
                 return true;
             }
-        }), net_SignonState(6, new PacketHandler() {
+        }),
+        net_SignonState(6, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -353,14 +359,16 @@ public class HL2DEM {
                 l.add("Spawn count: " + ((long) bb.getInt()));
                 return true;
             }
-        }), svc_Print(7, new PacketHandler() { // 16 in newer protocols
+        }),
+        svc_Print(7, new PacketHandler() { // 16 in newer protocols
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
                 l.add(bb.getString());
                 return true;
             }
-        }), svc_ServerInfo(8, new PacketHandler() {
+        }),
+        svc_ServerInfo(8, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -387,8 +395,10 @@ public class HL2DEM {
                 l.add("Has replay: " + bb.getBoolean()); // ???: protocol version
                 return true;
             }
-        }), svc_SendTable(9, new PacketHandler() {
-        }), svc_ClassInfo(10, new PacketHandler() {
+        }),
+        svc_SendTable(9, new PacketHandler() {
+        }),
+        svc_ClassInfo(10, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -406,8 +416,10 @@ public class HL2DEM {
                 }
                 return true;
             }
-        }), svc_SetPause(11, new PacketHandler() {
-        }), svc_CreateStringTable(12, new PacketHandler() {
+        }),
+        svc_SetPause(11, new PacketHandler() {
+        }),
+        svc_CreateStringTable(12, new PacketHandler() {
 //
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -430,8 +442,10 @@ public class HL2DEM {
                 bb.getBits(n);
                 return true;
             }
-        }), svc_UpdateStringTable(13, new PacketHandler() {
-        }), svc_VoiceInit(14, new PacketHandler() {
+        }),
+        svc_UpdateStringTable(13, new PacketHandler() {
+        }),
+        svc_VoiceInit(14, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -439,9 +453,12 @@ public class HL2DEM {
                 l.add("Quality: " + bb.getByte());
                 return true;
             }
-        }), svc_VoiceData(15, new PacketHandler() {
-        }), svc_Unknown16(16, new PacketHandler() { // svc_Print in newer protocols
-        }), svc_Sounds(17, new PacketHandler() {
+        }),
+        svc_VoiceData(15, new PacketHandler() {
+        }),
+        svc_Unknown16(16, new PacketHandler() { // svc_Print in newer protocols
+        }),
+        svc_Sounds(17, new PacketHandler() {
 
             @Override
             public boolean read(BitBuffer bb, List<Object> l) {
@@ -455,14 +472,22 @@ public class HL2DEM {
                 bb.getBits(length); // TODO
                 return true;
             }
-        }), svc_SetView(18, new PacketHandler() {
-        }), svc_FixAngle(19, new PacketHandler() {
-        }), svc_CrosshairAngle(20, new PacketHandler() {
-        }), svc_BSPDecal(21, new PacketHandler() {
-        }), svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
-        }), svc_UserMessage(23, new PacketHandler() {
-        }), svc_EntityMessage(24, new PacketHandler() {
-        }), svc_GameEvent(25, new PacketHandler() {
+        }),
+        svc_SetView(18, new PacketHandler() {
+        }),
+        svc_FixAngle(19, new PacketHandler() {
+        }),
+        svc_CrosshairAngle(20, new PacketHandler() {
+        }),
+        svc_BSPDecal(21, new PacketHandler() {
+        }),
+        svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
+        }),
+        svc_UserMessage(23, new PacketHandler() {
+        }),
+        svc_EntityMessage(24, new PacketHandler() {
+        }),
+        svc_GameEvent(25, new PacketHandler() {
 
             @Override
             boolean read(BitBuffer bb, List<Object> l) {
@@ -479,11 +504,34 @@ public class HL2DEM {
                 return true;
             }
 
-        }), svc_PacketEntities(26, new PacketHandler() {
-        }), svc_TempEntities(27, new PacketHandler() {
-        }), svc_Prefetch(28, new PacketHandler() {
-        }), svc_Menu(29, new PacketHandler() {
-        }), svc_GameEventList(30, new PacketHandler() {
+        }),
+        svc_PacketEntities(26, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Max entries: " + bb.getBits(11));
+                boolean d = bb.getBoolean();
+                l.add("Is delta: " + d);
+                if(d) {
+                    l.add("Delta from: " + bb.getBits(32));
+                }
+                l.add("Baseline: " + bb.getBoolean());
+                l.add("Updated entries: " + bb.getBits(11));
+                int b = (int) bb.getBits(20);
+                l.add("Length in bits: " + b);
+                l.add("Update baseline: " + bb.getBoolean());
+                bb.getBits(b); // TODO
+                return true;
+            }
+
+        }),
+        svc_TempEntities(27, new PacketHandler() {
+        }),
+        svc_Prefetch(28, new PacketHandler() {
+        }),
+        svc_Menu(29, new PacketHandler() {
+        }),
+        svc_GameEventList(30, new PacketHandler() {
 
             @Override
             boolean read(BitBuffer bb, List<Object> l) {
@@ -517,8 +565,10 @@ public class HL2DEM {
                 return true;
             }
 
-        }), svc_GetCvarValue(31, new PacketHandler() {
-        }), svc_CmdKeyValues(32, new PacketHandler() {
+        }),
+        svc_GetCvarValue(31, new PacketHandler() {
+        }),
+        svc_CmdKeyValues(32, new PacketHandler() {
         });
 
         final PacketHandler handler;
