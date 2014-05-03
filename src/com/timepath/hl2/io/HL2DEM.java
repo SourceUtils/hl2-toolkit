@@ -342,6 +342,13 @@ public class HL2DEM {
             }
         }),
         net_StringCmd(4, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Command: " + bb.getString());
+                return true;
+            }
+            
         }),
         net_SetConVar(5, new PacketHandler() {
 
@@ -458,6 +465,17 @@ public class HL2DEM {
             }
         }),
         svc_VoiceData(15, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Client: " + bb.getBits(8));
+                l.add("Proximity: " + bb.getBits(8));
+                int length = (int) bb.getBits(16);
+                l.add("Length in bits: " + length);
+                bb.getBits(length);
+                return true;
+            }
+
         }),
         svc_Unknown16(16, new PacketHandler() { // svc_Print in newer protocols
         }),
@@ -477,6 +495,13 @@ public class HL2DEM {
             }
         }),
         svc_SetView(18, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Entity index: " + bb.getBits(11));
+                return true;
+            }
+
         }),
         svc_FixAngle(19, new PacketHandler() {
         }),
@@ -782,9 +807,14 @@ public class HL2DEM {
                         }
                         List<Object> list = new LinkedList<Object>();
                         list.add(p);
-                        boolean complete = p.handler.read(bb, list);
-                        if(!complete) {
-                            list.add(MessageFormat.format("Incomplete read", mid));
+                        boolean complete = false;
+                        try {
+                            complete = p.handler.read(bb, list);
+                            if(!complete) {
+                                list.add(MessageFormat.format("Incomplete read", mid));
+                            }
+                        } catch(Exception e) {
+                            list.add("Exception occured");
                         }
                         meta.add(list);
                         if(!complete) {
