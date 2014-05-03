@@ -14,20 +14,19 @@ import java.util.logging.Logger;
 /**
  *
  * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/networkstringtabledefs.h
+ * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/keyvaluescompiler.h
  * <p/>
  * https://github.com/jpcy/coldemoplayer
+ * https://github.com/stgn/netdecode
+ * https://github.com/tritao/netdecode
+ * <p/>
  * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo/SourceDemo.cs
  * https://github.com/jpcy/coldemoplayer/blob/ce21973bf7b4e4ae7a981ab76dff659ce2511ece/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
  * <p/>
- * https://github.com/stgn/netdecode
- * https://github.com/stgn/netdecode/issues/1
- * https://github.com/stgn/netdecode/blob/master/DemoFile.cs
- * https://github.com/stgn/netdecode/blob/master/Packet.cs
- * <p/>
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
- * <p/>
- * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/networkstringtabledefs.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/f56bb35301836e56582a575a75864392a0177875/mp/src/public/keyvaluescompiler.h
+ * https://github.com/tritao/netdecode/blob/master/DemoFile.cs
+ * https://github.com/tritao/netdecode/blob/master/Packet.cs
  * <p/>
  * https://forums.alliedmods.net/showthread.php?t=232925
  * <p>
@@ -41,7 +40,14 @@ public class HL2DEM {
 
     private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
 
-    private DemoHeader header;
+    private static final int MAX_EDICT_BITS = 11;
+
+    /**
+     * TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h
+     */
+    private static final int WEAPON_SUBTYPE_BITS = 6;
+
+    private static String[] gameEvents;
 
     public static HL2DEM load(File f) throws IOException {
         LOG.log(Level.INFO, "Parsing {0}", f);
@@ -50,6 +56,8 @@ public class HL2DEM {
     }
 
     private List<Message> frames = new LinkedList<Message>();
+
+    private DemoHeader header;
 
     public HL2DEM(ByteBuffer buffer) {
         header = new DemoHeader(DataUtils.getSlice(buffer, 1072));
@@ -70,6 +78,8 @@ public class HL2DEM {
                     break;
                 case UserCmd:
                     buffer.get(new byte[4]); // outgoing sequence number
+                    break;
+                default:
                     break;
             }
 
@@ -119,6 +129,39 @@ public class HL2DEM {
             }
             return null;
         }
+
+    }
+
+    private static enum GameEventMessageType {
+
+        /**
+         * A zero terminated string
+         */
+        STRING,
+        /**
+         * Float, 32 bit
+         */
+        FLOAT,
+        /**
+         * Signed int, 32 bit
+         */
+        LONG,
+        /**
+         * Signed int, 16 bit
+         */
+        SHORT,
+        /**
+         * Unsigned int, 8 bit
+         */
+        BYTE,
+        /**
+         * Unsigned int, 1 bit
+         */
+        BOOL,
+        /**
+         * Any data, but not networked to clients
+         */
+        LOCAL;
 
     }
 
@@ -272,82 +315,7 @@ public class HL2DEM {
 
     }
 
-    private static class DemoHeader {
-
-        final String clientName;
-
-        final int demoProtocol;
-
-        final int frames;
-
-        final String gameDirectory;
-
-        final String head;
-
-        final String mapName;
-
-        final int networkProtocol;
-
-        final float playbackTime;
-
-        final String serverName;
-
-        final int signonLength;
-
-        final int ticks;
-
-        DemoHeader(ByteBuffer slice) {
-            head = DataUtils.getText(DataUtils.getSlice(slice, 8));
-            if(!head.equals(HEADER)) {
-                LOG.log(Level.WARNING, "Unexpected header");
-            }
-            demoProtocol = slice.getInt();
-            if(demoProtocol != DEMO_PROTOCOL) {
-                LOG.log(Level.WARNING, "Unknown demo version {0}", demoProtocol);
-            }
-            networkProtocol = slice.getInt();
-            LOG.log(Level.INFO, "Network protocol: {0}", networkProtocol);
-
-            ByteBuffer serverNameBuffer = DataUtils.getSlice(slice, 260);
-            serverName = DataUtils.getText(serverNameBuffer).trim();
-            LOG.log(Level.INFO, "Server: {0}", serverName);
-
-            ByteBuffer clientNameBuffer = DataUtils.getSlice(slice, 260);
-            clientName = DataUtils.getText(clientNameBuffer).trim();
-            LOG.log(Level.INFO, "Client: {0}", clientName);
-
-            ByteBuffer mapNameBuffer = DataUtils.getSlice(slice, 260);
-            mapName = DataUtils.getText(mapNameBuffer).trim();
-            LOG.log(Level.INFO, "Map: {0}", mapName);
-
-            ByteBuffer gameDirectoryBuffer = DataUtils.getSlice(slice, 260);
-            gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
-            LOG.log(Level.INFO, "Game: {0}", gameDirectory);
-
-            playbackTime = slice.getFloat();
-            LOG.log(Level.INFO, "Playback time: {0}", playbackTime);
-
-            ticks = slice.getInt();
-            LOG.log(Level.INFO, "Ticks: {0}", ticks);
-
-            frames = slice.getInt();
-            LOG.log(Level.INFO, "Frames: {0}", frames);
-
-            signonLength = slice.getInt();
-            LOG.log(Level.INFO, "Signon length: {0}", signonLength);
-        }
-
-    }
-
-    static abstract class PacketHandler {
-
-        boolean read(BitBuffer bb, List<Object> l) {
-            return false;
-        }
-
-    }
-
-    static enum Packet {
+    private static enum Packet {
 
         net_NOP(0, new PacketHandler() {
 
@@ -495,11 +463,60 @@ public class HL2DEM {
         }), svc_UserMessage(23, new PacketHandler() {
         }), svc_EntityMessage(24, new PacketHandler() {
         }), svc_GameEvent(25, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                int length = (int) bb.getBits(11);
+                l.add("Length in bits: " + length);
+
+                int gameEventId = (int) bb.getBits(9);
+
+                String gameEvent = gameEvents[gameEventId];
+                if(gameEvent != null) {
+                    l.add("Event: " + gameEvent);
+                }
+                bb.getBits(length - 9); // TODO
+                return true;
+            }
+
         }), svc_PacketEntities(26, new PacketHandler() {
         }), svc_TempEntities(27, new PacketHandler() {
         }), svc_Prefetch(28, new PacketHandler() {
         }), svc_Menu(29, new PacketHandler() {
         }), svc_GameEventList(30, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                int numGameEvents = (int) bb.getBits(9);
+                gameEvents = new String[numGameEvents];
+                l.add("Number of events: " + numGameEvents);
+                int length = (int) bb.getBits(20);
+                l.add("Length in bits: " + length);
+
+                for(int i = 0; i < numGameEvents; i++) {
+                    int id = (int) bb.getBits(9);
+                    String name = bb.getString();
+
+                    l.add("event: [" + id + "] " + name);
+                    gameEvents[id] = name;
+                    List<Object> sub = new LinkedList<Object>();
+                    while(true) {
+                        int entryType = (int) bb.getBits(3);
+
+                        if(entryType == 0) { // End of event description
+                            break;
+                        }
+
+                        String entryName = bb.getString();
+
+                        sub.add("entry: [" + GameEventMessageType.values()[entryType - 1] + "] " + entryName);
+                    }
+                    l.add(sub);
+                }
+
+                return true;
+            }
+
         }), svc_GetCvarValue(31, new PacketHandler() {
         }), svc_CmdKeyValues(32, new PacketHandler() {
         });
@@ -526,6 +543,81 @@ public class HL2DEM {
                 }
             }
             return null;
+        }
+
+    }
+
+    private static class DemoHeader {
+
+        final String clientName;
+
+        final int demoProtocol;
+
+        final int frames;
+
+        final String gameDirectory;
+
+        final String head;
+
+        final String mapName;
+
+        final int networkProtocol;
+
+        final float playbackTime;
+
+        final String serverName;
+
+        final int signonLength;
+
+        final int ticks;
+
+        DemoHeader(ByteBuffer slice) {
+            head = DataUtils.getText(DataUtils.getSlice(slice, 8));
+            if(!head.equals(HEADER)) {
+                LOG.log(Level.WARNING, "Unexpected header");
+            }
+            demoProtocol = slice.getInt();
+            if(demoProtocol != DEMO_PROTOCOL) {
+                LOG.log(Level.WARNING, "Unknown demo version {0}", demoProtocol);
+            }
+            networkProtocol = slice.getInt();
+            LOG.log(Level.INFO, "Network protocol: {0}", networkProtocol);
+
+            ByteBuffer serverNameBuffer = DataUtils.getSlice(slice, 260);
+            serverName = DataUtils.getText(serverNameBuffer).trim();
+            LOG.log(Level.INFO, "Server: {0}", serverName);
+
+            ByteBuffer clientNameBuffer = DataUtils.getSlice(slice, 260);
+            clientName = DataUtils.getText(clientNameBuffer).trim();
+            LOG.log(Level.INFO, "Client: {0}", clientName);
+
+            ByteBuffer mapNameBuffer = DataUtils.getSlice(slice, 260);
+            mapName = DataUtils.getText(mapNameBuffer).trim();
+            LOG.log(Level.INFO, "Map: {0}", mapName);
+
+            ByteBuffer gameDirectoryBuffer = DataUtils.getSlice(slice, 260);
+            gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
+            LOG.log(Level.INFO, "Game: {0}", gameDirectory);
+
+            playbackTime = slice.getFloat();
+            LOG.log(Level.INFO, "Playback time: {0}", playbackTime);
+
+            ticks = slice.getInt();
+            LOG.log(Level.INFO, "Ticks: {0}", ticks);
+
+            frames = slice.getInt();
+            LOG.log(Level.INFO, "Frames: {0}", frames);
+
+            signonLength = slice.getInt();
+            LOG.log(Level.INFO, "Signon length: {0}", signonLength);
+        }
+
+    }
+
+    private static abstract class PacketHandler {
+
+        boolean read(BitBuffer bb, List<Object> l) {
+            return false;
         }
 
     }
@@ -599,13 +691,17 @@ public class HL2DEM {
                     }
                 }
                 break;
-                case UserCmd: {
+                case UserCmd: { // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
                     BitBuffer bb = new BitBuffer(data);
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Command number: {0}", bb.getInt()));
+                    } else {
+                        // Assume steady increment
                     }
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Tick count: {0}", bb.getInt()));
+                    } else {
+                        // Assume steady increment
                     }
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Viewangle pitch: {0}", bb.getFloat()));
@@ -616,6 +712,7 @@ public class HL2DEM {
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Viewangle roll: {0}", bb.getFloat()));
                     }
+
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Foward move: {0}", bb.getFloat()));
                     }
@@ -625,12 +722,29 @@ public class HL2DEM {
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Up move: {0}", bb.getFloat()));
                     }
+
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Buttons: 0x{0}", Integer.toHexString(bb.getInt())));
                     }
+
                     if(bb.getBoolean()) {
                         meta.add(MessageFormat.format("Impulse: {0}", bb.getByte()));
                     }
+
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Weapon select: {0}", bb.getBits(MAX_EDICT_BITS)));
+                        if(bb.getBoolean()) {
+                            meta.add(MessageFormat.format("Weapon subtype: {0}", bb.getBits(WEAPON_SUBTYPE_BITS)));
+                        }
+                    }
+
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Mouse Dx: {0}", bb.getShort()));
+                    }
+                    if(bb.getBoolean()) {
+                        meta.add(MessageFormat.format("Mouse Dy: {0}", bb.getShort()));
+                    }
+
                     if(bb.remaining() > 0) {
                         meta.add(MessageFormat.format("Underflow: {0}", bb.remaining()));
                     }
