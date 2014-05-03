@@ -484,6 +484,19 @@ public class HL2DEM {
         svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
         }),
         svc_UserMessage(23, new PacketHandler() {
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                int userMsgType = (int) bb.getBits(8);
+                l.add("Message type: " + userMsgType);
+
+                int length = (int) bb.getBits(11);
+                l.add("Length in bits: " + length);
+
+                bb.getBits(length); // TODO
+                return true;
+            }
+
         }),
         svc_EntityMessage(24, new PacketHandler() {
         }),
