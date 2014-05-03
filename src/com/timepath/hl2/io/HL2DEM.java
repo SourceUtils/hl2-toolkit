@@ -1,6 +1,7 @@
 package com.timepath.hl2.io;
 
 import com.timepath.DataUtils;
+import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.BitBuffer;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +42,8 @@ public class HL2DEM {
     private static final Logger LOG = Logger.getLogger(HL2DEM.class.getName());
 
     private static final int MAX_EDICT_BITS = 11;
+
+    private static final int MAX_GAME_EVENTS = (int) Math.pow(2, 9) - 1;
 
     /**
      * TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h
@@ -480,6 +483,52 @@ public class HL2DEM {
         svc_CrosshairAngle(20, new PacketHandler() {
         }),
         svc_BSPDecal(21, new PacketHandler() {
+
+            public float ReadCoord(BitBuffer bb) {
+                boolean hasint = bb.getBoolean();
+                boolean hasfract = bb.getBoolean();
+                float value = 0;
+
+                if(hasint || hasfract) {
+                    boolean sign = bb.getBoolean();
+                    if(hasint) {
+                        value += bb.getBits(14) + 1;
+                    }
+                    if(hasfract) {
+                        value += bb.getBits(5) * (1 / 32f);
+                    }
+                    if(sign) {
+                        value = -value;
+                    }
+                }
+
+                return value;
+            }
+
+            public Vector3f ReadVecCoord(BitBuffer bb) {
+                boolean hasx = bb.getBoolean();
+                boolean hasy = bb.getBoolean();
+                boolean hasz = bb.getBoolean();
+
+                return new Vector3f(
+                    hasx ? ReadCoord(bb) : 0,
+                    hasy ? ReadCoord(bb) : 0,
+                    hasz ? ReadCoord(bb) : 0
+                );
+            }
+
+            @Override
+            boolean read(BitBuffer bb, List<Object> l) {
+                l.add("Position: " + ReadVecCoord(bb));
+                l.add("Decal texture index: " + bb.getBits(9));
+                if(bb.getBoolean()) {
+                    l.add("Entity index: " + bb.getBits(11));
+                    l.add("Model index: " + bb.getBits(12));
+                }
+                l.add("Low priority: " + bb.getBoolean());
+                return true;
+            }
+
         }),
         svc_unknown2(22, new PacketHandler() { // svc_SplitScreen in newer protocols
         }),
@@ -549,7 +598,7 @@ public class HL2DEM {
             @Override
             boolean read(BitBuffer bb, List<Object> l) {
                 int numGameEvents = (int) bb.getBits(9);
-                gameEvents = new String[numGameEvents];
+                gameEvents = new String[MAX_GAME_EVENTS];
                 l.add("Number of events: " + numGameEvents);
                 int length = (int) bb.getBits(20);
                 l.add("Length in bits: " + length);
