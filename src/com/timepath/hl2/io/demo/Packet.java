@@ -3,7 +3,6 @@ package com.timepath.hl2.io.demo;
 import com.timepath.Pair;
 import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.BitBuffer;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -54,7 +53,7 @@ public enum Packet {
         @Override
         public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             short n = bb.getByte();
-            while(n-- > 0) {
+            for(int i = 0; i < n; i++) {
                 l.add(new Pair<Object, Object>(bb.getString() + "", bb.getString()));
             }
             return true;
@@ -105,7 +104,9 @@ public enum Packet {
             return true;
         }
     }),
-    // TODO
+    /**
+     * TODO
+     */
     svc_SendTable(9, new PacketHandler() {
     }),
     svc_ClassInfo(10, new PacketHandler() {
@@ -134,6 +135,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_CreateStringTable(12, new PacketHandler() {
         @Override
         public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -156,6 +160,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_UpdateStringTable(13, new PacketHandler() {
 
         @Override
@@ -176,6 +183,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_VoiceData(15, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -183,7 +193,7 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Proximity", bb.getBits(8)));
             int length = (int) bb.getBits(16);
             l.add(new Pair<Object, Object>("Length in bits", length));
-            bb.getBits(length);
+            bb.getBits(length); // TODO
             return true;
         }
     }),
@@ -194,6 +204,9 @@ public enum Packet {
      */
     svc_Unknown16(16, new PacketHandler() {
     }),
+    /**
+     * TODO
+     */
     svc_Sounds(17, new PacketHandler() {
         @Override
         public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -297,6 +310,9 @@ public enum Packet {
      */
     svc_unknown2(22, new PacketHandler() {
     }),
+    /**
+     * TODO
+     */
     svc_UserMessage(23, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -308,6 +324,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_EntityMessage(24, new PacketHandler() {
 
         @Override
@@ -333,6 +352,14 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * Non-delta compressed entities.
+     * TODO
+     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/baseclientstate.cpp#L1245
+     * https://code.google.com/p/coldemoplayer/source/browse/branches/2.0/compLexity+Demo+Player/CDP.HalfLifeDemo/Messages/SvcPacketEntities.cs?r=59#43
+     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/packed_entity.h#L52
+     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/sv_ents_write.cpp#L862
+     */
     svc_PacketEntities(26, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -351,6 +378,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_TempEntities(27, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -373,6 +403,9 @@ public enum Packet {
             return true;
         }
     }),
+    /**
+     * TODO
+     */
     svc_Menu(29, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -408,11 +441,19 @@ public enum Packet {
             return true;
         }
     }),
-    // TODO
+    /**
+     * TODO
+     */
     svc_CmdKeyValues(32, new PacketHandler() {
-    });
 
-    public List<Object> meta = new LinkedList<Object>();
+        @Override
+        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            int length = bb.getInt();
+            l.add(new Pair<Object, Object>("Length in bits: ", length));
+            bb.getBits(length); // TODO
+            return true;
+        }
+    });
 
     final PacketHandler handler;
 
