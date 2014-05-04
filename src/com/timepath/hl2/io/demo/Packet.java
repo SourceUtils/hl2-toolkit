@@ -3,7 +3,6 @@ package com.timepath.hl2.io.demo;
 import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.BitBuffer;
 import java.text.MessageFormat;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -281,11 +280,11 @@ public enum Packet {
             int length = (int) bb.getBits(11);
             l.add("Length in bits: " + length);
             int gameEventId = (int) bb.getBits(9);
-            String gameEvent = demo.gameEvents[gameEventId];
+            GameEvent gameEvent = demo.gameEvents[gameEventId];
             if(gameEvent != null) {
-                l.add("Event: " + gameEvent);
+                l.add("Event: " + gameEvent.name);
+                l.add(gameEvent.parse(bb).entrySet());
             }
-            bb.getBits(length - 9); // TODO
             return true;
         }
     }),
@@ -343,25 +342,14 @@ public enum Packet {
         @Override
         boolean read(BitBuffer bb, List<Object> l, HL2DEM demo) {
             int numGameEvents = (int) bb.getBits(9);
-            demo.gameEvents = new String[HL2DEM.MAX_GAME_EVENTS];
+            demo.gameEvents = new GameEvent[HL2DEM.MAX_GAME_EVENTS];
             l.add("Number of events: " + numGameEvents);
             int length = (int) bb.getBits(20);
             l.add("Length in bits: " + length);
             for(int i = 0; i < numGameEvents; i++) {
                 int id = (int) bb.getBits(9);
-                String name = bb.getString();
-                l.add("event: [" + id + "] " + name);
-                demo.gameEvents[id] = name;
-                List<Object> sub = new LinkedList<Object>();
-                while(true) {
-                    int entryType = (int) bb.getBits(3);
-                    if(entryType == 0) { // End of event description
-                        break;
-                    }
-                    String entryName = bb.getString();
-                    sub.add("entry: [" + GameEventMessageType.get(entryType) + "] " + entryName);
-                }
-                l.add(sub);
+                demo.gameEvents[id] = new GameEvent(bb);
+                l.add("gameEvents[" + id + "] = " + demo.gameEvents[id]);
             }
             return true;
         }

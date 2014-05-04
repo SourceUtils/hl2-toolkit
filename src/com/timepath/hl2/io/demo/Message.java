@@ -65,21 +65,21 @@ public class Message {
                         meta.add(str);
                         break;
                     }
+                    meta.add(p);
                     List<Object> list = new LinkedList<Object>();
-                    list.add(p);
                     boolean complete = false;
                     try {
                         complete = p.handler.read(bb, list, outer);
                         if(!complete) {
                             String str = MessageFormat.format("Incomplete read of {0} at {1}", p, tick);
                             LOG.log(Level.WARNING, str);
-                            list.add(str);
+                            meta.add(str);
                         }
                     } catch(Exception e) {
                         String str = MessageFormat.format("Exception {0} in {1} at {2}", e, p, tick);
                         LOG.log(Level.WARNING, str);
                         LOG.log(Level.WARNING, null, e);
-                        list.add(str);
+                        meta.add(str);
                     }
                     meta.add(list);
                     if(!complete) {

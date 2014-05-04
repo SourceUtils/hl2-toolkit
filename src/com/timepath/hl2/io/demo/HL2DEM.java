@@ -67,7 +67,7 @@ public class HL2DEM {
 
     private List<Message> frames = new LinkedList<Message>();
 
-    String[] gameEvents;
+    GameEvent[] gameEvents;
 
     DemoHeader header;
 
