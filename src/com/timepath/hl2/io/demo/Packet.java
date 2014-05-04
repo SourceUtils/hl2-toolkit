@@ -349,7 +349,8 @@ public enum Packet {
             for(int i = 0; i < numGameEvents; i++) {
                 int id = (int) bb.getBits(9);
                 demo.gameEvents[id] = new GameEvent(bb);
-                l.add(new Pair<Object, Object>("gameEvents[" + id + "]", demo.gameEvents[id]));
+                l.add(new Pair<Object, Object>("gameEvents[" + id + "] = " + demo.gameEvents[id].name,
+                                               demo.gameEvents[id].declarations.entrySet()));
             }
             return true;
         }

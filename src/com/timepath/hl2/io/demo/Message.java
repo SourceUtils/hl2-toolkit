@@ -19,7 +19,7 @@ public class Message {
     private static final Logger LOG = Logger.getLogger(Message.class.getName());
 
     public ByteBuffer data;
-    
+
     public List<Pair<Object, Object>> meta = new LinkedList<Pair<Object, Object>>();
 
     /**
@@ -59,39 +59,36 @@ public class Message {
             case Signon:
             case Packet: {
                 BitBuffer bb = new BitBuffer(data);
+                List<Pair<Object, Object>> values = new LinkedList<Pair<Object, Object>>();
+                String error = null;
                 while(true) {
                     if(bb.remaining() < 1) {
                         break;
                     }
                     int mid = (int) bb.getBits(outer.header.networkProtocol >= 16 ? 6 : 5);
                     Packet p = Packet.get(mid);
-                    if(p == null) {
-                        String str = MessageFormat.format("Unknown message type {0} at {1}", mid, tick);
-                        LOG.log(Level.WARNING, str);
-                        meta.add(new Pair<Object, Object>("error", str));
-                        break;
-                    }
-                    
-                    List<Pair<Object, Object>> list = new LinkedList<Pair<Object, Object>>();
-                    boolean complete = false;
-                    try {
-                        complete = p.handler.read(bb, list, outer);
-                        if(!complete) {
-                            String str = MessageFormat.format("Incomplete read of {0} at {1}", p, tick);
-                            LOG.log(Level.WARNING, str);
-                            meta.add(new Pair<Object, Object>("error", str));
+                    if(p != null) {
+                        List<Pair<Object, Object>> list = new LinkedList<Pair<Object, Object>>();
+                        try {
+                            boolean complete = p.handler.read(bb, list, outer);
+                            if(!complete) {
+                                error = MessageFormat.format("Incomplete read of {0} at {1}", p, tick);
+                            }
+                        } catch(Exception e) {
+                            error = MessageFormat.format("Exception {0} in {1} at {2}", e, p, tick);
+                            LOG.log(Level.WARNING, null, e);
                         }
-                    } catch(Exception e) {
-                        String str = MessageFormat.format("Exception {0} in {1} at {2}", e, p, tick);
-                        LOG.log(Level.WARNING, str);
-                        LOG.log(Level.WARNING, null, e);
-                        meta.add(new Pair<Object, Object>("error", str));
+                        values.add(new Pair<Object, Object>(p, list));
+                    } else {
+                        error = MessageFormat.format("Unknown message type {0} at {1}", mid, tick);
                     }
-                    meta.add(new Pair<Object, Object>(p, list));
-                    if(!complete) {
+                    if(error != null) {
+                        values.add(new Pair<Object, Object>("error", error));
+                        LOG.log(Level.WARNING, error);
                         break;
                     }
                 }
+                meta.add(new Pair<Object, Object>(this, values));
             }
             break;
             case ConsoleCmd: {
@@ -105,60 +102,62 @@ public class Message {
             }
             break;
             case UserCmd: {
+                List<Pair<Object, Object>> values = new LinkedList<Pair<Object, Object>>();
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
                 BitBuffer bb = new BitBuffer(data);
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Command number", bb.getInt()));
+                    values.add(new Pair<Object, Object>("Command number", bb.getInt()));
                 } else {
                     // Assume steady increment
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Tick count", bb.getInt()));
+                    values.add(new Pair<Object, Object>("Tick count", bb.getInt()));
                 } else {
                     // Assume steady increment
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Viewangle pitch", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Viewangle pitch", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Viewangle yaw", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Viewangle yaw", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Viewangle roll", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Viewangle roll", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Foward move", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Foward move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Side move", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Side move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Up move", bb.getFloat()));
+                    values.add(new Pair<Object, Object>("Up move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Buttons", Input.get(bb.getInt())));
+                    values.add(new Pair<Object, Object>("Buttons", Input.get(bb.getInt())));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Impulse", bb.getByte()));
+                    values.add(new Pair<Object, Object>("Impulse", bb.getByte()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Weapon select", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
+                    values.add(new Pair<Object, Object>("Weapon select", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
                     if(bb.getBoolean()) {
-                        meta.add(new Pair<Object, Object>("Weapon subtype", bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)));
+                        values.add(new Pair<Object, Object>("Weapon subtype", bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)));
                     }
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Mouse Dx", bb.getShort()));
+                    values.add(new Pair<Object, Object>("Mouse Dx", bb.getShort()));
                 }
                 if(bb.getBoolean()) {
-                    meta.add(new Pair<Object, Object>("Mouse Dy", bb.getShort()));
+                    values.add(new Pair<Object, Object>("Mouse Dy", bb.getShort()));
                 }
                 if(bb.remaining() > 0) {
-                    meta.add(new Pair<Object, Object>("Underflow", bb.remaining()));
+                    values.add(new Pair<Object, Object>("Underflow", bb.remaining()));
                 }
+                meta.add(new Pair<Object, Object>(this, values));
             }
             break;
-                // TODO
+            // TODO
             case DataTables:
             case StringTables:
                 break;
