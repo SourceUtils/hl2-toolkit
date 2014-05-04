@@ -116,18 +116,23 @@ public enum Packet {
             boolean cc = bb.getBoolean();
             l.add(new Pair<Object, Object>("Create classes on client", cc));
             if(!cc) {
-                return false;
-//                while(n-- > 0) {
-//                    l.add(new Pair<Object, Object>("Class ID",bb.getBits(Math.log(n, 2) + 1));
-//                    l.add(new Pair<Object, Object>("Class name",bb.getString());
-//                    l.add(new Pair<Object, Object>("Datatable name",bb.getString());
-//                }
+                int nServerClassBits = (int) ((Math.log(n) / Math.log(2)) + 1);
+                for(int i = 0; i < n; i++) {
+                    l.add(new Pair<Object, Object>("Class ID", bb.getBits(nServerClassBits)));
+                    l.add(new Pair<Object, Object>("Class name", bb.getString()));
+                    l.add(new Pair<Object, Object>("Datatable name", bb.getString()));
+                }
             }
             return true;
         }
     }),
-    // TODO
     svc_SetPause(11, new PacketHandler() {
+
+        @Override
+        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            l.add(new Pair<Object, Object>("Paused", bb.getBoolean()));
+            return true;
+        }
     }),
     svc_CreateStringTable(12, new PacketHandler() {
         @Override
@@ -151,8 +156,17 @@ public enum Packet {
             return true;
         }
     }),
-    // TODO
     svc_UpdateStringTable(13, new PacketHandler() {
+
+        @Override
+        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            l.add(new Pair<Object, Object>("Table ID", bb.getBits(5)));
+            l.add(new Pair<Object, Object>("Changed entries", (bb.getBoolean() ? bb.getBits(16) : 1)));
+            int length = (int) bb.getBits(20);
+            l.add(new Pair<Object, Object>("Length in bits", length));
+            bb.getBits(length); // TODO
+            return true;
+        }
     }),
     svc_VoiceInit(14, new PacketHandler() {
         @Override
@@ -201,15 +215,37 @@ public enum Packet {
         }
     }),
     svc_FixAngle(19, new PacketHandler() {
+
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             l.add(new Pair<Object, Object>("Relative", bb.getBoolean()));
-            bb.getBits(48); // TODO
+            Vector3f v = new Vector3f(
+                readBitAngle(bb, 16),
+                readBitAngle(bb, 16),
+                readBitAngle(bb, 16));
+            l.add(new Pair<Object, Object>("Vector", v));
             return true;
         }
+
+        float readBitAngle(BitBuffer bb, int numbits) {
+            return bb.getBits(numbits) * (360.0f / (1 << numbits));
+        }
     }),
-    // TODO
     svc_CrosshairAngle(20, new PacketHandler() {
+
+        @Override
+        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            Vector3f v = new Vector3f(
+                readBitAngle(bb, 16),
+                readBitAngle(bb, 16),
+                readBitAngle(bb, 16));
+            l.add(new Pair<Object, Object>("Vector", v));
+            return true;
+        }
+
+        float readBitAngle(BitBuffer bb, int numbits) {
+            return bb.getBits(numbits) * (360.0f / (1 << numbits));
+        }
     }),
     svc_BSPDecal(21, new PacketHandler() {
         public float ReadCoord(BitBuffer bb) {
@@ -272,8 +308,17 @@ public enum Packet {
             return true;
         }
     }),
-    // TODO
     svc_EntityMessage(24, new PacketHandler() {
+
+        @Override
+        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            l.add(new Pair<Object, Object>("Entity index: ", bb.getBits(11)));
+            l.add(new Pair<Object, Object>("Class ID: ", bb.getBits(9)));
+            int length = (int) bb.getBits(11);
+            l.add(new Pair<Object, Object>("Length in bits: ", length));
+            bb.getBits(length); // TODO
+            return true;
+        }
     }),
     svc_GameEvent(25, new PacketHandler() {
         @Override
