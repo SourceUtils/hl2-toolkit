@@ -44,7 +44,7 @@ public class HL2DEM {
 
     public static final int MAX_EDICT_BITS = 11;
 
-    public static final int MAX_GAME_EVENTS = (int) Math.pow(2, 9) - 1;
+    public static final int MAX_GAME_EVENTS = 1 << 9;
 
     public static final int MAX_SOUND_INDEX_BITS = 14;
 
