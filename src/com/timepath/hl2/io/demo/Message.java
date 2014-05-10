@@ -27,6 +27,8 @@ public class Message {
      * Actually 3 bytes
      */
     public final int tick;
+    
+    public boolean incomplete;
 
     public final MessageType type;
 
@@ -89,6 +91,7 @@ public class Message {
                         error = e.toString();
                     }
                     if (error != null) {
+                        incomplete = true;
                         values.add(new Pair<Object, Object>("error", error));
                         LOG.log(Level.WARNING, error);
                         break;
