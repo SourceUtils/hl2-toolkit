@@ -3,9 +3,12 @@ package com.timepath.hl2.io.demo;
 import com.timepath.DataUtils;
 import java.io.File;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -101,7 +104,12 @@ public class HL2DEM {
             }
 
             byte[] data = new byte[size];
+            try {
             buffer.get(data);
+            } catch(BufferUnderflowException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+                break;
+            }
             frame.data = ByteBuffer.wrap(data);
             frame.data.order(ByteOrder.LITTLE_ENDIAN);
 

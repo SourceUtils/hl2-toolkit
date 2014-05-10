@@ -62,7 +62,9 @@ public enum Packet {
     net_SignonState(6, new PacketHandler() {
         @Override
         public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-            l.add(new Pair<Object, Object>("Signon state", SignonState.values()[bb.getByte() & 0xFF]));
+            int state = bb.getByte() & 0xFF;
+            SignonState[] signon = SignonState.values();
+            l.add(new Pair<Object, Object>("Signon state", state < signon.length ? signon[state] : state));
             l.add(new Pair<Object, Object>("Spawn count", ((long) bb.getInt())));
             return true;
         }
