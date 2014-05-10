@@ -11,6 +11,10 @@ import java.util.List;
 public abstract class PacketHandler {
 
     boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+        return read(bb, l, demo, -1);
+    }
+
+    boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
         return false;
     }
 

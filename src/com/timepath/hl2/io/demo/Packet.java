@@ -53,7 +53,7 @@ public enum Packet {
         @Override
         public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             short n = bb.getByte();
-            for(int i = 0; i < n; i++) {
+            for (int i = 0; i < n; i++) {
                 l.add(new Pair<Object, Object>(bb.getString() + "", bb.getString()));
             }
             return true;
@@ -89,7 +89,7 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Dedicated", bb.getBoolean()));
             l.add(new Pair<Object, Object>("Server client CRC", "0x" + Integer.toHexString(bb.getInt())));
             l.add(new Pair<Object, Object>("Max classes", bb.getBits(16)));
-            if(version < 18) {
+            if (version < 18) {
                 l.add(new Pair<Object, Object>("Server map CRC", "0x" + Integer.toHexString(bb.getInt())));
             } else {
                 bb.getBits(128); // TODO: display out map md5 hash
@@ -118,9 +118,9 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Number of server classes", n));
             boolean cc = bb.getBoolean();
             l.add(new Pair<Object, Object>("Create classes on client", cc));
-            if(!cc) {
+            if (!cc) {
                 int nServerClassBits = (int) ((Math.log(n) / Math.log(2)) + 1);
-                for(int i = 0; i < n; i++) {
+                for (int i = 0; i < n; i++) {
                     l.add(new Pair<Object, Object>("Class ID", bb.getBits(nServerClassBits)));
                     l.add(new Pair<Object, Object>("Class name", bb.getString()));
                     l.add(new Pair<Object, Object>("Datatable name", bb.getString()));
@@ -152,7 +152,7 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Length in bits", length));
             boolean f = bb.getBoolean();
             l.add(new Pair<Object, Object>("Userdata fixed size", f));
-            if(f) {
+            if (f) {
                 l.add(new Pair<Object, Object>("Userdata size", bb.getBits(12)));
                 l.add(new Pair<Object, Object>("Userdata bits", bb.getBits(4)));
             }
@@ -187,6 +187,7 @@ public enum Packet {
     }),
     /**
      * TODO
+     * http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127
      */
     svc_VoiceData(15, new PacketHandler() {
         @Override
@@ -235,9 +236,9 @@ public enum Packet {
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             l.add(new Pair<Object, Object>("Relative", bb.getBoolean()));
             Vector3f v = new Vector3f(
-                readBitAngle(bb, 16),
-                readBitAngle(bb, 16),
-                readBitAngle(bb, 16));
+                    readBitAngle(bb, 16),
+                    readBitAngle(bb, 16),
+                    readBitAngle(bb, 16));
             l.add(new Pair<Object, Object>("Vector", v));
             return true;
         }
@@ -251,9 +252,9 @@ public enum Packet {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             Vector3f v = new Vector3f(
-                readBitAngle(bb, 16),
-                readBitAngle(bb, 16),
-                readBitAngle(bb, 16));
+                    readBitAngle(bb, 16),
+                    readBitAngle(bb, 16),
+                    readBitAngle(bb, 16));
             l.add(new Pair<Object, Object>("Vector", v));
             return true;
         }
@@ -267,15 +268,15 @@ public enum Packet {
             boolean hasint = bb.getBoolean();
             boolean hasfract = bb.getBoolean();
             float value = 0;
-            if(hasint || hasfract) {
+            if (hasint || hasfract) {
                 boolean sign = bb.getBoolean();
-                if(hasint) {
+                if (hasint) {
                     value += bb.getBits(14) + 1;
                 }
-                if(hasfract) {
+                if (hasfract) {
                     value += bb.getBits(5) * (1 / 32f);
                 }
-                if(sign) {
+                if (sign) {
                     value = -value;
                 }
             }
@@ -293,10 +294,10 @@ public enum Packet {
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             l.add(new Pair<Object, Object>("Position", ReadVecCoord(bb)));
             l.add(new Pair<Object, Object>("Decal texture index", bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)));
-            if(bb.getBoolean()) {
+            if (bb.getBoolean()) {
                 l.add(new Pair<Object, Object>("Entity index", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
                 int bits = HL2DEM.SP_MODEL_INDEX_BITS;
-                if(demo.header.demoProtocol <= 21) {
+                if (demo.header.demoProtocol <= 21) {
                     bits--;
                 }
                 l.add(new Pair<Object, Object>("Model index", bb.getBits(bits)));
@@ -318,12 +319,7 @@ public enum Packet {
     svc_UserMessage(23, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-            int userMsgType = (int) bb.getBits(8);
-            l.add(new Pair<Object, Object>("Message type", userMsgType));
-            int length = (int) bb.getBits(11);
-            l.add(new Pair<Object, Object>("Length in bits", length));
-            bb.getBits(length); // TODO
-            return true;
+            return UserMessage.read(bb, l, demo);
         }
     }),
     /**
@@ -348,7 +344,7 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Length in bits", length));
             int gameEventId = (int) bb.getBits(9);
             GameEvent gameEvent = demo.gameEvents[gameEventId];
-            if(gameEvent != null) {
+            if (gameEvent != null) {
                 l.add(new Pair<Object, Object>(gameEvent.name, gameEvent.parse(bb).entrySet()));
             }
             return true;
@@ -368,7 +364,7 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Max entries", bb.getBits(11)));
             boolean d = bb.getBoolean();
             l.add(new Pair<Object, Object>("Is delta", d));
-            if(d) {
+            if (d) {
                 l.add(new Pair<Object, Object>("Delta from", bb.getBits(32)));
             }
             l.add(new Pair<Object, Object>("Baseline", bb.getBoolean()));
@@ -398,7 +394,7 @@ public enum Packet {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
             int bits = HL2DEM.MAX_SOUND_INDEX_BITS;
-            if(demo.header.networkProtocol <= 22) {
+            if (demo.header.networkProtocol <= 22) {
                 bits = 13;
             }
             l.add(new Pair<Object, Object>("Sound index", bb.getBits(bits)));
@@ -426,11 +422,11 @@ public enum Packet {
             l.add(new Pair<Object, Object>("Number of events", numGameEvents));
             int length = (int) bb.getBits(20);
             l.add(new Pair<Object, Object>("Length in bits", length));
-            for(int i = 0; i < numGameEvents; i++) {
+            for (int i = 0; i < numGameEvents; i++) {
                 int id = (int) bb.getBits(9);
                 demo.gameEvents[id] = new GameEvent(bb);
                 l.add(new Pair<Object, Object>("gameEvents[" + id + "] = " + demo.gameEvents[id].name,
-                                               demo.gameEvents[id].declarations.entrySet()));
+                        demo.gameEvents[id].declarations.entrySet()));
             }
             return true;
         }
@@ -462,7 +458,7 @@ public enum Packet {
     private final int[] i;
 
     Packet(int i, PacketHandler handler) {
-        this(new int[] {i}, handler);
+        this(new int[]{i}, handler);
     }
 
     Packet(int[] i, PacketHandler handler) {
@@ -471,9 +467,9 @@ public enum Packet {
     }
 
     public static Packet get(int i) {
-        for(Packet t : Packet.values()) {
-            for(int j : t.i) {
-                if(j == i) {
+        for (Packet t : Packet.values()) {
+            for (int j : t.i) {
+                if (j == i) {
                     return t;
                 }
             }
