@@ -33,6 +33,9 @@ import java.util.logging.Logger;
  * <p/>
  * https://forums.alliedmods.net/showthread.php?t=232925
  * <p/>
+ * http://demos.geit.co.uk/
+ * <p/>
+ * 
  * @author TimePath
  */
 public class HL2DEM {
