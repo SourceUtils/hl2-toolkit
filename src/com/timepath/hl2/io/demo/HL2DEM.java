@@ -77,16 +77,16 @@ public class HL2DEM {
     public HL2DEM(ByteBuffer buffer) {
         header = new DemoHeader(DataUtils.getSlice(buffer, 1072));
 
-        while(true) {
+        while (true) {
             Message frame = new Message(buffer, this);
             frames.add(frame);
-            if(frame.type == MessageType.Stop) {
+            if (frame.type == MessageType.Stop) {
                 break;
             }
-            if(frame.type == MessageType.Synctick) {
+            if (frame.type == MessageType.Synctick) {
                 continue;
             }
-            switch(frame.type) {
+            switch (frame.type) {
                 case Packet:
                 case Signon:
                     buffer.get(new byte[21 * 4]); // TODO: Command / sequence info
@@ -99,14 +99,14 @@ public class HL2DEM {
             }
 
             int size = buffer.getInt();
-            if(size == 0) {
+            if (size == 0) {
                 continue;
             }
 
             byte[] data = new byte[size];
             try {
-            buffer.get(data);
-            } catch(BufferUnderflowException ex) {
+                buffer.get(data);
+            } catch (BufferUnderflowException ex) {
                 LOG.log(Level.SEVERE, null, ex);
                 break;
             }

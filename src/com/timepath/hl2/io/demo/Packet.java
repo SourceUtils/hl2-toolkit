@@ -185,21 +185,7 @@ public enum Packet {
             return true;
         }
     }),
-    /**
-     * TODO
-     * http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127
-     */
-    svc_VoiceData(15, new PacketHandler() {
-        @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-            l.add(new Pair<Object, Object>("Client", bb.getBits(8)));
-            l.add(new Pair<Object, Object>("Proximity", bb.getBits(8)));
-            int length = (int) bb.getBits(16);
-            l.add(new Pair<Object, Object>("Length in bits", length));
-            bb.getBits(length); // TODO
-            return true;
-        }
-    }),
+    svc_VoiceData(15, new VoiceDataHandler()),
     /**
      * TODO: One of these
      * svc_HLTV: HLTV control messages
