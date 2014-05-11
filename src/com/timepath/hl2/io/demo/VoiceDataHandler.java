@@ -32,7 +32,7 @@ public class VoiceDataHandler extends PacketHandler {
             speexDecoder = new SpeexDecoder();
             int mode = 1; // Narrow band
             speexDecoder.init(mode, 11025, 1, true);
-            // 16 bit LE signed mono
+            // Signed 16 bit LE mono
             AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 11025, 16, 1, 2, 11025, false);
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat);
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, sourceVoiceFormat);
@@ -63,7 +63,7 @@ public class VoiceDataHandler extends PacketHandler {
         }
         byte[] data = new byte[bitsToBytes(length)];
         bb.get(data);
-        speex(client, data);
+//        speex(client, data);
         return true;
     }
 
