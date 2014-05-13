@@ -2,11 +2,10 @@ package com.timepath.hl2.io.demo;
 
 /**
  * hl2sdk-ob-valve/public/inputsystem/ButtonCode.h
- * <p/>
+ *
  * @author TimePath
  */
 public enum Buttons {
-
     KEY_NONE(0),
     KEY_0(1),
     KEY_1(2),
@@ -149,5 +148,4 @@ public enum Buttons {
 
     Buttons(int i) {
     }
-
 }

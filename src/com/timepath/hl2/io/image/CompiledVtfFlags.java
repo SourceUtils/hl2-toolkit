@@ -7,7 +7,6 @@ import com.timepath.EnumFlag;
  * https://developer.valvesoftware.com/wiki/Valve_Texture_Format#Image_flags
  */
 public enum CompiledVtfFlags implements EnumFlag {
-
     // Flags from the *.txt config file
     TEXTUREFLAGS_POINTSAMPLE(0x00000001, "Point Sample"),
     TEXTUREFLAGS_TRILINEAR(0x00000002, "Trilinear"),
@@ -53,34 +52,30 @@ public enum CompiledVtfFlags implements EnumFlag {
     TEXTUREFLAGS_BORDER(0x20000000, "Clamp All"),
     TEXTUREFLAGS_UNUSED_40000000(0x40000000),
     TEXTUREFLAGS_UNUSED_80000000(0x80000000);
+    private final int    mask;
+    private final String title;
 
-    private int mask;
-
-    private String title;
-
-    private CompiledVtfFlags(int mask) {
+    CompiledVtfFlags(int mask) {
         this(mask, "Unused");
     }
 
-    private CompiledVtfFlags(int mask, String name) {
-        this.mask = mask;
-        this.title = name;
-    }
-
-    public int getMask() {
-        return mask;
+    CompiledVtfFlags(int mask, String name) {
+        this.mask = mask; title = name;
     }
 
     public static CompiledVtfFlags getEnumForMask(int mask) {
-        CompiledVtfFlags[] values = CompiledVtfFlags.values();
-        for(CompiledVtfFlags eachValue : values) {
+        CompiledVtfFlags[] values = CompiledVtfFlags.values(); for(CompiledVtfFlags eachValue : values) {
             if(eachValue.getMask() == mask) {
                 return eachValue;
             }
-        }
-        return null;
+        } return null;
     }
 
+    int getMask() {
+        return mask;
+    }
+
+    @Override
     public int getId() {
         return mask;
     }
@@ -89,5 +84,4 @@ public enum CompiledVtfFlags implements EnumFlag {
     public String toString() {
         return title;
     }
-
 }

@@ -1,11 +1,9 @@
 package com.timepath.hl2.io.demo;
 
 /**
- *
  * @author TimePath
  */
 public enum SignonState {
-
     /**
      * 0: No state yet; about to connect
      */
@@ -37,6 +35,5 @@ public enum SignonState {
     /**
      * 7: Server is changing level; please wait
      */
-    CHANGELEVEL;
-
+    CHANGELEVEL
 }

@@ -5,17 +5,19 @@ import java.awt.image.WritableRaster;
 import java.util.logging.Logger;
 
 /**
- *
  * @author TimePath
  */
-public class RGBALoader {
+class RGBALoader {
 
     private static final Logger LOG = Logger.getLogger(RGBALoader.class.getName());
+
+    private RGBALoader() {
+    }
 
     public static BufferedImage load(byte[] d, int width, int height, byte[] order, byte[] len) {
         int bpp = 0;
         for(int l : len) {
-            if(l % 8 != 0) {
+            if(( l % 8 ) != 0) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
             bpp += l;
@@ -34,8 +36,4 @@ public class RGBALoader {
         }
         return bi;
     }
-
-    private RGBALoader() {
-    }
-
 }

@@ -1,57 +1,27 @@
 package com.timepath.hl2.io;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * @author TimePath
  */
 public class CFG {
 
     private static final Logger LOG = Logger.getLogger(CFG.class.getName());
+    List<Alias> aliases = new LinkedList<>();
 
-    public static enum TokenType {
+    public CFG() {}
 
-        COMMENT("//(.*)$"),
-        SPACE("(\\s+)"),
-        SEPARATOR("(;)"),
-        QUOTE("(\\\")"),
-        TOKEN("([^\\s;\\\"]+)");
-
-        public final String pattern;
-
-        private TokenType(String pattern) {
-            this.pattern = pattern;
-        }
-
-    }
-
-    public static class Token {
-
-        public TokenType type;
-
-        public String data;
-
-        public Token(TokenType type, String data) {
-            this.type = type;
-            this.data = data;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("(%s) %s", type.name(), data);
-        }
-
-    }
-
-    private static List<Token> lex(String input) {
-        List<Token> tokens = new LinkedList<Token>();
-
+    private static List<Token> lex(CharSequence input) {
+        List<Token> tokens = new LinkedList<>();
         StringBuilder tokenPatternsBuffer = new StringBuilder();
         TokenType[] values = TokenType.values();
         for(TokenType tokenType : values) {
@@ -72,42 +42,42 @@ public class CFG {
         return tokens;
     }
 
-    public static void main(String[] args) {
+    public static void main(String... args) {
         readFromString("alias b; alias c alias c alias d alias v \"taunt; nope\"");
     }
 
-    public static CFG readFromString(String s) {
-        return CFG.parse(new Scanner(s));
+    private static CFG readFromString(String s) {
+        return parse(new Scanner(s));
     }
 
     public static void readFromStream(InputStream in) {
         readFromStream(in, "UTF-8");
     }
 
-    public static void readFromStream(InputStream in, String encoding) {
-        Scanner s = null;
+    private static void readFromStream(InputStream in, String encoding) {
+        Scanner scanner = null;
         try {
-            s = new Scanner(in, encoding);
-            parse(s);
+            scanner = new Scanner(in, encoding);
+            parse(scanner);
         } catch(Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
         } finally {
-            if(s != null) {
-                s.close();
+            if(scanner != null) {
+                scanner.close();
             }
         }
     }
 
     @SuppressWarnings("fallthrough")
-    private static CFG parse(Scanner s) {
-        CFG c = new CFG();
+    private static CFG parse(Scanner scanner) {
+        CFG cfg = new CFG();
         int lineNum = 0;
-        while(s.hasNext()) {
-            String line = s.nextLine().trim();
+        while(scanner.hasNext()) {
+            String line = scanner.nextLine().trim();
             lineNum++;
             List<Token> q = lex(line);
-            System.out.println(q);
-            Deque<Token> cmd = new LinkedList<Token>();
+            LOG.info(String.valueOf(q));
+            Deque<Token> cmd = new LinkedList<>();
             boolean quoted = false;
             for(Token t : q) {
                 switch(t.type) {
@@ -115,7 +85,7 @@ public class CFG {
                         quoted = !quoted;
                     case SEPARATOR:
                         if(!quoted) {
-                            System.out.println(c.eval(cmd));
+                            LOG.info(eval(cmd));
                             cmd.clear();
                             break;
                         }
@@ -129,15 +99,15 @@ public class CFG {
                         throw new AssertionError(t.type.name());
                 }
             }
-            System.out.println(c.eval(cmd));
+            LOG.info(eval(cmd));
         }
-        return c;
+        return cfg;
     }
 
-    private String eval(Deque<Token> l) {
+    private static String eval(Deque<Token> deque) {
         StringBuilder sb = new StringBuilder();
-        while(!l.isEmpty()) {
-            Token t = l.pop();
+        while(!deque.isEmpty()) {
+            Token t = deque.pop();
             switch(t.type) {
                 case COMMENT:
                     break;
@@ -148,14 +118,14 @@ public class CFG {
                 case QUOTE:
                     break;
                 case TOKEN:
-                    if(t.data.equals("alias")) {
+                    if("alias".equals(t.data)) {
                         Alias a = new Alias();
                         a.name = t.data;
-                        if(!l.isEmpty() && l.peek().type == TokenType.SPACE) {
-                            l.pop();
+                        if(!deque.isEmpty() && ( deque.peek().type == TokenType.SPACE )) {
+                            deque.pop();
                         }
-                        a.cmd = eval(l);
-                        sb.append(a.toString());
+                        a.cmd = eval(deque);
+                        sb.append(a);
                     } else {
                         sb.append(t.data);
                     }
@@ -168,25 +138,48 @@ public class CFG {
         return sb.toString();
     }
 
-    List<Alias> aliases = new LinkedList<Alias>();
+    public enum TokenType {
+        COMMENT("//(.*)$"),
+        SPACE("(\\s+)"),
+        SEPARATOR("(;)"),
+        QUOTE("(\\\")"),
+        TOKEN("([^\\s;\\\"]+)");
+        public final String pattern;
 
-    public class Alias {
+        TokenType(String pattern) {
+            this.pattern = pattern;
+        }
+    }
+
+    public static class Token {
+
+        public TokenType type;
+        public String    data;
+
+        public Token(TokenType type, String data) {
+            this.type = type;
+            this.data = data;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%s) %s", type.name(), data);
+        }
+    }
+
+    public static class Alias {
 
         /**
          * 32 characters
          */
         String name;
-
         String cmd;
 
-        public Alias() {
-        }
+        public Alias() {}
 
         @Override
         public String toString() {
-            return "alias " + name + " " + cmd;
+            return "alias " + name + ' ' + cmd;
         }
-
     }
-
 }

@@ -3,18 +3,17 @@ package com.timepath.hl2.io.bsp.lump;
 import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
+
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author TimePath
  */
 @SuppressWarnings("rawtypes")
 public enum LumpType {
-
     /**
      * Map entities
      */
@@ -271,24 +270,21 @@ public enum LumpType {
      * Displacement multiblend info
      */
     LUMP_DISP_MULTIBLEND(63);
-
     private static final Logger LOG = Logger.getLogger(LumpType.class.getName());
-
     private final LumpHandler handler;
-
-    public LumpHandler getHandler() {
-        return handler;
-    }
-
-    private final int id;
+    private final int         id;
 
     LumpType(int i) {
         this(i, null);
     }
 
     LumpType(int i, LumpHandler handler) {
-        this.id = i;
+        id = i;
         this.handler = handler;
+    }
+
+    public LumpHandler getHandler() {
+        return handler;
     }
 
     public int getID() {
@@ -308,5 +304,4 @@ public enum LumpType {
         }
         return (T) handler.handle(l, in);
     }
-
 }

@@ -2,30 +2,26 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
+import org.xiph.speex.SpeexDecoder;
+
+import javax.sound.sampled.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
-import org.xiph.speex.SpeexDecoder;
 
 /**
  * http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127
  *
  * @author TimePath
  */
-public class VoiceDataHandler extends PacketHandler {
+class VoiceDataHandler extends PacketHandler {
 
     private static final Logger LOG = Logger.getLogger(VoiceDataHandler.class.getName());
-
     private SourceDataLine audioOut;
-    private SpeexDecoder speexDecoder;
+    private SpeexDecoder   speexDecoder;
 
     VoiceDataHandler() {
         try {
@@ -39,13 +35,9 @@ public class VoiceDataHandler extends PacketHandler {
             audioOut = (SourceDataLine) AudioSystem.getLine(info);
             audioOut.open(sourceVoiceFormat);
             audioOut.start();
-        } catch (LineUnavailableException ex) {
+        } catch(LineUnavailableException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-    }
-
-    int bitsToBytes(int bits) {
-        return (bits + 7) / 8;
     }
 
     @Override
@@ -55,46 +47,49 @@ public class VoiceDataHandler extends PacketHandler {
         l.add(new Pair<Object, Object>("Proximity", bb.getByte()));
         int length = bb.getShort() & 0xFFFF;
         l.add(new Pair<Object, Object>("Length in bits", length));
-        if (length < 0) {
+        if(length < 0) {
             return false;
         }
-        if (length == 0) {
+        if(length == 0) {
             return true;
         }
         byte[] data = new byte[bitsToBytes(length)];
         bb.get(data);
-//        speex(client, data);
+        //        speex(client, data);
         return true;
     }
 
-    void speex(int index, byte[] data) {
+    static int bitsToBytes(int bits) {
+        return ( bits + 7 ) / 8;
+    }
+
+    void speex(int index, byte... data) {
         byte[] decoded = data;
         try {
             speexDecoder.processData(data, 0, data.length);
             decoded = new byte[speexDecoder.getProcessedDataByteSize()];
             speexDecoder.getProcessedData(decoded, 0);
-        } catch (StreamCorruptedException ex) {
+        } catch(StreamCorruptedException ex) {
             LOG.log(Level.SEVERE, null, ex.getMessage());
         }
         dump(index, decoded);
         pcm(index, decoded);
     }
 
-    void dump(int index, byte[] data) {
-        try (FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
+    static void dump(int index, byte... data) {
+        try(FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
             fos.write(data);
             fos.flush();
-        } catch (IOException ex) {
+        } catch(IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
     }
 
-    void pcm(int index, byte[] data) {
+    void pcm(int index, byte... data) {
         try {
             audioOut.write(data, 0, data.length);
-        } catch (IllegalArgumentException ex) {
+        } catch(IllegalArgumentException ex) {
             LOG.log(Level.SEVERE, null, ex.getMessage());
         }
     }
-
 }

@@ -5,11 +5,10 @@ import java.util.List;
 
 /**
  * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/in_buttons.h
- * <p/>
+ *
  * @author TimePath
  */
 public enum Input {
-
     ATTACK(1),
     JUMP(1 << 1),
     DUCK(1 << 2),
@@ -45,21 +44,19 @@ public enum Input {
     GRENADE1(1 << 23),
     GRENADE2(1 << 24),
     ATTACK3(1 << 25);
-    
-    public final int mask;
-    
+    private final int mask;
+
     Input(int mask) {
         this.mask = mask;
     }
 
     public static List<Input> get(int bits) {
-        List<Input> l = new LinkedList<Input>();
+        List<Input> l = new LinkedList<>();
         for(Input name : Input.values()) {
-            if((name.mask & bits) != 0) {
+            if(( name.mask & bits ) != 0) {
                 l.add(name);
             }
         }
         return l;
     }
-
 }

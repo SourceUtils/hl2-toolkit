@@ -1,39 +1,28 @@
 package com.timepath.hl2.io.demo;
 
 import com.timepath.DataUtils;
+
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author TimePath
  */
-public class DemoHeader {
+class DemoHeader {
 
     private static final Logger LOG = Logger.getLogger(DemoHeader.class.getName());
-
-    final String clientName;
-
-    final int demoProtocol;
-
-    final int frames;
-
-    final String gameDirectory;
-
-    final String head;
-
-    final String mapName;
-
-    final int networkProtocol;
-
-    final float playbackTime;
-
-    final String serverName;
-
-    final int signonLength;
-
-    final int ticks;
+    final         int    demoProtocol;
+    final         int    networkProtocol;
+    private final String clientName;
+    private final int    frames;
+    private final String gameDirectory;
+    private final String head;
+    private final String mapName;
+    private final float  playbackTime;
+    private final String serverName;
+    private final int    signonLength;
+    private final int    ticks;
 
     DemoHeader(ByteBuffer slice) {
         head = DataUtils.getText(DataUtils.getSlice(slice, 8));
@@ -67,5 +56,4 @@ public class DemoHeader {
         signonLength = slice.getInt();
         LOG.log(Level.INFO, "Signon length: {0}", signonLength);
     }
-
 }
