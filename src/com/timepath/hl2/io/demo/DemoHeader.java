@@ -12,20 +12,11 @@ import java.util.logging.Logger;
 class DemoHeader {
 
     private static final Logger LOG = Logger.getLogger(DemoHeader.class.getName());
-    final         int    demoProtocol;
-    final         int    networkProtocol;
-    private final String clientName;
-    private final int    frames;
-    private final String gameDirectory;
-    private final String head;
-    private final String mapName;
-    private final float  playbackTime;
-    private final String serverName;
-    private final int    signonLength;
-    private final int    ticks;
+    final int demoProtocol;
+    final int networkProtocol;
 
     DemoHeader(ByteBuffer slice) {
-        head = DataUtils.getText(DataUtils.getSlice(slice, 8));
+        String head = DataUtils.getText(DataUtils.getSlice(slice, 8));
         if(!head.equals(HL2DEM.HEADER)) {
             LOG.log(Level.WARNING, "Unexpected header");
         }
@@ -36,24 +27,24 @@ class DemoHeader {
         networkProtocol = slice.getInt();
         LOG.log(Level.INFO, "Network protocol: {0}", networkProtocol);
         ByteBuffer serverNameBuffer = DataUtils.getSlice(slice, 260);
-        serverName = DataUtils.getText(serverNameBuffer).trim();
+        String serverName = DataUtils.getText(serverNameBuffer).trim();
         LOG.log(Level.INFO, "Server: {0}", serverName);
         ByteBuffer clientNameBuffer = DataUtils.getSlice(slice, 260);
-        clientName = DataUtils.getText(clientNameBuffer).trim();
+        String clientName = DataUtils.getText(clientNameBuffer).trim();
         LOG.log(Level.INFO, "Client: {0}", clientName);
         ByteBuffer mapNameBuffer = DataUtils.getSlice(slice, 260);
-        mapName = DataUtils.getText(mapNameBuffer).trim();
+        String mapName = DataUtils.getText(mapNameBuffer).trim();
         LOG.log(Level.INFO, "Map: {0}", mapName);
         ByteBuffer gameDirectoryBuffer = DataUtils.getSlice(slice, 260);
-        gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
+        String gameDirectory = DataUtils.getText(gameDirectoryBuffer).trim();
         LOG.log(Level.INFO, "Game: {0}", gameDirectory);
-        playbackTime = slice.getFloat();
+        float playbackTime = slice.getFloat();
         LOG.log(Level.INFO, "Playback time: {0}", playbackTime);
-        ticks = slice.getInt();
+        int ticks = slice.getInt();
         LOG.log(Level.INFO, "Ticks: {0}", ticks);
-        frames = slice.getInt();
+        int frames = slice.getInt();
         LOG.log(Level.INFO, "Frames: {0}", frames);
-        signonLength = slice.getInt();
+        int signonLength = slice.getInt();
         LOG.log(Level.INFO, "Signon length: {0}", signonLength);
     }
 }

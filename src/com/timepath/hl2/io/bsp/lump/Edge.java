@@ -12,4 +12,6 @@ public class Edge {
      */
     @StructField
     public               short[] v   = new short[2];
+
+    public Edge() {}
 }

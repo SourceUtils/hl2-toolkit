@@ -60,15 +60,18 @@ public enum CompiledVtfFlags implements EnumFlag {
     }
 
     CompiledVtfFlags(int mask, String name) {
-        this.mask = mask; title = name;
+        this.mask = mask;
+        title = name;
     }
 
     public static CompiledVtfFlags getEnumForMask(int mask) {
-        CompiledVtfFlags[] values = CompiledVtfFlags.values(); for(CompiledVtfFlags eachValue : values) {
-            if(eachValue.getMask() == mask) {
+        CompiledVtfFlags[] values = CompiledVtfFlags.values();
+        for(CompiledVtfFlags eachValue : values) {
+            if(eachValue.mask == mask) {
                 return eachValue;
             }
-        } return null;
+        }
+        return null;
     }
 
     int getMask() {

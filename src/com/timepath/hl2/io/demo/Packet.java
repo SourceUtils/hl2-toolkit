@@ -424,20 +424,20 @@ public enum Packet {
         }
     });
     final         PacketHandler handler;
-    private final int[]         i;
+    private final int[]         id;
 
-    Packet(int i, PacketHandler handler) {
-        this(new int[] { i }, handler);
+    Packet(int id, PacketHandler handler) {
+        this(new int[] { id }, handler);
     }
 
-    Packet(int[] i, PacketHandler handler) {
-        this.i = i;
+    Packet(int[] id, PacketHandler handler) {
+        this.id = id;
         this.handler = handler;
     }
 
     public static Packet get(int i) {
         for(Packet t : Packet.values()) {
-            for(int j : t.i) {
+            for(int j : t.id) {
                 if(j == i) {
                     return t;
                 }

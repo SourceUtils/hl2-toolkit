@@ -20,11 +20,13 @@ public class VBSP extends BSP {
 
     private static final Logger LOG = Logger.getLogger(VBSP.class.getName());
 
+    public VBSP() {}
+
     public static void main(String... args) throws Exception {
-        BSP b = BSP.load(ACF.fromManifest(440).get("tf/maps/ctf_2fort.bsp").stream()); System.out.println(b.getRevision());
-        String ents = b.getLump(LumpType.LUMP_ENTITIES);
+        BSP b = BSP.load(ACF.fromManifest(440).get("tf/maps/ctf_2fort.bsp").stream());
+        LOG.log(Level.INFO, "Revision: {0}", b.getRevision()); String ents = b.getLump(LumpType.LUMP_ENTITIES);
         //        System.out.println(ents);
-        ZipFS z = b.getLump(LumpType.LUMP_PAKFILE); System.out.println(z.name); b.getLump(LumpType.LUMP_VERTEXES);
+        ZipFS z = b.getLump(LumpType.LUMP_PAKFILE); LOG.info(z.name); b.getLump(LumpType.LUMP_VERTEXES);
     }
 
     /**
@@ -38,18 +40,18 @@ public class VBSP extends BSP {
         int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES); LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges.length);
         Face[] bspFaces = getLump(LumpType.LUMP_FACES); LOG.log(Level.INFO, "Faces: {0}", bspFaces.length);
         List<Float> vertices = new LinkedList<>(); List<Integer> indices = new LinkedList<>(); int vertexBase = 0;
-        int rootPoint = 0, pointA, pointB; int rootVertId = 0, vertId; Face face; for(Face bspFace : bspFaces) {
-            face = bspFace; int edgeId = face.firstedge; Map<Integer, Integer> vertLookupTable = new HashMap<>(0);
+        int rootPoint = 0; int rootVertId = 0; for(Face bspFace : bspFaces) {
+            Face face = bspFace; int edgeId = face.firstedge; Map<Integer, Integer> vertLookupTable = new HashMap<>(0);
             for(int i = 0; i < face.numedges; i++) {
                 int surfEdge = bspSurfEdges[edgeId + 1]; Edge edge = bspEdges[Math.abs(surfEdge)];
-                boolean reverse = surfEdge >= 0; if(i == 0) {
+                boolean reverse = surfEdge >= 0; int vertId; int pointB; if(i == 0) {
                     rootVertId = edge.v[reverse ? 0 : 1]; rootPoint = compileGpuVertex(bspVertices, rootVertId, vertices);
                     vertLookupTable.put(rootVertId, rootPoint); vertId = edge.v[reverse ? 1 : 0];
                     pointB = compileGpuVertex(bspVertices, vertId, vertices); vertLookupTable.put(vertId, pointB);
                 } else {
                     vertId = edge.v[reverse ? 0 : 1]; if(vertId == rootVertId) {
                         continue;
-                    } if(vertLookupTable.containsKey(vertId)) {
+                    } int pointA; if(vertLookupTable.containsKey(vertId)) {
                         pointA = vertLookupTable.get(vertId);
                     } else {
                         pointA = compileGpuVertex(bspVertices, vertId, vertices); vertLookupTable.put(vertId, pointA);
@@ -66,17 +68,17 @@ public class VBSP extends BSP {
     }
 
     @SuppressWarnings("empty-statement")
-    private int compileGpuVertex(FloatBuffer verts, int pos, Collection<Float> vertices) {
+    private static int compileGpuVertex(FloatBuffer verts, int pos, Collection<Float> vertices) {
         int index = vertices.size() / 3; verts.position(pos); for(int i = 0; i++ < 3; vertices.add(verts.get())) ; return index;
     }
 
     private void done(List<Float> vertices, List<Integer> indices) {
-        if(indices != null && !indices.isEmpty()) {
+        if(( indices != null ) && !indices.isEmpty()) {
             indexBuffer = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer(); for(int i : indices) {
                 indexBuffer.put(i);
             } indexBuffer.flip();
             LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", new Object[] { indices.size(), indices.size() / 3 });
-        } if(vertices != null && !vertices.isEmpty()) {
+        } if(( vertices != null ) && !vertices.isEmpty()) {
             vertexBuffer = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer(); for(float v : vertices) {
                 vertexBuffer.put(v);
             } vertexBuffer.flip(); LOG.log(Level.INFO, "Map: vertices {0}", new Object[] { vertices.size() });
@@ -95,11 +97,7 @@ public class VBSP extends BSP {
         int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES); LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges.length);
         // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L253
         for(int i = 0; i < bspSurfEdges.length; i++) {
-            if(bspSurfEdges[i] >= 0) {
-                bspSurfEdges[i] = bspEdges[bspSurfEdges[i]].v[0];
-            } else {
-                bspSurfEdges[i] = bspEdges[-bspSurfEdges[i]].v[1];
-            }
+            bspSurfEdges[i] = bspSurfEdges[i] >= 0 ? bspEdges[bspSurfEdges[i]].v[0] : bspEdges[-bspSurfEdges[i]].v[1];
         } Face[] bspFaces = getLump(LumpType.LUMP_FACES); LOG.log(Level.INFO, "Faces: {0}", bspFaces.length);
         List<Float> vertices = new LinkedList<>(); List<Integer> indices = new LinkedList<>(); for(Face face : bspFaces) {
             int edgeId = face.firstedge;
@@ -107,7 +105,7 @@ public class VBSP extends BSP {
             int index_shift = vertices.size(); for(int i = 0; i < face.numedges; i++) {
                 bspVertices.position(bspSurfEdges[edgeId + i] * 3); for(int j = 0; j++ < 3; vertices.add(bspVertices.get())) ;
                 if(i >= 2) {
-                    indices.add(index_shift); indices.add(index_shift + i - 1); indices.add(index_shift + i);
+                    indices.add(index_shift); indices.add(( index_shift + i ) - 1); indices.add(index_shift + i);
                 }
             }
         } done(vertices, indices);

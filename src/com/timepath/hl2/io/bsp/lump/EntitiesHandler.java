@@ -14,6 +14,9 @@ class EntitiesHandler implements LumpHandler<String> {
 
     private static final Logger LOG = Logger.getLogger(EntitiesHandler.class.getName());
 
+    EntitiesHandler() {}
+
+    @Override
     public String handle(Lump l, OrderedInputStream in) throws IOException {
         return in.readString();
     }

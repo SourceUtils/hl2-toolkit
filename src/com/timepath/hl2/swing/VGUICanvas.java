@@ -21,26 +21,24 @@ import java.util.logging.Logger;
 public class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     private static final Logger              LOG              = Logger.getLogger(VGUICanvas.class.getName());
-    private static       float               gridAlpha        = 0.25f;
-    private static       AlphaComposite      acGrid           = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, gridAlpha);
-    private static       float               elementBgAlpha   = 0.25f;
-    private static       float               selectAlpha      = 0.25f;
-    private static       AlphaComposite      acSelect         = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, selectAlpha);
+    private static final float               GRID_ALPHA       = 0.25f;
+    private static final AlphaComposite      GRID_AC          = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, GRID_ALPHA);
+    private static final float               SELECT_ALPHA     = 0.25f;
+    private static final AlphaComposite      SELECT_AC        = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, SELECT_ALPHA);
     /**
      * No derive method on 1.5
      */
-    private static       AlphaComposite      acSimple         = AlphaComposite.SrcOver;
-    private static       Comparator<Element> layerSort        = new Comparator<Element>() {
+    private static final AlphaComposite      SRC_OVER         = AlphaComposite.SrcOver;
+    private static final Comparator<Element> LAYER_SORT       = new Comparator<Element>() {
         @Override
         public int compare(Element o1, Element o2) {
             return o1.getLayer() - o2.getLayer();
         }
     };
+    private static final Color               BG_COLOR         = Color.GRAY;
+    private static final Color               GRID_COLOR       = Color.WHITE;
     private static       int                 offX             = 10; // left
     private static       int                 offY             = 10; // top
-    private final        Color               BG_COLOR         = Color.GRAY;
-    private final        Color               GRID_COLOR       = Color.WHITE;
-    private final        int                 minGridSpacing   = 10;
     /** List of elements */
     private final        List<Element>       elements         = new LinkedList<>();
     /** List of currently selected elements */
@@ -499,16 +497,16 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
                                                   BufferedImage.TYPE_INT_ARGB);
             Graphics2D ge = img.createGraphics();
             ge.translate(offX, offY);
-            Collections.sort(elements, layerSort);
+            Collections.sort(elements, LAYER_SORT);
             for(Element element : elements) {
-                ge.setComposite(acSimple);
+                ge.setComposite(SRC_OVER);
                 paintElement(element, ge);
             }
             ge.dispose();
             elementImage = toCompatibleImage(img);
         }
         g.drawImage(elementImage, 0, 0, this);
-        g.setComposite(acSelect);
+        g.setComposite(SELECT_AC);
         g.setColor(Color.CYAN.darker());
         g.fillRect(offX + selectRect.x + 1, offY + selectRect.y + 1, selectRect.width - 2, selectRect.height - 2);
         g.setColor(Color.BLUE);
@@ -538,7 +536,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         int type = BufferedImage.TYPE_INT_ARGB;
         BufferedImage resizedImage = new BufferedImage(w, h, type);
         Graphics2D g = resizedImage.createGraphics();
-        g.setComposite(acSimple);
+        g.setComposite(SRC_OVER);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -553,11 +551,12 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
     private BufferedImage drawGrid() {
         BufferedImage img = new BufferedImage(screen.width, screen.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
-        g.setComposite(acGrid);
+        g.setComposite(GRID_AC);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         g.setColor(GRID_COLOR);
         int w = screen.width;
         int h = screen.height;
+        int minGridSpacing = 10;
         int i = minGridSpacing;
         if(i < 0) {
             return img;
@@ -598,6 +597,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             g.setClip(bounds);
             if(e.getFgColor() != null) {
                 g.setColor(e.getFgColor());
+                float elementBgAlpha = 0.25f;
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, elementBgAlpha));
                 g.fillRect(elementX, elementY, elementW - 1, elementH - 1);
             }
@@ -615,7 +615,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
             g.drawRect(elementX, elementY, elementW - 1, elementH - 1);
             if(hoveredElement == e) {
                 g.setColor(new Color(255 - g.getColor().getRed(), 255 - g.getColor().getGreen(), 255 - g.getColor().getBlue()));
-                g.setComposite(acSimple);
+                g.setComposite(SRC_OVER);
                 //                g.drawRect(elementX + offX, elementY + offY, e.getWidth() - 1, e.getHeight() - 1); // border
                 g.drawRect(elementX + 1, elementY + 1, elementW - 3, elementH - 3); // inner
                 //                g.drawRect(elementX + offX - 1, elementY + offY - 1, e.getWidth() + 1,
@@ -627,7 +627,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
                 } else {
                     g.setColor(Color.WHITE);
                 }
-                g.setComposite(acSimple);
+                g.setComposite(SRC_OVER);
                 int screenRes = Toolkit.getDefaultToolkit().getScreenResolution();
                 int fontSize = (int) Math.round(( 14.0 * screenRes ) / 72.0); // Java2D = 72 DPI
                 if(e.getFont() == null) {

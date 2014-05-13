@@ -24,7 +24,7 @@ public class StudioModel {
     }
 
     private ByteBuffer buildIndices(int lodId) {
-        ByteArrayOutputStream indices = new ByteArrayOutputStream(); int indexOffset = 0; int vertTableIndex;
+        ByteArrayOutputStream indices = new ByteArrayOutputStream(); int indexOffset = 0;
         for(int i = 0; i < vtx.bodyParts.size(); i++) {
             VTX.BodyPart bodyPart = vtx.bodyParts.get(i); MDL.MStudioBodyParts mdlBodyPart = mdl.mdlBodyParts.get(i);
             if(bodyPart.models.isEmpty()) {
@@ -36,7 +36,7 @@ public class StudioModel {
                     List<VTX.Vertex> vertTable = stripGroup.verts; stripGroup.indexOffset = indexOffset++;
                     ShortBuffer sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
                     for(int l = 0; l < stripGroup.numIndices; l++) {
-                        vertTableIndex = sb.get();
+                        int vertTableIndex = sb.get();
                         int index = vertTable.get(vertTableIndex).origMeshVertID + mdlModel.vertexoffset + mdlMesh.vertexoffset;
                         short s = (short) index; try {
                             indices.write(new byte[] {
@@ -74,18 +74,18 @@ public class StudioModel {
     }
 
     public FloatBuffer getNormals() {
-        return vvd.normals.asFloatBuffer();
+        return vvd.normalBuffer.asFloatBuffer();
     }
 
     public FloatBuffer getTangents() {
-        return vvd.tangents.asFloatBuffer();
+        return vvd.tangentBuffer.asFloatBuffer();
     }
 
     public FloatBuffer getTextureCoordinates() {
-        return vvd.uv;
+        return vvd.uvBuffer;
     }
 
     public FloatBuffer getVertices() {
-        return vvd.verts.asFloatBuffer();
+        return vvd.vertexBuffer.asFloatBuffer();
     }
 }

@@ -34,17 +34,25 @@ public abstract class BSP {
 
     public static BSP load(InputStream is) throws IOException {
         try {
-            OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is)); in.order(ByteOrder.LITTLE_ENDIAN);
-            in.mark(in.available()); BSPHeader header = in.readStruct(new BSPHeader());
+            OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
+            in.order(ByteOrder.LITTLE_ENDIAN);
+            in.mark(in.available());
+            BSPHeader header = in.readStruct(new BSPHeader());
             // TODO: Other BSP types
-            VBSP bsp = new VBSP(); bsp.in = in; bsp.header = header;
+            VBSP bsp = new VBSP();
+            bsp.in = in;
+            bsp.header = header;
             // TODO: Struct parser callbacks
             for(int i = 0; i < header.lumps.length; i++) {
                 header.lumps[i].type = LumpType.values()[i];
-            } LOG.info("Processing map..."); bsp.process(); return bsp;
+            }
+            LOG.info("Processing map...");
+            bsp.process();
+            return bsp;
         } catch(InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
-        } return null;
+        }
+        return null;
     }
 
     public IntBuffer getIndices() {
@@ -89,9 +97,14 @@ public abstract class BSP {
     <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
         if(handler == null) {
             return null;
-        } Lump lump = header.lumps[type.getID()]; if(lump.isEmpty()) {
+        }
+        Lump lump = header.lumps[type.getID()];
+        if(lump.isEmpty()) {
             return null;
-        } in.reset(); in.skipBytes(lump.offset); return handler.handle(lump, in);
+        }
+        in.reset();
+        in.skipBytes(lump.offset);
+        return handler.handle(lump, in);
     }
 
     /**
@@ -129,5 +142,7 @@ public abstract class BSP {
          */
         @StructField(index = 1)
         int version;
+
+        private BSPHeader() {}
     }
 }

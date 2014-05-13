@@ -72,8 +72,7 @@ public class Element extends VDFNode1 implements ViewableData {
 
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
     public void validateLoad() {
-        for(int n = 0; n < ps.size(); n++) {
-            Property entry = ps.get(n);
+        for(Property entry : ps) {
             String k = entry.getKey().toLowerCase();
             //            if(k != null && k.contains("\"")) { // assumes one set of quotes
             //                k = k.substring(1, k.length() - 1);
@@ -136,11 +135,7 @@ public class Element extends VDFNode1 implements ViewableData {
             } else if("textAlignment".equalsIgnoreCase(k)) {
                 if("center".equalsIgnoreCase(v)) {
                     _textAlignment = Alignment.Center;
-                } else if("right".equalsIgnoreCase(v)) {
-                    _textAlignment = Alignment.Right;
-                } else {
-                    _textAlignment = Alignment.Left;
-                }
+                } else { _textAlignment = "right".equalsIgnoreCase(v) ? Alignment.Right : Alignment.Left; }
             } else if("ControlName".equalsIgnoreCase(k)) { // others are areas
                 controlName = v;
             } else if("fgcolor".equalsIgnoreCase(k)) {
@@ -150,7 +145,7 @@ public class Element extends VDFNode1 implements ViewableData {
                                         Integer.parseInt(c[1]),
                                         Integer.parseInt(c[2]),
                                         Integer.parseInt(c[3]));
-                } catch(NumberFormatException e) {
+                } catch(NumberFormatException ignored) {
                 }
             } else if("font".equalsIgnoreCase(k)) {
                 if(!RES.fonts.containsKey(v)) {
@@ -506,11 +501,11 @@ public class Element extends VDFNode1 implements ViewableData {
                     sb.append('\n');
                 }
                 if("//".equals(p.getKey())) {
-                    sb.append("//" + p.getInfo() + '\n');
+                    sb.append("//").append(p.getInfo()).append('\n');
                 }
             }
         }
-        sb.append(name + '\n');
+        sb.append(name).append('\n');
         sb.append("{\n");
         for(Property p : ps) {
             if(!p.getValue().isEmpty()) {
@@ -550,20 +545,12 @@ public class Element extends VDFNode1 implements ViewableData {
         if(( parent == null ) || parent.name.replaceAll("\"", "").endsWith(".res")) {
             if(_xAlignment == Alignment.Center) {
                 return getLocalX() + ( internal.width / 2 );
-            } else if(_xAlignment == Alignment.Right) {
-                return internal.width - getLocalX();
-            } else {
-                return getLocalX();
-            }
+            } else { return ( _xAlignment == Alignment.Right ) ? ( internal.width - getLocalX() ) : getLocalX(); }
         } else {
             int x;
             if(_xAlignment == Alignment.Center) {
                 x = parent.getWidth() / 2 + getLocalX();
-            } else if(_xAlignment == Alignment.Right) {
-                x = parent.getWidth() - getLocalX();
-            } else {
-                x = getLocalX();
-            }
+            } else { x = _xAlignment == Alignment.Right ? parent.getWidth() - getLocalX() : getLocalX(); }
             return x + parent.getX();
         }
     }
@@ -572,33 +559,17 @@ public class Element extends VDFNode1 implements ViewableData {
         if(( parent == null ) || parent.name.replaceAll("\"", "").endsWith(".res")) {
             if(_yAlignment == Alignment.Center) {
                 return getLocalY() + ( internal.height / 2 );
-            } else if(_yAlignment == Alignment.Right) {
-                return internal.height - getLocalY();
-            } else {
-                return getLocalY();
-            }
+            } else { return ( _yAlignment == Alignment.Right ) ? ( internal.height - getLocalY() ) : getLocalY(); }
         }
         int y;
         if(_yAlignment == Alignment.Center) {
             y = parent.getHeight() / 2 + getLocalY();
-        } else if(_yAlignment == Alignment.Right) {
-            y = parent.getHeight() - getLocalY();
-        } else {
-            y = getLocalY();
-        }
+        } else { y = _yAlignment == Alignment.Right ? parent.getHeight() - getLocalY() : getLocalY(); }
         return y + parent.getY();
     }
 
     public int getWidth() {
-        if(_wideMode == DimensionMode.Mode2) {
-            //            if(this.getParent().!hudRes= null) {
-            //                return this.getParent().getWidth() - wide;
-            //            } else {
-            return internal.width - wide;
-            //            }
-        } else {
-            return wide;
-        }
+        return ( _wideMode == DimensionMode.Mode2 ) ? ( internal.width - wide ) : wide;
     }
 
     public int getHeight() {

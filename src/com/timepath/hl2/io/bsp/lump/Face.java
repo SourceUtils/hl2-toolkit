@@ -93,4 +93,6 @@ public class Face {
      */
     @StructField(index = 16)
     public int   smoothingGroups;
+
+    public Face() {}
 }

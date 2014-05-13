@@ -10,6 +10,8 @@ import java.util.List;
  */
 abstract class PacketHandler {
 
+    protected PacketHandler() {}
+
     boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
         return read(bb, l, demo, -1);
     }

@@ -85,11 +85,6 @@ class DXTLoader {
     private static BufferedImage loadDXT3(byte[] b, int width, int height) {
         BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) bi.getGraphics();
-        int pos = 0;
-        int bits_12 = 0xC0; // first 2 bits
-        int bits_34 = 0x30; // next 2 bits
-        int bits_56 = 0xC; // next 2 bits
-        int bits_78 = 0x3; // last 2 bits
         //        RGB 565: WORD pixel565 = (red_value << 11) | (green_value << 5) | blue_value;
         int xBlocks = width / 4;
         if(xBlocks < 1) {
@@ -100,6 +95,11 @@ class DXTLoader {
             yBlocks = 1;
         }
         //        System.err.println("SIZE="+xBlocks+", "+yBlocks+" = " + b.length);
+        int bits_78 = 0x3; // last 2 bits
+        int bits_56 = 0xC; // next 2 bits
+        int bits_34 = 0x30; // next 2 bits
+        int bits_12 = 0xC0; // first 2 bits
+        int pos = 0;
         for(int y = 0; y < yBlocks; y++) {
             for(int x = 0; x < xBlocks; x++) {
                 pos += 8; // 64 bits of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table)
@@ -107,22 +107,14 @@ class DXTLoader {
                 pos += 2;
                 int color_1 = ( b[pos] & 0xff ) + ( ( b[pos + 1] & 0xff ) << 8 ); // 2 bytes
                 pos += 2;
-                int red1;
-                int green1;
-                int blue1;
-                int red2;
-                int green2;
-                int blue2;
-                Color c1;
-                Color c2;
-                red1 = ( color_0 & RED_MASK_565 ) >> 11 << 3;
-                green1 = ( color_0 & GREEN_MASK_565 ) >> 5 << 2;
-                blue1 = ( color_0 & BLUE_MASK_565 ) << 3;
-                c1 = new Color(red1, green1, blue1);
-                red2 = ( color_1 & RED_MASK_565 ) >> 11 << 3;
-                green2 = ( color_1 & GREEN_MASK_565 ) >> 5 << 2;
-                blue2 = ( color_1 & BLUE_MASK_565 ) << 3;
-                c2 = new Color(red2, green2, blue2);
+                int red1 = ( ( color_0 & RED_MASK_565 ) >> 11 ) << 3;
+                int green1 = ( ( color_0 & GREEN_MASK_565 ) >> 5 ) << 2;
+                int blue1 = ( color_0 & BLUE_MASK_565 ) << 3;
+                Color c1 = new Color(red1, green1, blue1);
+                int red2 = ( ( color_1 & RED_MASK_565 ) >> 11 ) << 3;
+                int green2 = ( ( color_1 & GREEN_MASK_565 ) >> 5 ) << 2;
+                int blue2 = ( color_1 & BLUE_MASK_565 ) << 3;
+                Color c2 = new Color(red2, green2, blue2);
                 // remaining 4 bytes
                 byte[] next4 = { b[pos], b[pos + 1], b[pos + 2], b[pos + 3] };
                 pos += 4;
@@ -168,7 +160,7 @@ class DXTLoader {
         int pos = 0;
         for(int y = 0; y < height; y += 4) {
             for(int x = 0; x < width; x += 4) {
-                //<editor-fold defaultstate="collapsed" desc="Alpha">
+                // Alpha
                 int[] a = new int[8];
                 a[0] = b[pos++] & 0xFF; // 64 bits of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table)
                 a[1] = b[pos++] & 0xFF;
@@ -205,8 +197,7 @@ class DXTLoader {
                         sel2 >>>= 3;
                     }
                 }
-                //</editor-fold>
-                //<editor-fold defaultstate="collapsed" desc="DXT1 color info">
+                // DXT1 color info
                 int color_0 = ( ( b[pos++] & 0xFF ) + ( ( b[pos++] & 0xFF ) << 8 ) ) & 0xFFFF; // 2 bytes
                 int color_1 = ( ( b[pos++] & 0xFF ) + ( ( b[pos++] & 0xFF ) << 8 ) ) & 0xFFFF; // 2 bytes
                 Color[] colour = new Color[4];
@@ -238,7 +229,6 @@ class DXTLoader {
                         bi.setRGB(x + x1, y + y1, col.getRGB());
                     }
                 }
-                //</editor-fold>
             }
         }
         return bi;

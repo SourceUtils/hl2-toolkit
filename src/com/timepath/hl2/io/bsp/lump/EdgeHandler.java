@@ -14,13 +14,19 @@ class EdgeHandler implements LumpHandler<Edge[]> {
     private static final Logger LOG           = Logger.getLogger(EdgeHandler.class.getName());
     private static final int    MAX_MAP_EDGES = 256000;
 
+    EdgeHandler() {}
+
+    @Override
     public Edge[] handle(Lump l, OrderedInputStream in) throws IOException {
         try {
-            Edge[] e = new Edge[l.length / Struct.sizeof(new Edge())]; for(int i = 0; i < e.length; i++) {
+            Edge[] e = new Edge[l.length / Struct.sizeof(new Edge())];
+            for(int i = 0; i < e.length; i++) {
                 e[i] = in.readStruct(new Edge());
-            } return e;
+            }
+            return e;
         } catch(InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
-        } return new Edge[0];
+        }
+        return new Edge[0];
     }
 }

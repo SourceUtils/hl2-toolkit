@@ -133,16 +133,16 @@ public class VCCD {
         if(!entries.isEmpty()) { // Don't waste time if empty
             Collections.sort(entries); // Ensure alphabetical order
             VCCDEntry longest = null;
-            int thisLength, totalLength = 0, waste, totalWaste = 0;
+            int totalLength = 0, totalWaste = 0;
             for(VCCDEntry e : entries) { // Pack into blocks
-                thisLength = e.getLength();
+                int thisLength = e.getLength();
                 if(thisLength >= blockSize) {
                     LOG.log(Level.WARNING, "Token overflow: {0}", e);
                     continue;
                 }
                 // XXX: The official compiler will not use the last byte in a block
                 if(( totalLength + thisLength ) >= ( requiredBlocks * blockSize )) { // If overflow
-                    waste = requiredBlocks * blockSize - totalLength; // Move to end of block
+                    int waste = ( requiredBlocks * blockSize ) - totalLength;
                     totalWaste += waste;
                     totalLength += waste;
                     requiredBlocks++; // Expand
@@ -216,19 +216,20 @@ public class VCCD {
         }
 
         public VCCDEntry(int hash, String value) {
-            setHash(hash);
+            this.hash = hash;
             setValue(value);
         }
 
         private VCCDEntry() {
         }
 
+        @Override
         public int compareTo(VCCDEntry t) {
-            String e1 = getKey();
+            String e1 = key;
             if(e1 == null) {
                 e1 = "";
             }
-            String e2 = t.getKey();
+            String e2 = t.key;
             if(e2 == null) {
                 e2 = "";
             }

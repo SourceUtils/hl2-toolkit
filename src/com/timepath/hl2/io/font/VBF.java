@@ -49,18 +49,32 @@ public class VBF {
 
     public VBF(InputStream is) throws IOException {
         byte[] array = new byte[is.available()]; // XXX: TODO
-        is.read(array); ByteBuffer buf = ByteBuffer.wrap(array); buf.order(ByteOrder.LITTLE_ENDIAN); int id = buf.getInt();
-        int version = buf.getInt(); pageWidth = buf.getShort(); pageHeight = buf.getShort(); short maxCharWidth = buf.getShort();
-        short maxCharHeight = buf.getShort(); flags = buf.getShort(); ascent = buf.getShort();
+        is.read(array);
+        ByteBuffer buf = ByteBuffer.wrap(array);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        int id = buf.getInt();
+        int version = buf.getInt();
+        pageWidth = buf.getShort();
+        pageHeight = buf.getShort();
+        short maxCharWidth = buf.getShort();
+        short maxCharHeight = buf.getShort();
+        flags = buf.getShort();
+        ascent = buf.getShort();
         /**
          * This number is 1 higher because there is a 'default' glyph
          */
-        short numGlyphs = buf.getShort(); buf.get(table);
+        short numGlyphs = buf.getShort();
+        buf.get(table);
         // BitmapGlyph @ offset 278
-        glyphs.ensureCapacity(numGlyphs); for(int i = 0; i < numGlyphs; i++) {
-            BitmapGlyph g = new BitmapGlyph(); g.setIndex((byte) i);
-            g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort()); g.a = buf.getShort();
-            g.b = buf.getShort(); g.c = buf.getShort(); glyphs.add(g);
+        glyphs.ensureCapacity(numGlyphs);
+        for(int i = 0; i < numGlyphs; i++) {
+            BitmapGlyph g = new BitmapGlyph();
+            g.setIndex((byte) i);
+            g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort());
+            g.a = buf.getShort();
+            g.b = buf.getShort();
+            g.c = buf.getShort();
+            glyphs.add(g);
         }
         // Debugging
         Object[][] dbg = {
@@ -73,16 +87,23 @@ public class VBF {
                 { "Flags = ", flags },
                 { "Ascent = ", ascent },
                 { "Total = ", numGlyphs }
-        }; StringBuilder sb = new StringBuilder(0); for(int i = 0; i < dbg.length; i++) {
+        };
+        StringBuilder sb = new StringBuilder(0);
+        for(int i = 0; i < dbg.length; i++) {
             for(Object item : dbg[i]) {
                 sb.append(item);
-            } if(i < dbg.length) {
+            }
+            if(i < dbg.length) {
                 sb.append('\n');
             }
-        } LOG.fine(sb.toString()); for(char i = 0; i < table.length; i++) { // for each character
-            int glyphIndex = table[i]; if(glyphIndex == 0) { // don't care about the default glyph
+        }
+        LOG.fine(sb.toString());
+        for(char i = 0; i < table.length; i++) { // for each character
+            int glyphIndex = table[i];
+            if(glyphIndex == 0) { // don't care about the default glyph
                 continue;
-            } BitmapGlyph g = glyphs.get(glyphIndex);
+            }
+            BitmapGlyph g = glyphs.get(glyphIndex);
             LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", new Object[] { i, g.bounds, g.a, g.b, g.c });
         }
     }
@@ -112,7 +133,8 @@ public class VBF {
             if(g.getIndex() == i) {
                 return true;
             }
-        } return false;
+        }
+        return false;
     }
 
     public Collection<BitmapGlyph> getGlyphs() {
@@ -120,20 +142,42 @@ public class VBF {
     }
 
     public void save(OutputStream os) throws IOException {
-        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + ( glyphs.size() * 14 )); buf.order(ByteOrder.LITTLE_ENDIAN);
-        buf.putInt(BITMAPFONT_ID); buf.putInt(BITMAPFONT_VERSION); buf.putShort(pageWidth); buf.putShort(pageHeight);
-        short maxcharwidth = 0; short maxcharheight = 0; for(BitmapGlyph glyph : glyphs) {
-            Rectangle r = glyph.getBounds(); if(( r.width != 0 ) && ( r.height != 0 )) {
-                maxcharwidth = (short) Math.max(maxcharwidth, r.width); maxcharheight = (short) Math.max(maxcharwidth, r.height);
+        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + ( glyphs.size() * 14 ));
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.putInt(BITMAPFONT_ID);
+        buf.putInt(BITMAPFONT_VERSION);
+        buf.putShort(pageWidth);
+        buf.putShort(pageHeight);
+        short maxcharwidth = 0;
+        short maxcharheight = 0;
+        for(BitmapGlyph glyph : glyphs) {
+            Rectangle r = glyph.getBounds();
+            if(( r.width != 0 ) && ( r.height != 0 )) {
+                maxcharwidth = (short) Math.max(maxcharwidth, r.width);
+                maxcharheight = (short) Math.max(maxcharwidth, r.height);
             }
-        } buf.putShort(maxcharwidth); buf.putShort(maxcharheight); buf.putShort(flags); buf.putShort(ascent);
-        buf.putShort((short) glyphs.size()); buf.put(table); for(BitmapGlyph g : glyphs) {
-            Rectangle b = g.getBounds(); buf.putShort((short) b.x); buf.putShort((short) b.y);
-            int width = ( b.height == 0 ) ? 0 : b.width; int height = ( b.width == 0 ) ? 0 : b.height;
-            buf.putShort((short) width); buf.putShort((short) height); buf.putShort(g.a);
+        }
+        buf.putShort(maxcharwidth);
+        buf.putShort(maxcharheight);
+        buf.putShort(flags);
+        buf.putShort(ascent);
+        buf.putShort((short) glyphs.size());
+        buf.put(table);
+        for(BitmapGlyph g : glyphs) {
+            Rectangle b = g.getBounds();
+            buf.putShort((short) b.x);
+            buf.putShort((short) b.y);
+            int width = ( b.height == 0 ) ? 0 : b.width;
+            int height = ( b.width == 0 ) ? 0 : b.height;
+            buf.putShort((short) width);
+            buf.putShort((short) height);
+            buf.putShort(g.a);
             buf.putShort((short) width); // XXX: why?
             buf.putShort(g.c);
-        } os.write(buf.array()); os.flush(); os.close();
+        }
+        os.write(buf.array());
+        os.flush();
+        os.close();
     }
 
     public static class BitmapGlyph {
@@ -150,6 +194,8 @@ public class VBF {
         Rectangle bounds = new Rectangle();
         short c;
         private byte index;
+
+        public BitmapGlyph() {}
 
         public Rectangle getBounds() {
             return bounds;

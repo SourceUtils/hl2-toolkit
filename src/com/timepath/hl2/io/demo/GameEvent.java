@@ -14,18 +14,25 @@ class GameEvent {
     public final String                            name;
 
     GameEvent(BitBuffer bb) {
-        name = bb.getString(); Map<String, GameEventMessageType> decl = new LinkedHashMap<>(0); while(true) {
-            int entryType = (int) bb.getBits(3); if(entryType == 0) { // End of event description
+        name = bb.getString();
+        Map<String, GameEventMessageType> decl = new LinkedHashMap<>(0);
+        while(true) {
+            int entryType = (int) bb.getBits(3);
+            if(entryType == 0) { // End of event description
                 break;
-            } String entryName = bb.getString(); decl.put(entryName, GameEventMessageType.get(entryType));
-        } declarations = Collections.unmodifiableMap(decl);
+            }
+            String entryName = bb.getString();
+            decl.put(entryName, GameEventMessageType.get(entryType));
+        }
+        declarations = Collections.unmodifiableMap(decl);
     }
 
     public Map<String, Object> parse(BitBuffer bb) {
         Map<String, Object> values = new LinkedHashMap<String, Object>(declarations);
         for(Map.Entry<String, GameEventMessageType> entry : declarations.entrySet()) {
             values.put(entry.getKey(), entry.getValue().parse(bb));
-        } return values;
+        }
+        return values;
     }
 
     @Override

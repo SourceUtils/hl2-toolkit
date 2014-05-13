@@ -23,4 +23,6 @@ public class Plane {
      */
     @StructField(index = 2)
     public int      type;
+
+    public Plane() {}
 }
