@@ -22,9 +22,8 @@ public class VCCDTest {
      */
     @Test
     public void testLoadSave() throws IOException {
-        File in = new File("testdata/in.dat");
-        FileInputStream is = new FileInputStream(in);
-        byte[] src = new byte[(int) in.length()];
+        InputStream is = getClass().getResourceAsStream("/test.dat");
+        byte[] src = new byte[(int) is.available()];
         is.read(src);
         is.close();
         ByteArrayOutputStream baos = new ByteArrayOutputStream(src.length);
