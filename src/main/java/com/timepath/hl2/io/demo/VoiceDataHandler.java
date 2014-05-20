@@ -13,9 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127
- *
  * @author TimePath
+ * @see <a>http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127</a>
  */
 class VoiceDataHandler extends PacketHandler {
 

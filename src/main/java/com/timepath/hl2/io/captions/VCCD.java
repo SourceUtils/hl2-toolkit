@@ -17,10 +17,9 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/utils/captioncompiler/captioncompiler.cpp
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/captioncompiler.h
- *
- * @author andrew
+ * @author TimePath
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/utils/captioncompiler/captioncompiler.cpp</a>
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/captioncompiler.h</a>
  */
 public class VCCD {
 
@@ -38,7 +37,7 @@ public class VCCD {
 
     public static int hash(String in) {
         CRC32 crc = new CRC32();
-        crc.update(in.toLowerCase().getBytes());
+        crc.update(in.toLowerCase().getBytes(Charset.forName("UTF-8")));
         return (int) crc.getValue();
     }
 

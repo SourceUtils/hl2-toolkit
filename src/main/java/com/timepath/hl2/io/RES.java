@@ -22,9 +22,9 @@ import java.util.logging.Logger;
  * $POSIX
  * $OSX
  * $LINUX
- * https://code.google.com/p/hl2sb-src/source/browse/#svn%2Ftrunk%2Fsrc%2Fgame%2Fclient%2Fgame_controls
  *
  * @author TimePath
+ * @see <a>https://code.google.com/p/hl2sb-src/source/browse/#svn%2Ftrunk%2Fsrc%2Fgame%2Fclient%2Fgame_controls</a>
  */
 public class RES extends VDF1 {
 

@@ -138,7 +138,7 @@ public class CFG {
         return sb.toString();
     }
 
-    public enum TokenType {
+    public static enum TokenType {
         COMMENT("//(.*)$"),
         SPACE("(\\s+)"),
         SEPARATOR("(;)"),
@@ -146,7 +146,7 @@ public class CFG {
         TOKEN("([^\\s;\\\"]+)");
         public final String pattern;
 
-        TokenType(String pattern) {
+        private TokenType(String pattern) {
             this.pattern = pattern;
         }
     }

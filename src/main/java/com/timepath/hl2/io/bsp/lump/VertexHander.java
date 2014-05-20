@@ -21,7 +21,11 @@ class VertexHander implements LumpHandler<FloatBuffer> {
 
     @Override
     public FloatBuffer handle(Lump l, OrderedInputStream in) throws IOException {
-        ByteBuffer verts = ByteBuffer.allocateDirect(l.length); byte[] vertBuf = new byte[l.length]; in.readFully(vertBuf);
-        verts.put(vertBuf); verts.flip(); return verts.asFloatBuffer();
+        ByteBuffer verts = ByteBuffer.allocateDirect(l.length);
+        byte[] vertBuf = new byte[l.length];
+        in.readFully(vertBuf);
+        verts.put(vertBuf);
+        verts.flip();
+        return verts.asFloatBuffer();
     }
 }

@@ -13,10 +13,10 @@ import java.util.logging.Logger;
 
 /**
  * Valve Bitmap Font
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/BitmapFontFile.h
- * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/utils/xbox/FontMaker/glyphs.cpp
  *
  * @author TimePath
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/BitmapFontFile.h</a>
+ * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/utils/xbox/FontMaker/glyphs.cpp</a>
  */
 public class VBF {
 
@@ -185,10 +185,11 @@ public class VBF {
         short a;
         /**
          * b seems to equal bounds.width
-         * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/utils/xbox/FontMaker/glyphs.cpp#L1407
+         *
+         * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/utils/xbox/FontMaker/glyphs.cpp#L1407</a>
          * ...
          * 'ABC structure' is a thing
-         * http://msdn.microsoft.com/en-us/library/windows/desktop/dd162454(v=vs.85).aspx
+         * @see <a>http://msdn.microsoft.com/en-us/library/windows/desktop/dd162454(v=vs.85).aspx</a>
          */
         short b;
         Rectangle bounds = new Rectangle();

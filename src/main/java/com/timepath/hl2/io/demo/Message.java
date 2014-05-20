@@ -108,14 +108,10 @@ public class Message {
                 BitBuffer bb = new BitBuffer(data);
                 if(bb.getBoolean()) {
                     values.add(new Pair<Object, Object>("Command number", bb.getInt()));
-                } else {
-                    // Assume steady increment
-                }
+                } // else assume steady increment
                 if(bb.getBoolean()) {
                     values.add(new Pair<Object, Object>("Tick count", bb.getInt()));
-                } else {
-                    // Assume steady increment
-                }
+                } // else assume steady increment
                 if(bb.getBoolean()) {
                     values.add(new Pair<Object, Object>("Viewangle pitch", bb.getFloat()));
                 }

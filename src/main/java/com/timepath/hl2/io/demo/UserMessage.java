@@ -3,16 +3,16 @@ package com.timepath.hl2.io.demo;
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * https://forums.alliedmods.net/showthread.php?t=163224
- * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/game/server/util.cpp#L1115
- * https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/hl2/hl2_usermessages.cpp
- * HookMessage, HOOK_HUD_MESSAGE, MsgFunc_<Message>
- *
  * @author TimePath
+ * @see <a>https://forums.alliedmods.net/showthread.php?t=163224</a>
+ * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/game/server/util.cpp#L1115</a>
+ * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/hl2/hl2_usermessages.cpp</a>
+ * HookMessage, HOOK_HUD_MESSAGE, MsgFunc_<Message>
  */
 public enum UserMessage {
     Geiger(0, 1, new PacketHandler() {
@@ -113,16 +113,9 @@ public enum UserMessage {
 
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
-            float x = bb.getFloat();
-            float y = bb.getFloat();
-            float r1 = bb.getByte();
-            float g1 = bb.getByte();
-            float b1 = bb.getByte();
-            float a1 = bb.getByte();
-            float r2 = bb.getByte();
-            float g2 = bb.getByte();
-            float b2 = bb.getByte();
-            float a2 = bb.getByte();
+            Point pos = new Point(bb.getByte(), bb.getByte());
+            Color color = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
+            Color color2 = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
             float effect = bb.getByte();
             float fadein = bb.getFloat();
             float fadeout = bb.getFloat();

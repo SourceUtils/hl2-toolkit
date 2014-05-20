@@ -3,7 +3,7 @@ package com.timepath.hl2.io.image;
 import java.awt.image.BufferedImage;
 
 /**
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/bitmap/imageformat.h
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/bitmap/imageformat.h</a>
  */
 public enum ImageFormat {
     IMAGE_FORMAT_UNKNOWN(-1, 0)
@@ -335,15 +335,18 @@ public enum ImageFormat {
     private final int index, bpp;
 
     ImageFormat(int index, int bpp) {
-        this.index = index; this.bpp = bpp;
+        this.index = index;
+        this.bpp = bpp;
     }
 
     public static ImageFormat getEnumForIndex(int index) {
-        ImageFormat[] values = ImageFormat.values(); for(ImageFormat eachValue : values) {
+        ImageFormat[] values = ImageFormat.values();
+        for(ImageFormat eachValue : values) {
             if(eachValue.index == index) {
                 return eachValue;
             }
-        } return null;
+        }
+        return null;
     }
 
     int getIndex() {

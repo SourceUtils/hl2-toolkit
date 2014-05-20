@@ -32,10 +32,10 @@ public class CTX {
             if(key == null) {
                 key = TF2;
             }
-            InputStream de = decrypt(key.getBytes(), is);
-            InputStream is2 = encrypt(key.getBytes(), de);
+            InputStream de = decrypt(key.getBytes("UTF-8"), is);
+            InputStream is2 = encrypt(key.getBytes("UTF-8"), de);
             is = new FileInputStream(args[0]);
-            de = decrypt(key.getBytes(), is);
+            de = decrypt(key.getBytes("UTF-8"), is);
             is = new FileInputStream(args[0]);
             int bs = 4096;
             ByteBuffer debuf = ByteBuffer.allocate(de.available());
@@ -43,7 +43,7 @@ public class CTX {
             for(int read = 0; read != -1; read = de.read(inde, 0, bs)) {
                 debuf.put(inde, 0, read);
             }
-            LOG.info(new String(debuf.array()));
+            LOG.info(new String(debuf.array(), "UTF-8"));
             ByteBuffer buf = ByteBuffer.allocate(is.available());
             byte[] in = new byte[bs];
             for(int read = 0; read != -1; read = is.read(in, 0, bs)) {

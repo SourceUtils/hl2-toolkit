@@ -324,11 +324,12 @@ public enum Packet {
     /**
      * Non-delta compressed entities.
      * TODO
-     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/baseclientstate.cpp#L1245
-     * https://code.google.com/p/coldemoplayer/source/browse/branches/2.0/compLexity+Demo+Player/CDP
-     * .HalfLifeDemo/Messages/SvcPacketEntities.cs?r=59#43
-     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/packed_entity.h#L52
-     * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/sv_ents_write.cpp#L862
+     *
+     * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/baseclientstate.cpp#L1245<a/>
+     * @see <a>https://code.google.com/p/coldemoplayer/source/browse/branches/2.0/compLexity+Demo+Player/CDP
+     * .HalfLifeDemo/Messages/SvcPacketEntities.cs?r=59#43<a/>
+     * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/packed_entity.h#L52<a/>
+     * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/sv_ents_write.cpp#L862<a/>
      */
     svc_PacketEntities(26, new PacketHandler() {
         @Override

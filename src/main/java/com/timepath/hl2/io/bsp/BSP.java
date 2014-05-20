@@ -14,12 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * https://developer.valvesoftware.com/wiki/Source_BSP_File_Format
- * https://github.com/TimePath/webgl-source/blob/master/js/source-bsp.js
- * https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-struct.js
- * https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-tree.js
- *
  * @author TimePath
+ * @see <a>https://developer.valvesoftware.com/wiki/Source_BSP_File_Format</a>
+ * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp.js</a>
+ * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-struct.js</a>
+ * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-tree.js</a>
  */
 public abstract class BSP {
 

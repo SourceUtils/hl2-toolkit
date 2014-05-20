@@ -84,7 +84,7 @@ public class VTF implements ViewableData {
         width = buf.getShort();
         height = buf.getShort();
         flags = buf.getInt();
-        EnumSet<CompiledVtfFlags> enumSet = EnumFlags.decode(flags, CompiledVtfFlags.class);
+        EnumSet<VTFFlags> enumSet = EnumFlags.decode(flags, VTFFlags.class);
         frameCount = buf.getShort();
         frameFirst = buf.getShort();
         buf.get(new byte[4]);

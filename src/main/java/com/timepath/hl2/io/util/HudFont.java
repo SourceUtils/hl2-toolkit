@@ -58,7 +58,7 @@ public class HudFont {
             if(f1 == null) {
                 return null;
             }
-            ge.registerFont(f1); // for some reason, this works but the bottom return does not
+            ge.registerFont(f1); // For some reason, this works but the bottom return does not
             return new Font(name, Font.PLAIN, fontSize);
         } catch(Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -67,7 +67,7 @@ public class HudFont {
             return null;
         }
         LOG.log(Level.INFO, "Loaded {0}", name);
-        return f1.deriveFont(fontSize);
+        return f1.deriveFont((float) fontSize);
     }
 
     private static Font fontFileForName(String name) throws Exception {

@@ -4,9 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/in_buttons.h
- *
  * @author TimePath
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/shared/in_buttons.h</a>
  */
 public enum Input {
     ATTACK(1),

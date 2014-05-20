@@ -12,10 +12,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * OSX - http://i.imgur.com/KxiV3.jpg
- * WIN - http://i.imgur.com/VqABM.jpg
- *
  * @author TimePath
+ * @see <a href="http://i.imgur.com/KxiV3.jpg">OSX</a>
+ * @see <a href="http://i.imgur.com/VqABM.jpg">WIN</a>
  */
 @SuppressWarnings("serial")
 public class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {

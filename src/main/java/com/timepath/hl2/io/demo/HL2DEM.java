@@ -14,22 +14,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/networkstringtabledefs.h
- * https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/keyvaluescompiler.h
- * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp
- * https://github.com/jpcy/coldemoplayer
- * https://github.com/stgn/netdecode
- * https://github.com/tritao/netdecode
- * https://github.com/jpcy/coldemoplayer/blob/master/compLexity%20Demo%20Player/demo/SourceDemo.cs
- * https://github.com/jpcy/coldemoplayer/blob/master/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs
- * https://github.com/tritao/netdecode/blob/master/DemoFile.cs
- * https://github.com/tritao/netdecode/blob/master/Packet.cs
- * https://forums.alliedmods.net/showthread.php?t=232925
- * http://demos.geit.co.uk/
- *
  * @author TimePath
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h</a>
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h</a>
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/networkstringtabledefs.h</a>
+ * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/keyvaluescompiler.h</a>
+ * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp</a>
+ * @see <a>https://github.com/jpcy/coldemoplayer</a>
+ * @see <a>https://github.com/stgn/netdecode</a>
+ * @see <a>https://github.com/tritao/netdecode</a>
+ * @see <a>https://github.com/jpcy/coldemoplayer/blob/master/compLexity%20Demo%20Player/demo/SourceDemo.cs</a>
+ * @see <a>https://github.com/jpcy/coldemoplayer/blob/master/compLexity%20Demo%20Player/demo%20parser/SourceDemoParser.cs</a>
+ * @see <a>https://github.com/tritao/netdecode/blob/master/DemoFile.cs</a>
+ * @see <a>https://github.com/tritao/netdecode/blob/master/Packet.cs</a>
+ * @see <a>https://forums.alliedmods.net/showthread.php?t=232925</a>
+ * @see <a>http://demos.geit.co.uk/</a>
  */
 public class HL2DEM {
 

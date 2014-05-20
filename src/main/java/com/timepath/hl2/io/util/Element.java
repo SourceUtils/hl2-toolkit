@@ -45,6 +45,7 @@ public class Element extends VDFNode1 implements ViewableData {
     private List<Property> ps = new LinkedList<>();
     private String controlName;
     private Alignment _xAlignment = Alignment.Left;
+    @SuppressWarnings("SuspiciousNameCombination")
     private Alignment _yAlignment = Alignment.Left;
     private String labelText;
     private Alignment _textAlignment = Alignment.Left;
@@ -175,7 +176,7 @@ public class Element extends VDFNode1 implements ViewableData {
                     LOG.log(Level.SEVERE, null, ex);
                 }
             } else {
-                //                System.out.println("Other property: " + k);
+                LOG.log(Level.WARNING, "Unknown property: {0}", k);
             }
         }
         if(controlName != null) { // temp
