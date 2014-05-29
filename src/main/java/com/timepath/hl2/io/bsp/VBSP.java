@@ -23,7 +23,7 @@ public class VBSP extends BSP {
     public VBSP() {}
 
     public static void main(String... args) throws Exception {
-        BSP b = BSP.load(ACF.fromManifest(440).get("tf/maps/ctf_2fort.bsp").openStream());
+        BSP b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp").openStream());
         LOG.log(Level.INFO, "Revision: {0}", b.getRevision());
         String ents = b.getLump(LumpType.LUMP_ENTITIES);
         //        System.out.println(ents);
