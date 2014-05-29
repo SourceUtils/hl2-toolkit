@@ -15,12 +15,14 @@ import java.util.logging.Logger;
 /**
  * @author TimePath
  * @see <a>http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127</a>
+ * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/se2007/engine/voice_codecs/speex/VoiceEncoder_Speex.cpp</a>
  */
 class VoiceDataHandler extends PacketHandler {
 
     private static final Logger LOG = Logger.getLogger(VoiceDataHandler.class.getName());
     private SourceDataLine audioOut;
     private SpeexDecoder   speexDecoder;
+    private static final int VOICE_OUTPUT_SAMPLE_RATE = 11025;
 
     VoiceDataHandler() {
         try {
@@ -28,7 +30,13 @@ class VoiceDataHandler extends PacketHandler {
             int mode = 1; // Narrow band
             speexDecoder.init(mode, 11025, 1, true);
             // Signed 16 bit LE mono
-            AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 11025, 16, 1, 2, 11025, false);
+            AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+                                                            VOICE_OUTPUT_SAMPLE_RATE,
+                                                            16,
+                                                            1,
+                                                            2,
+                                                            VOICE_OUTPUT_SAMPLE_RATE,
+                                                            false);
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat);
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, sourceVoiceFormat);
             audioOut = (SourceDataLine) AudioSystem.getLine(info);
@@ -54,7 +62,7 @@ class VoiceDataHandler extends PacketHandler {
         }
         byte[] data = new byte[bitsToBytes(length)];
         bb.get(data);
-        //        speex(client, data);
+//        speex(client, data);
         return true;
     }
 
@@ -69,9 +77,9 @@ class VoiceDataHandler extends PacketHandler {
             decoded = new byte[speexDecoder.getProcessedDataByteSize()];
             speexDecoder.getProcessedData(decoded, 0);
         } catch(StreamCorruptedException ex) {
-            LOG.log(Level.SEVERE, null, ex.getMessage());
+            LOG.log(Level.SEVERE, null, ex);
         }
-        dump(index, decoded);
+//        dump(index, decoded);
         pcm(index, decoded);
     }
 
