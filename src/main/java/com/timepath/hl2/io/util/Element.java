@@ -1,14 +1,15 @@
 package com.timepath.hl2.io.util;
 
-import com.timepath.hl2.io.RES;
 import com.timepath.hl2.io.image.VTF;
 import com.timepath.io.utils.ViewableData;
-import com.timepath.steam.io.util.Property;
-import com.timepath.steam.io.util.VDFNode1;
+import com.timepath.steam.io.VDFNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyVetoException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,8 +20,9 @@ import java.util.logging.Logger;
 /**
  * @author TimePath
  */
-public class Element extends VDFNode1 implements ViewableData {
+public class Element extends VDFNode implements ViewableData {
 
+    public static final  Map<String, HudFont> fonts = new HashMap<>(0);
     public static final  Map<String, Element> areas    = new HashMap<>(0);
     private static final Logger               LOG      = Logger.getLogger(Element.class.getName());
     private final        Dimension            screen   = new Dimension(640, 480);
@@ -42,7 +44,7 @@ public class Element extends VDFNode1 implements ViewableData {
     private boolean enabled;
     private Font    font;
     private Color   fgColor;
-    private List<Property> ps = new LinkedList<>();
+    private List<VDFProperty> ps = new LinkedList<>();
     private String controlName;
     private Alignment _xAlignment = Alignment.Left;
     @SuppressWarnings("SuspiciousNameCombination")
@@ -50,6 +52,36 @@ public class Element extends VDFNode1 implements ViewableData {
     private String labelText;
     private Alignment _textAlignment = Alignment.Left;
     private Image image;
+
+    public Element(InputStream is, Charset c) throws IOException {
+        super(is, c);
+        parseScheme(this);
+    }
+
+    /**
+     * TODO
+     *
+     * @param props
+     */
+    private static void parseScheme(VDFNode props) {
+        VDFNode root = props.get("Scheme", "Fonts");
+        if(root == null) return;
+        LOG.info("Found scheme");
+        for(VDFNode fontNode : root.getNodes()) {
+            for(VDFNode detailNode : fontNode.getNodes()) {
+                String fontKey = String.valueOf(fontNode.getCustom());
+                String fontName = String.valueOf(detailNode.getValue("name"));
+                fonts.put(fontName, new HudFont(fontName, detailNode));
+                LOG.log(Level.INFO, "TODO: Load font {0}", fontName);
+                break; // XXX: hardcoded detail level (the first one)
+            }
+            LOG.info("Loaded scheme");
+        }
+    }
+
+    public String getFile() {
+        return ""; // TODO
+    }
 
     private Element() {
     }
@@ -63,23 +95,23 @@ public class Element extends VDFNode1 implements ViewableData {
         this.info = info;
     }
 
-    public static Element importVdf(VDFNode1 vdf) {
+    public static Element importVdf(VDFNode vdf) {
         Element e = new Element();
         e.ps = vdf.getProperties();
-        e.setFile(vdf.getFile());
+        //        e.setFile(vdf.getFile());
         e.validateLoad();
         return e;
     }
 
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
     public void validateLoad() {
-        for(Property entry : ps) {
+        for(VDFProperty entry : ps) {
             String k = entry.getKey().toLowerCase();
             //            if(k != null && k.contains("\"")) { // assumes one set of quotes
             //                k = k.substring(1, k.length() - 1);
             //                k = k.replaceAll("\"", "").trim();
             //            }
-            String v = entry.getValue();
+            String v = String.valueOf(entry.getValue());
             //            if(v != null && v.contains("\"")) {
             //                v = v.substring(1, v.length() - 1);
             //                v = v.replaceAll("\"", "").trim();
@@ -89,94 +121,94 @@ public class Element extends VDFNode1 implements ViewableData {
             //                i = i.substring(1, i.length() - 1);
             //                i = i.replaceAll("\"", "").trim();
             //            }
-            if("enabled".equalsIgnoreCase(k)) {
-                enabled = Integer.parseInt(v) == 1;
-            } else if("visible".equalsIgnoreCase(k)) {
-                visible = Integer.parseInt(v) == 1;
-            } else if("xpos".equalsIgnoreCase(k)) {
-                if(v.startsWith("c")) {
-                    _xAlignment = Alignment.Center;
-                    v = v.substring(1);
-                } else if(v.startsWith("r")) {
-                    _xAlignment = Alignment.Right;
-                    v = v.substring(1);
-                } else {
-                    _xAlignment = Alignment.Left;
-                }
-                xPos = Integer.parseInt(v);
-            } else if("ypos".equalsIgnoreCase(k)) {
-                if(v.startsWith("c")) {
-                    _yAlignment = Alignment.Center;
-                    v = v.substring(1);
-                } else if(v.startsWith("r")) {
-                    //noinspection SuspiciousNameCombination
-                    _yAlignment = Alignment.Right;
-                    v = v.substring(1);
-                } else {
-                    //noinspection SuspiciousNameCombination
-                    _yAlignment = Alignment.Left;
-                }
-                yPos = Integer.parseInt(v);
-            } else if("zpos".equalsIgnoreCase(k)) {
-                zPos = Integer.parseInt(v);
-            } else if("wide".equalsIgnoreCase(k)) {
-                if(v.startsWith("f")) {
-                    v = v.substring(1);
-                    _wideMode = DimensionMode.Mode2;
-                }
-                wide = Integer.parseInt(v);
-            } else if("tall".equalsIgnoreCase(k)) {
-                if(v.startsWith("f")) {
-                    v = v.substring(1);
-                    _tallMode = DimensionMode.Mode2;
-                }
-                tall = Integer.parseInt(v);
-            } else if("labelText".equalsIgnoreCase(k)) {
-                labelText = v;
-            } else if("textAlignment".equalsIgnoreCase(k)) {
-                if("center".equalsIgnoreCase(v)) {
-                    _textAlignment = Alignment.Center;
-                } else { _textAlignment = "right".equalsIgnoreCase(v) ? Alignment.Right : Alignment.Left; }
-            } else if("ControlName".equalsIgnoreCase(k)) { // others are areas
-                controlName = v;
-            } else if("fgcolor".equalsIgnoreCase(k)) {
-                String[] c = v.split(" ");
-                try {
+            try {
+                if("enabled".equalsIgnoreCase(k)) {
+                    enabled = Integer.parseInt(v) == 1;
+                } else if("visible".equalsIgnoreCase(k)) {
+                    visible = Integer.parseInt(v) == 1;
+                } else if("xpos".equalsIgnoreCase(k)) {
+                    if(v.startsWith("c")) {
+                        _xAlignment = Alignment.Center;
+                        v = v.substring(1);
+                    } else if(v.startsWith("r")) {
+                        _xAlignment = Alignment.Right;
+                        v = v.substring(1);
+                    } else {
+                        _xAlignment = Alignment.Left;
+                    }
+                    xPos = Integer.parseInt(v);
+                } else if("ypos".equalsIgnoreCase(k)) {
+                    if(v.startsWith("c")) {
+                        _yAlignment = Alignment.Center;
+                        v = v.substring(1);
+                    } else if(v.startsWith("r")) {
+                        //noinspection SuspiciousNameCombination
+                        _yAlignment = Alignment.Right;
+                        v = v.substring(1);
+                    } else {
+                        //noinspection SuspiciousNameCombination
+                        _yAlignment = Alignment.Left;
+                    }
+                    yPos = Integer.parseInt(v);
+                } else if("zpos".equalsIgnoreCase(k)) {
+                    zPos = Integer.parseInt(v);
+                } else if("wide".equalsIgnoreCase(k)) {
+                    if(v.startsWith("f")) {
+                        v = v.substring(1);
+                        _wideMode = DimensionMode.Mode2;
+                    }
+                    wide = Integer.parseInt(v);
+                } else if("tall".equalsIgnoreCase(k)) {
+                    if(v.startsWith("f")) {
+                        v = v.substring(1);
+                        _tallMode = DimensionMode.Mode2;
+                    }
+                    tall = Integer.parseInt(v);
+                } else if("labelText".equalsIgnoreCase(k)) {
+                    labelText = v;
+                } else if("textAlignment".equalsIgnoreCase(k)) {
+                    if("center".equalsIgnoreCase(v)) {
+                        _textAlignment = Alignment.Center;
+                    } else { _textAlignment = "right".equalsIgnoreCase(v) ? Alignment.Right : Alignment.Left; }
+                } else if("ControlName".equalsIgnoreCase(k)) { // others are areas
+                    controlName = v;
+                } else if("fgcolor".equalsIgnoreCase(k)) {
+                    String[] c = v.split(" ");
                     fgColor = new Color(Integer.parseInt(c[0]),
                                         Integer.parseInt(c[1]),
                                         Integer.parseInt(c[2]),
                                         Integer.parseInt(c[3]));
-                } catch(NumberFormatException ignored) {
-                }
-            } else if("font".equalsIgnoreCase(k)) {
-                if(!RES.fonts.containsKey(v)) {
-                    continue;
-                }
-                HudFont a = RES.fonts.get(v);
-                Font f = a.getFont();
-                if(f != null) {
-                    font = f;
-                }
-            } else if("image".equalsIgnoreCase(k) || "icon".equalsIgnoreCase(k)) {
-                v = v.replaceAll("\"", "");
-                if(( v != null ) && v.isEmpty()) {
-                    continue;
-                }
-                try {
-                    VTF vtf = VTF.load(v + ".vtf");
-                    if(vtf == null) {
+                } else if("font".equalsIgnoreCase(k)) {
+                    if(!fonts.containsKey(v)) {
                         continue;
                     }
-                    Image img = vtf.getImage(0);
-                    if(img == null) {
+                    HudFont a = fonts.get(v);
+                    Font f = a.getFont();
+                    if(f != null) {
+                        font = f;
+                    }
+                } else if("image".equalsIgnoreCase(k) || "icon".equalsIgnoreCase(k)) {
+                    v = v.replaceAll("\"", "");
+                    if(( v != null ) && v.isEmpty()) {
                         continue;
                     }
-                    image = img;
-                } catch(IOException ex) {
-                    LOG.log(Level.SEVERE, null, ex);
+                    try {
+                        VTF vtf = VTF.load(v + ".vtf");
+                        if(vtf == null) {
+                            continue;
+                        }
+                        Image img = vtf.getImage(0);
+                        if(img == null) {
+                            continue;
+                        }
+                        image = img;
+                    } catch(IOException ex) {
+                        LOG.log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    LOG.log(Level.WARNING, "Unknown property: {0}", k);
                 }
-            } else {
-                LOG.log(Level.WARNING, "Unknown property: {0}", k);
+            } catch(NumberFormatException ignored) {
             }
         }
         if(controlName != null) { // temp
@@ -481,7 +513,7 @@ public class Element extends VDFNode1 implements ViewableData {
         }
     }
 
-    public List<Property> getProps() {
+    public List<VDFProperty> getProps() {
         return ps;
     }
 
@@ -496,8 +528,8 @@ public class Element extends VDFNode1 implements ViewableData {
     public String save() {
         StringBuilder sb = new StringBuilder();
         // preceding header
-        for(Property p : ps) {
-            if(p.getValue().isEmpty()) {
+        for(VDFProperty p : ps) {
+            if(String.valueOf(p.getValue()).isEmpty()) {
                 if("\\n".equals(p.getKey())) {
                     sb.append('\n');
                 }
@@ -508,8 +540,8 @@ public class Element extends VDFNode1 implements ViewableData {
         }
         sb.append(name).append('\n');
         sb.append("{\n");
-        for(Property p : ps) {
-            if(!p.getValue().isEmpty()) {
+        for(VDFProperty p : ps) {
+            if(!String.valueOf(p.getValue()).isEmpty()) {
                 sb.append("\\n".equals(p.getKey()) ? "\t    \n" : ( "\t    " + p.getKey() + "\t    " + p.getValue() +
                                                                     ( ( p.getInfo() != null ) ? ( ' ' + p.getInfo() ) : "" ) +
                                                                     '\n' ));
@@ -597,33 +629,37 @@ public class Element extends VDFNode1 implements ViewableData {
 
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
     public void validateDisplay() {
-        for(Property entry : ps) {
+        for(VDFProperty entry : ps) {
             String k = entry.getKey();
             if(k == null) {
                 continue;
             }
-            if("enabled".equalsIgnoreCase(k)) {
-                entry.setValue(enabled ? 1 : 0);
-            } else if("visible".equalsIgnoreCase(k)) {
-                entry.setValue(visible ? 1 : 0);
-            } else if("xpos".equalsIgnoreCase(k)) {
-                entry.setValue(_xAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalX());
-            } else if("ypos".equalsIgnoreCase(k)) {
-                entry.setValue(_yAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalY());
-            } else if("zpos".equalsIgnoreCase(k)) {
-                entry.setValue(zPos);
-            } else if("wide".equalsIgnoreCase(k)) {
-                entry.setValue(( ( _wideMode == DimensionMode.Mode2 ) ? "f" : "" ) + wide);
-            } else if("tall".equalsIgnoreCase(k)) {
-                entry.setValue(( ( _tallMode == DimensionMode.Mode2 ) ? "f" : "" ) + tall);
-            } else if("labelText".equalsIgnoreCase(k)) {
-                entry.setValue(labelText);
-            } else if("ControlName".equalsIgnoreCase(k)) {
-                entry.setValue(controlName);
+            try {
+                if("enabled".equalsIgnoreCase(k)) {
+                    entry.setValue(enabled ? 1 : 0);
+                } else if("visible".equalsIgnoreCase(k)) {
+                    entry.setValue(visible ? 1 : 0);
+                } else if("xpos".equalsIgnoreCase(k)) {
+                    entry.setValue(_xAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalX());
+                } else if("ypos".equalsIgnoreCase(k)) {
+                    entry.setValue(_yAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalY());
+                } else if("zpos".equalsIgnoreCase(k)) {
+                    entry.setValue(zPos);
+                } else if("wide".equalsIgnoreCase(k)) {
+                    entry.setValue(( ( _wideMode == DimensionMode.Mode2 ) ? "f" : "" ) + wide);
+                } else if("tall".equalsIgnoreCase(k)) {
+                    entry.setValue(( ( _tallMode == DimensionMode.Mode2 ) ? "f" : "" ) + tall);
+                } else if("labelText".equalsIgnoreCase(k)) {
+                    entry.setValue(labelText);
+                } else if("ControlName".equalsIgnoreCase(k)) {
+                    entry.setValue(controlName);
+                }
+                //            else if("font".equalsIgnoreCase(k)) {
+                //                entry.setValue(this.getFont()); // TODO
+                //            }
+            } catch(PropertyVetoException e) {
+                LOG.log(Level.SEVERE, null, e);
             }
-            //            else if("font".equalsIgnoreCase(k)) {
-            //                entry.setValue(this.getFont()); // TODO
-            //            }
         }
     }
 

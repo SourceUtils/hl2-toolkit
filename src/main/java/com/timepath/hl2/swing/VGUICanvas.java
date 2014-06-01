@@ -415,16 +415,16 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         }
         if(Element.areas.containsKey(element.getFile())) {
             Element p = Element.areas.get(element.getFile());
-            p.add(element);
+            p.addNode(element);
             addElement(p);
         } else if("HudPlayerHealth".equalsIgnoreCase(element.getFile())) { // better, but still not perfect
             // move by "CHealthAccountPanel" delta_item_x" and "delta_item_start_y"
             Element p = Element.areas.get("CHealthAccountPanel");
-            p.add(element);
+            p.addNode(element);
             addElement(p);
         } else if("HudAmmoWeapons".equalsIgnoreCase(element.getFile())) {
             Element p = Element.areas.get("HudWeaponAmmo");
-            p.add(element);
+            p.addNode(element);
             addElement(p);
         }
         addElement(element); // weird but it has to be done

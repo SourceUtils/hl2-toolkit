@@ -1,8 +1,9 @@
 package com.timepath.hl2.io.captions;
 
 import com.timepath.io.OrderedInputStream;
-import com.timepath.steam.io.VDF1;
-import com.timepath.steam.io.util.Property;
+import com.timepath.steam.io.VDF;
+import com.timepath.steam.io.VDFNode;
+import com.timepath.steam.io.VDFNode.VDFProperty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -94,24 +96,23 @@ public class VCCD {
      *
      * @return
      */
-    public static List<VCCDEntry> parse(InputStream is) {
-        VDF1 v = new VDF1();
-        v.readExternal(is, "UTF-16");
+    public static List<VCCDEntry> parse(InputStream is) throws IOException {
+        VDFNode v = VDF.load(is, StandardCharsets.UTF_16);
         List<VCCDEntry> children = new LinkedList<>();
-        List<Property> props = v.getRoot().get(0).get(1).getProperties();
+        List<VDFProperty> props = v.get("lang", "Tokens").getProperties();
         Collection<String> usedKeys = new LinkedList<>();
-        for(int i = props.size() - 1; i >= 0; i--) { // Do it in reverse to make overriding easier
-            Property p = props.get(i);
+        for(int i = props.size() - 1; i >= 0; i--) { // do it in reverse to make overriding easier. TODO: use iterator
+            VDFProperty p = props.get(i);
             LOG.log(Level.FINER, "Adding {0}", p.toString());
             VCCDEntry e = new VCCDEntry();
-            String key = p.getKey().replaceAll("\"", "");
-            if("//".equals(key) || "\\n".equals(key) || usedKeys.contains(key)) {
+            String key = p.getKey();
+            if(usedKeys.contains(key) || "//".equals(key) || "\\n".equals(key)) {
                 LOG.log(Level.WARNING, "Discarding: {0}", key);
                 continue;
             }
             usedKeys.add(key);
             e.setKey(key);
-            e.setValue(p.getValue().replaceAll("\"", ""));
+            e.setValue((String) p.getValue());
             children.add(e);
         }
         Collections.sort(children);

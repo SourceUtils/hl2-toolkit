@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.util;
 
-import com.timepath.steam.io.util.Property;
+import com.timepath.steam.io.VDFNode;
+import com.timepath.steam.io.VDFNode.VDFProperty;
 
 import java.awt.*;
 import java.io.File;
@@ -23,12 +24,11 @@ public class HudFont {
     private HudFont() {
     }
 
-    private HudFont(String font, Element node) {
+    HudFont(String font, VDFNode node) {
         name = font;
-        for(int i = 0; i < node.getProps().size(); i++) {
-            Property p = node.getProps().get(i);
-            String key = p.getKey().replaceAll("\"", "").toLowerCase();
-            String val = p.getValue().replaceAll("\"", "").toLowerCase();
+        for(VDFProperty p : node.getProperties()) {
+            String key = p.getKey().toLowerCase();
+            String val = String.valueOf(p.getValue()).toLowerCase();
             switch(key) {
                 case "name":
                     _name = val;
