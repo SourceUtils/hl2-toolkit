@@ -13,6 +13,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,10 +35,10 @@ public abstract class BSP {
     static {
         Files.registerHandler(new FileHandler() {
             @Override
-            public SimpleVFile handle(final File file) throws IOException {
+            public Collection<? extends SimpleVFile> handle(final File file) throws IOException {
                 if(!file.getName().endsWith(".bsp")) return null;
                 final String name = file.getName().replace(".bsp", "");
-                return new SimpleVFile() {
+                return Collections.singleton(new SimpleVFile() {
                     void checkBSP() {
                         if(z != null) return;
                         LOG.log(Level.INFO, "Loading {0}", file);
@@ -77,7 +78,7 @@ public abstract class BSP {
                         checkBSP();
                         return z.get(name);
                     }
-                };
+                });
             }
         });
     }
