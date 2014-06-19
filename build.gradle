@@ -1,0 +1,5 @@
+description = ''
+dependencies {
+  compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
+  compile project(':steam-toolkit')
+}
