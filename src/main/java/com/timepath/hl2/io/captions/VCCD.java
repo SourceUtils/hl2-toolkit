@@ -20,19 +20,24 @@ import java.util.zip.CRC32;
 
 /**
  * @author TimePath
- * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/utils/captioncompiler/captioncompiler.cpp</a>
- * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/captioncompiler.h</a>
+ * @see <a href="https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/utils/captioncompiler
+ * /captioncompiler.cpp">the reference implementation</a> and its <a href="https://github.com/ValveSoftware/source
+ * -sdk-2013/blob/master/mp/src/public/captioncompiler.h">header</a>
  */
 public class VCCD {
 
-    private static final int     COMPILED_CAPTION_FILEID  = 'V' | ( 'C' << 8 ) | ( 'C' << 16 ) | ( 'D' << 24 );
-    private static final int     COMPILED_CAPTION_VERSION = 1;
-    private static final int     ENTRY_SIZE               = ( 4 * 2 ) + ( 2 * 2 );
-    private static final int     HEADER_SIZE              = 4 * 6;
-    private static final Logger  LOG                      = Logger.getLogger(VCCD.class.getName());
-    private static final int     MAX_BLOCK_BITS           = 13;
-    private static final int     MAX_BLOCK_SIZE           = 1 << MAX_BLOCK_BITS;
-    private static final Charset VALUE_CHARSET            = Charset.forName("UTF-16LE");
+    /** VCCD */
+    private static final int    COMPILED_CAPTION_FILEID      = 0x44434356;
+    /** DCCV */
+    private static final int    COMPILED_CAPTION_FILEID_XBOX = 0x56434344;
+    private static final int    COMPILED_CAPTION_VERSION     = 1;
+    /** ( 4 * 2 ) + ( 2 * 2 ) */
+    private static final int    ENTRY_SIZE                   = 12;
+    /** 4 * 6 */
+    private static final int    HEADER_SIZE                  = 24;
+    private static final Logger LOG                          = Logger.getLogger(VCCD.class.getName());
+    private static final int    MAX_BLOCK_BITS               = 13;
+    private static final int    MAX_BLOCK_SIZE               = 1 << MAX_BLOCK_BITS;
 
     private VCCD() {
     }
@@ -50,8 +55,16 @@ public class VCCD {
     private static List<VCCDEntry> load(OrderedInputStream ois) throws IOException {
         LOG.log(Level.INFO, "Loading from {0}", ois);
         ois.order(ByteOrder.LITTLE_ENDIAN);
-        if(ois.readInt() != COMPILED_CAPTION_FILEID) {
+        int header = ois.readInt();
+        Charset encoding;
+        if(header == COMPILED_CAPTION_FILEID) {
+            encoding = Charset.forName("UTF-16LE");
+        } else if(header == COMPILED_CAPTION_FILEID_XBOX) {
+            encoding = Charset.forName("UTF-16BE");
+            ois.order(ByteOrder.BIG_ENDIAN);
+        } else {
             LOG.severe("Header mismatch");
+            return null;
         }
         int version = ois.readInt();
         if(version != COMPILED_CAPTION_VERSION) {
@@ -82,7 +95,7 @@ public class VCCD {
             int size = e.length - 2;
             byte[] chars = new byte[size];
             ois.read(chars);
-            e.setValue(new String(chars, VALUE_CHARSET));
+            e.setValue(new String(chars, encoding));
         }
         // The rest of the file is useless, 0's or otherwise
         LOG.log(Level.INFO, "Loaded from {0}", ois);
@@ -120,14 +133,18 @@ public class VCCD {
     }
 
     public static void save(List<VCCDEntry> entries, OutputStream os) throws IOException {
-        ByteBuffer buf = save(entries);
+        save(entries, os, false);
+    }
+
+    public static void save(List<VCCDEntry> entries, OutputStream os, boolean byteswap) throws IOException {
+        ByteBuffer buf = save(entries, byteswap);
         byte[] bytes = new byte[buf.capacity()];
         buf.get(bytes);
         os.write(bytes);
         os.close();
     }
 
-    private static ByteBuffer save(List<VCCDEntry> entries) {
+    private static ByteBuffer save(List<VCCDEntry> entries, boolean byteswap) {
         int requiredBlocks = 0;
         int blockSize = MAX_BLOCK_SIZE;
         if(!entries.isEmpty()) { // Don't waste time if empty
@@ -155,7 +172,9 @@ public class VCCD {
                 }
             }
             LOG.log(Level.INFO, "Found {0} strings", entries.size());
-            LOG.log(Level.INFO, "Longest string ''{0}'' = ({1})", new Object[] { longest.getKey(), longest.getLength() });
+            LOG.log(Level.INFO,
+                    "Longest string ''{0}'' = ({1})",
+                    new Object[] { longest.getKey(), longest.getLength() });
             LOG.log(Level.INFO, "{0} bytes wasted", new Object[] { totalWaste });
         }
         int dataOffset = HEADER_SIZE + ( entries.size() * ENTRY_SIZE );
@@ -164,7 +183,7 @@ public class VCCD {
         dataOffset = ( ( dataOffset + multiple ) - 1 ) / multiple * multiple;
         int totalSize = dataOffset + ( requiredBlocks * blockSize );
         ByteBuffer buf = ByteBuffer.allocate(totalSize);
-        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.order(byteswap ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
         LOG.log(Level.INFO, "Saving to {0}", buf);
         buf.putInt(COMPILED_CAPTION_FILEID);
         int version = 1;
@@ -187,11 +206,12 @@ public class VCCD {
             });
         }
         buf.put(new byte[dataOffset - buf.position()]);
-        byte[] nul = "\0".getBytes(VALUE_CHARSET);
+        Charset encoding = byteswap ? StandardCharsets.UTF_16BE : StandardCharsets.UTF_16LE;
+        byte[] nul = "\0".getBytes(encoding);
         for(VCCDEntry e : entries) {
             int p = dataOffset + ( e.getBlock() * blockSize ) + e.getOffset();
             buf.position(p);
-            buf.put(e.getValue().getBytes(VALUE_CHARSET));
+            buf.put(e.getValue().getBytes(encoding));
             buf.put(nul);
         }
         buf.put(new byte[totalSize - buf.position()]); // Padding
