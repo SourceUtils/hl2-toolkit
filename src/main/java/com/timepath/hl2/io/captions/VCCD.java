@@ -133,20 +133,21 @@ public class VCCD {
     }
 
     public static void save(List<VCCDEntry> entries, OutputStream os) throws IOException {
-        save(entries, os, false);
+        save(entries, os, false, false);
     }
 
-    public static void save(List<VCCDEntry> entries, OutputStream os, boolean byteswap) throws IOException {
-        ByteBuffer buf = save(entries, byteswap);
+    public static void save(List<VCCDEntry> entries, OutputStream os, boolean byteswap, boolean smallBlocks) throws IOException {
+        ByteBuffer buf = save(entries, byteswap, smallBlocks);
         byte[] bytes = new byte[buf.capacity()];
         buf.get(bytes);
         os.write(bytes);
         os.close();
     }
 
-    private static ByteBuffer save(List<VCCDEntry> entries, boolean byteswap) {
+    private static ByteBuffer save(List<VCCDEntry> entries, boolean byteswap, boolean smallBlocks) {
         int requiredBlocks = 0;
         int blockSize = MAX_BLOCK_SIZE;
+        if(smallBlocks) blockSize /= 2;
         if(!entries.isEmpty()) { // Don't waste time if empty
             Collections.sort(entries); // Ensure alphabetical order
             VCCDEntry longest = null;
