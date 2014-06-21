@@ -97,7 +97,6 @@ public class CTX {
             buf.position(buf.limit() - prevRead);
             buf.put(in, 0, prevRead);
         }
-        byte[] arr = buf.array();
-        return arr;
+        return buf.array();
     }
 }

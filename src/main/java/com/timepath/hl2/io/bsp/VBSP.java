@@ -50,8 +50,7 @@ public class VBSP extends BSP {
         int vertexBase = 0;
         int rootPoint = 0;
         int rootVertId = 0;
-        for(Face bspFace : bspFaces) {
-            Face face = bspFace;
+        for(Face face : bspFaces) {
             int edgeId = face.firstedge;
             Map<Integer, Integer> vertLookupTable = new HashMap<>(0);
             for(int i = 0; i < face.numedges; i++) {
