@@ -27,7 +27,7 @@ public class VTF implements ViewableData {
     /**
      * 'VTF\0' as little endian
      */
-    private static final int    HEADER               = 0x00_46_54_56;
+    private static final int    HEADER               = 0x46_54_56;
     private static final Logger LOG                  = Logger.getLogger(VTF.class.getName());
     /**
      * 'CRC\2' as little endian
@@ -69,7 +69,8 @@ public class VTF implements ViewableData {
     }
 
     boolean loadFromStream(InputStream is) throws IOException {
-        int magic = is.read() | ( is.read() << 8 ) | ( is.read() << 16 ) | ( is.read() << 24 );
+        int magic = is.read() | ( is.read() << 8 ) | ( is.read() << 16 );
+        int type = is.read();
         if(magic != HEADER) {
             LOG.log(Level.FINE, "Invalid VTF file: {0}", magic);
             return false;
@@ -81,22 +82,44 @@ public class VTF implements ViewableData {
         buf.position(4);
         version = new int[] { buf.getInt(), buf.getInt() };
         headerSize = buf.getInt();
+        if(type == 'X') {
+            flags = buf.getInt();
+        }
         width = buf.getShort();
         height = buf.getShort();
-        flags = buf.getInt();
+        if(type == 'X') {
+            depth = buf.getShort();
+        }
+        if(type == 0) {
+            flags = buf.getInt();
+        }
         EnumSet<VTFFlags> enumSet = EnumFlags.decode(flags, VTFFlags.class);
         frameCount = buf.getShort();
-        frameFirst = buf.getShort();
-        buf.get(new byte[4]);
+        if(type == 0) {
+            frameFirst = buf.getShort();
+            buf.get(new byte[4]);
+        } else if(type == 'X') {
+            short preloadDataSize = buf.getShort();
+            byte mipSkipCount = buf.get();
+            byte numResources = buf.get();
+        }
         reflectivity = new float[] { buf.getFloat(), buf.getFloat(), buf.getFloat() };
-        buf.get(new byte[4]);
+        if(type == 0) {
+            buf.get(new byte[4]);
+        }
         bumpScale = buf.getFloat();
         format = ImageFormat.getEnumForIndex(buf.getInt());
-        mipCount = buf.get();
-        thumbFormat = ImageFormat.getEnumForIndex(buf.getInt());
-        thumbWidth = buf.get();
-        thumbHeight = buf.get();
-        depth = buf.getShort();
+        if(type == 0) {
+            mipCount = buf.get();
+            thumbFormat = ImageFormat.getEnumForIndex(buf.getInt());
+            thumbWidth = buf.get();
+            thumbHeight = buf.get();
+            depth = buf.getShort();
+        } else if(type == 'X') {
+            byte[] lowResImageSample = new byte[4];
+            buf.get(lowResImageSample);
+            int compressedSize = buf.getInt();
+        }
         Object[][] debug = {
                 { "Width = ", width },
                 { "Height = ", height },
