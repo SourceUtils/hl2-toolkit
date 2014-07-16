@@ -1,7 +1,6 @@
 package com.timepath.hl2.io;
 
 import com.timepath.hl2.io.util.Element;
-import com.timepath.steam.io.VDFNode;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,19 +19,19 @@ import java.nio.charset.StandardCharsets;
  */
 public class RES {
 
-    public static VDFNode load(File f) throws IOException {
+    public static Element load(File f) throws IOException {
         return load(new FileInputStream(f));
     }
 
-    public static VDFNode load(InputStream is) throws IOException {
+    public static Element load(InputStream is) throws IOException {
         return load(is, StandardCharsets.UTF_8);
     }
 
-    public static VDFNode load(InputStream is, Charset c) throws IOException {
+    public static Element load(InputStream is, Charset c) throws IOException {
         return new Element(is, c);
     }
 
-    public static VDFNode load(File f, Charset c) throws IOException {
+    public static Element load(File f, Charset c) throws IOException {
         return load(new FileInputStream(f), c);
     }
 }

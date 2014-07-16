@@ -18,6 +18,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>2.3.3</version>
+            <classifier>indy</classifier>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>groovy-bundle</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.xiph.speex</groupId>
             <artifactId>jspeex-codec</artifactId>
             <version>0.9.8-SNAPSHOT</version>

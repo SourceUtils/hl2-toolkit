@@ -1,5 +1,21 @@
 description = ''
 dependencies {
-  compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
-  compile project(':steam-toolkit')
+    testCompile 'junit:junit:4.11'
+    compile "org.codehaus.groovy:groovy-all:2.3.3:indy"
+    compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
+    compile project(':steam-toolkit')
+}
+
+apply plugin: 'groovy'
+
+// Joint compilation
+sourceSets {
+    main {
+        groovy.srcDirs += java.srcDirs
+        java.srcDirs = []
+    }
+    test {
+        groovy.srcDirs += java.srcDirs
+        java.srcDirs = []
+    }
 }
