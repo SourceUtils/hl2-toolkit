@@ -1,7 +1,8 @@
-package com.timepath.hl2.swing;
+package com.timepath.vgui.swing;
 
-import com.timepath.hl2.io.util.Alignment;
-import com.timepath.hl2.io.util.Element;
+import com.timepath.vgui.Element;
+import com.timepath.vgui.Element.Alignment;
+import com.timepath.vgui.Element.VAlignment;
 
 import javax.swing.*;
 import java.awt.*;
@@ -354,7 +355,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
         double scaleX = screen.width / (double) internal.width;
         dx = Math.round(dx / scaleX);
         e.setLocalX(e.getLocalX() + dx);
-        if(e.getYAlignment() == Alignment.Right) {
+        if(e.getYAlignment() == VAlignment.Bottom) {
             dy *= -1;
         }
         double scaleY = screen.height / (double) internal.height;
@@ -432,7 +433,7 @@ public class VGUICanvas extends JPanel implements MouseListener, MouseMotionList
 
     void addElement(Element e) {
         if(!elements.contains(e)) {
-            e.validateLoad();
+            e.load();
             //            e.setCanvas(this);
             elements.add(e);
             doRepaint(e.getBounds());

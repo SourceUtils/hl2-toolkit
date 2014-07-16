@@ -1,6 +1,6 @@
 package com.timepath.hl2.io;
 
-import com.timepath.hl2.io.util.Element;
+import com.timepath.vgui.Element;
 
 import java.io.File;
 import java.io.FileInputStream;

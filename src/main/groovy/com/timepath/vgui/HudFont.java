@@ -1,4 +1,4 @@
-package com.timepath.hl2.io.util;
+package com.timepath.vgui;
 
 import com.timepath.steam.io.VDFNode;
 import com.timepath.steam.io.VDFNode.VDFProperty;
