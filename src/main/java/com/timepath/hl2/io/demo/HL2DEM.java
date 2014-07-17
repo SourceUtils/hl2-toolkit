@@ -53,14 +53,17 @@ public class HL2DEM {
     private HL2DEM(ByteBuffer buffer) {
         header = new DemoHeader(DataUtils.getSlice(buffer, 1072));
         while(true) {
-            Message frame = new Message(buffer, this);
-            frames.add(frame);
-            if(frame.type == MessageType.Stop) {
+            Message frame;
+            try {
+                frame = new Message(buffer, this);
+            } catch(BufferUnderflowException e) {
+                LOG.log(Level.SEVERE, "Unexpected end of demo file");
                 break;
             }
-            if(frame.type == MessageType.Synctick) {
-                continue;
-            }
+            if(frame.type == null) break;
+            frames.add(frame);
+            if(frame.type == MessageType.Stop) break;
+            if(frame.type == MessageType.Synctick) continue;
             switch(frame.type) {
                 case Packet:
                 case Signon:
