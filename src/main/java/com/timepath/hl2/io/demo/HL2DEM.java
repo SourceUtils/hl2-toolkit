@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,67 +40,56 @@ public class HL2DEM {
     public static final  int           MAX_SOUND_INDEX_BITS  = 14;
     public static final  int           NET_MAX_PALYLOAD_BITS = 17;
     public static final  int           SP_MODEL_INDEX_BITS   = 12;
-    /**
-     * TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h
-     */
+    /** TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h */
     public static final  int           WEAPON_SUBTYPE_BITS   = 6;
     private static final Logger        LOG                   = Logger.getLogger(HL2DEM.class.getName());
     private final        List<Message> frames                = new LinkedList<>();
     GameEvent[] gameEvents;
     DemoHeader  header;
 
-    private HL2DEM(ByteBuffer buffer) {
-        header = new DemoHeader(DataUtils.getSlice(buffer, 1072));
+    private HL2DEM(ByteBuffer buffer, boolean eager) {
+        header = DemoHeader.parse(DataUtils.getSlice(buffer, 32 + 260 * 4));
         while(true) {
             Message frame;
             try {
-                frame = new Message(buffer, this);
+                frame = Message.parse(this, buffer);
             } catch(BufferUnderflowException e) {
-                LOG.log(Level.SEVERE, "Unexpected end of demo file");
+                LOG.log(Level.WARNING, "Unexpected end of demo");
+                // Insert artificial stop
+                Message stop = new Message(this, MessageType.Stop, frames.get(frames.size() - 1).tick);
+                frames.add(stop);
                 break;
             }
-            if(frame.type == null) break;
             frames.add(frame);
             if(frame.type == MessageType.Stop) break;
-            if(frame.type == MessageType.Synctick) continue;
-            switch(frame.type) {
-                case Packet:
-                case Signon:
-                    buffer.get(new byte[21 * 4]); // TODO: Command / sequence info
-                    break;
-                case UserCmd:
-                    buffer.get(new byte[4]); // TODO: Outgoing sequence number
-                    break;
-                default:
-                    break;
-            }
-            int size = buffer.getInt();
-            if(size == 0) {
-                continue;
-            }
-            byte[] data = new byte[size];
+            if(frame.size == 0) continue;
+            byte[] dst = new byte[frame.size];
             try {
-                buffer.get(data);
-            } catch(BufferUnderflowException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                buffer.get(dst);
+            } catch(BufferUnderflowException e) {
+                LOG.log(Level.SEVERE, "Unexpected end of message", e);
                 break;
             }
-            frame.data = ByteBuffer.wrap(data);
+            frame.data = ByteBuffer.wrap(dst);
             frame.data.order(ByteOrder.LITTLE_ENDIAN);
-            frame.parse();
+            if(eager) frame.parse();
         }
     }
 
     public static HL2DEM load(File f) throws IOException {
-        LOG.log(Level.INFO, "Parsing {0}", f);
-        ByteBuffer buffer = DataUtils.mapFile(f);
-        return new HL2DEM(buffer);
+        return load(f, true);
     }
 
-    /**
-     * @return the frames
-     */
-    public Iterable<Message> getFrames() {
-        return Collections.unmodifiableList(frames);
+    public static HL2DEM load(File f, boolean eager) throws IOException {
+        LOG.log(Level.INFO, "Parsing {0}", f);
+        ByteBuffer buffer = DataUtils.mapFile(f);
+        return new HL2DEM(buffer, eager);
+    }
+
+    /** @return the frames */
+    public List<Message> getFrames() { return frames; }
+
+    public DemoHeader getHeader() {
+        return header;
     }
 }

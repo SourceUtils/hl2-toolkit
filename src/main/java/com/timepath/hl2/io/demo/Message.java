@@ -3,7 +3,10 @@ package com.timepath.hl2.io.demo;
 import com.timepath.DataUtils;
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
+import com.timepath.io.OrderedOutputStream;
+import com.timepath.io.struct.StructField;
 
+import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.text.MessageFormat;
@@ -19,30 +22,77 @@ import java.util.logging.Logger;
 public class Message {
 
     private static final Logger LOG = Logger.getLogger(Message.class.getName());
+    @StructField(index = 0)
+    private       byte        op;
     /**
      * Actually 3 bytes
      */
+    @StructField(index = 1)
     public final  int         tick;
     public final  MessageType type;
     private final HL2DEM      outer;
     public        ByteBuffer  data;
     public Collection<Pair<Object, Object>> meta = new LinkedList<>();
-    public boolean incomplete;
+    public  boolean incomplete;
+    private boolean parsed;
+    /**
+     * Command / sequence info. TODO: use
+     */
+    @StructField(index = 2, nullable = true)
+    public  byte[]  cseq;
+    /**
+     * Outgoing sequence number. TODO: use
+     */
+    @StructField(index = 3, nullable = true)
+    public  byte[]  oseq;
+    @StructField(index = 4)
+    public  int     size;
 
-    Message(ByteBuffer buffer, HL2DEM outer) {
-        this.outer = outer;
-        int b = buffer.get();
-        type = MessageType.get(b);
+    static Message parse(HL2DEM outer, ByteBuffer buffer) {
+        int op = buffer.get();
+        MessageType type = MessageType.get(op);
         if(type == null) {
-            LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", b);
+            LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", op);
         }
-        tick = buffer.getShort() + ( buffer.get() << 16 );
-        if(type != MessageType.Stop) {
-            buffer.get();
-        }
+        int tick = ( 0xFFFF & buffer.getShort() ) + ( 0xFF & ( buffer.get() << 16 ) );
+        if(type != MessageType.Stop) buffer.get();
         LOG.log(Level.FINE,
                 "{0} at tick {1} ({2}), {3} remaining bytes",
                 new Object[] { type, tick, buffer.position(), buffer.remaining() });
+        Message m = new Message(outer, type, tick);
+        if(!( m.type == MessageType.Synctick || m.type == MessageType.Stop )) {
+            if(m.type == MessageType.Packet || m.type == MessageType.Signon) {
+                byte[] dst = new byte[21 * 4];
+                buffer.get(dst);
+                m.cseq = dst;
+            }
+            if(m.type == MessageType.UserCmd) {
+                byte[] dst = new byte[4];
+                buffer.get(dst);
+                m.oseq = dst;
+            }
+            m.size = buffer.getInt();
+        }
+        return m;
+    }
+
+    public Message(HL2DEM outer, MessageType type, int tick) {
+        this.outer = outer;
+        this.type = type;
+        this.tick = tick;
+    }
+
+    public void write(final OrderedOutputStream out) throws IOException {
+        out.writeByte(type.ordinal() + 1);
+        out.writeInt(tick); // TODO: technically MessageType.Stop is 1 byte less
+        if(cseq != null) out.write(cseq);
+        if(oseq != null) out.write(oseq);
+        if(!( type == MessageType.Synctick || type == MessageType.Stop )) out.writeInt(size);
+        if(data == null) return;
+        data.position(0);
+        byte[] dst = new byte[data.limit()];
+        data.get(dst);
+        out.write(dst);
     }
 
     @Override
@@ -51,9 +101,9 @@ public class Message {
     }
 
     void parse() {
-        if(data == null) {
-            return;
-        }
+        if(type == null) return;
+        if(data == null) return;
+        if(parsed) return;
         switch(type) {
             case Signon:
             case Packet: {
@@ -93,12 +143,10 @@ public class Message {
             }
             break;
             case ConsoleCmd: {
-                ByteBuffer b = data;
-                Level l = Level.FINE;
-                String cmd = DataUtils.getText(b).trim();
+                String cmd = DataUtils.getText(data, true);
                 meta.add(new Pair<Object, Object>(this, cmd));
-                if(b.remaining() > 0) {
-                    LOG.log(l, "Underflow: {0}, {1}", new Object[] { b.remaining(), b.position() });
+                if(data.remaining() > 0) {
+                    LOG.log(Level.FINE, "Underflow: {0}, {1}", new Object[] { data.remaining(), data.position() });
                 }
             }
             break;
@@ -159,5 +207,11 @@ public class Message {
             case StringTables:
                 break;
         }
+        parsed = true;
+    }
+
+    public void setData(final byte[] data) {
+        this.data = ByteBuffer.wrap(data);
+        this.size = data.length;
     }
 }
