@@ -1,5 +1,8 @@
 package com.timepath.vgui.swing
 
+import com.timepath.steam.io.VDFNode
+import com.timepath.vgui.Element
+import com.timepath.vgui.ImageUtils
 import com.timepath.vgui.VGUIRenderer
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
@@ -20,20 +23,34 @@ import java.awt.image.BufferedImage
 class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     public static void main(String[] args) {
-        def v = new VGUICanvas()
-        def f = new JFrame(contentPane: v)
+        def canvas = new VGUICanvas()
+        VDFNode root = new VDFNode("Root")
+        def p = { String k, v -> new VDFNode.VDFProperty(k, v) }
+        VDFNode node = new VDFNode("Test")
+        root.addNode(node)
+        node.addAllProperties([
+                p('enabled', 1),
+                p('visible', 1),
+                p('xpos', 5),
+                p('ypos', 5),
+                p('zpos', 0),
+                p('wide', 100),
+                p('tall', 100),
+                p('labeltext', 'test'),
+                p('textalignment', 'center'),
+                p('controlname', 'label'),
+        ])
+        def e = Element.importVdf(node)
+        canvas.r.addElement(e)
+        def f = new JFrame(contentPane: canvas)
         f.locationRelativeTo = null
         f.visible = true
     }
 
-    private static final Comparator<VGUIRenderer.ElemenX> LAYER_SORT =
-            { VGUIRenderer.ElemenX a, VGUIRenderer.ElemenX b -> a.layer <=> b.layer } as Comparator
     private static final AlphaComposite GRID_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f)
     private static final AlphaComposite SELECT_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f)
-    private static final AlphaComposite SRC_OVER = AlphaComposite.SrcOver
 
     private Image background
-    private BufferedImage elementImage
     private BufferedImage currentbg
     private BufferedImage gridbg
     private Color BG_COLOR = Color.GRAY
@@ -47,7 +64,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     private boolean dragSelecting
     private boolean dragMoving
 
-    @Delegate(includes = ['getElements', 'removeElements', 'getSelected', 'select', 'load'])
+    @Delegate(includes = ['removeElements', 'getSelected', 'select', 'load'])
     VGUIRenderer r = new VGUIRenderer() {
         @Override
         void doRepaint(final Rectangle bounds) {
@@ -65,6 +82,8 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         }
     }
 
+    LinkedList<Element> getElements() { r.elements }
+
     public VGUICanvas() {
         addMouseListener(this)
         addMouseMotionListener(this)
@@ -72,21 +91,14 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         addComponentListener new ComponentAdapter() {
             @Override
             void componentResized(ComponentEvent e) {
-                offX = (width - r.internal.width) / 2 as int
-                offY = (height - r.internal.height) / 2 as int
-                if (elementImage != null) {
-                    def img = new BufferedImage((int) r.screen.width + (2 * offX),
-                            (int) r.screen.height + (2 * offY),
-                            BufferedImage.TYPE_INT_ARGB)
-                    def g = img.createGraphics()
-                    g.translate((img.width - elementImage.width) / 2 as int,
-                            (img.height - elementImage.height) / 2 as int)
-                    g.drawImage(elementImage, 0, 0, VGUICanvas.this)
-                    g.dispose()
-                    elementImage = toCompatibleImage(img)
-                }
+                resize()
             }
         }
+    }
+
+    private void resize() {
+        offX = (width - r.internal.width) / 2 as int
+        offY = (height - r.internal.height) / 2 as int
     }
 
     /** Fired when an element has been dropped */
@@ -101,8 +113,8 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     private Rectangle getOutliers() {
         def rect = [r.internal.width as int, r.internal.height as int] as Rectangle
-        for (VGUIRenderer.ElemenX element : r.@elements) {
-            rect.add(element.bounds)
+        for (Element element : r.@elements) {
+            rect.add(r.bounds(element))
         }
         return rect
     }
@@ -113,23 +125,23 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
      * @param bounds
      */
     private void doRepaint(Rectangle bounds) {
-        elementImage = null
+        r.elementImage = null
         repaint(offX + bounds.x as int, offY + bounds.y as int, bounds.width - 1 as int, bounds.height - 1 as int)
         //        this.repaint()
     }
 
     private void doRepaint1(Rectangle bounds) {
-        elementImage = null
+        r.elementImage = null
         repaint(offX + bounds.x as int, offY + bounds.y as int, bounds.width as int, bounds.height as int)
     }
 
-    private void hover(VGUIRenderer.ElemenX e) {
+    private void hover(Element e) {
         if (r.hoveredElement == e) return  // Don't waste time re-drawing
         if (r.hoveredElement != null) {    // There is something to clean up
-            doRepaint(r.hoveredElement.bounds)
+            doRepaint(r.bounds(r.hoveredElement))
         }
         r.hoveredElement = e
-        if (e != null) doRepaint(e.bounds)
+        if (e != null) doRepaint(r.bounds(e))
     }
 
     /** As soon as the height drops below 480, stops rendering */
@@ -144,7 +156,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         int minGridSpacing = 10
         int i = minGridSpacing
         if (i < 0) return img
-        if (i < 2) { // Pptimize for small numbers, stop division by zero
+        if (i < 2) { // Optimize for small numbers, stop division by zero
             g.fillRect(0, 0, r.screen.width as int, r.screen.height as int)
             return img
         }
@@ -202,7 +214,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         g.fillRect(0, 0, getWidth(), getHeight())
         if (background != null) {
             if (currentbg == null) {
-                currentbg = toCompatibleImage(resizeImage(background, r.screen.@width, r.screen.@height))
+                currentbg = ImageUtils.toCompatibleImage(ImageUtils.resizeImage(background, r.screen.@width, r.screen.@height))
             }
             g.drawImage(currentbg, offX, offY, this)
         } else {
@@ -210,24 +222,10 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
             g.fillRect(offX, offY, (int) Math.round(r.screen.width * r.scale), (int) Math.round(r.screen.height * r.scale))
         }
         if (gridbg == null) {
-            gridbg = toCompatibleImage(drawGrid())
+            gridbg = ImageUtils.toCompatibleImage(drawGrid())
         }
         g.drawImage(gridbg, offX, offY, this)
-        if (elementImage == null) {
-            BufferedImage img = new BufferedImage(r.screen.width + (2 * offX) as int,
-                    r.screen.height + (2 * offY) as int,
-                    BufferedImage.TYPE_INT_ARGB)
-            Graphics2D ge = img.createGraphics()
-            ge.translate(offX, offY)
-            Collections.sort(r.@elements, LAYER_SORT)
-            for (VGUIRenderer.ElemenX element : r.@elements) {
-                ge.composite = SRC_OVER
-                r.paintElement(element, ge)
-            }
-            ge.dispose()
-            elementImage = toCompatibleImage(img)
-        }
-        g.drawImage(elementImage, 0, 0, this)
+        g.drawImage(r.elementImage, offX, offY, this)
         g.composite = SELECT_AC
         g.color = Color.CYAN.darker()
         g.fillRect(offX + r.selectRect.x + 1 as int, offY + r.selectRect.y + 1 as int, r.selectRect.width - 2 as int, r.selectRect.height - 2 as int)
@@ -246,7 +244,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
                 cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)
                 r.dragX += p.x - dragStart.x as int
                 r.dragY += p.y - dragStart.y as int
-                elementImage = null
+                r.elementImage = null
                 repaint()
                 dragStart = p // Hacky
             }
@@ -329,7 +327,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     @Override
     void mouseExited(MouseEvent e) {}
 
-    private static VGUIRenderer.ElemenX chooseBest(java.util.List<VGUIRenderer.ElemenX> potential) {
+    private static Element chooseBest(java.util.List<Element> potential) {
         int pSize = potential.size()
         if (pSize == 0) return null
         if (pSize == 1) return potential.get(0)
@@ -346,44 +344,4 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         }
         return smallest
     }
-
-    /**
-     * Scales an image to be the desired height, cutting off the sides.
-     * @param image
-     * @return
-     */
-    private static BufferedImage resizeImage(Image image, int w, int h) {
-        int type = BufferedImage.TYPE_INT_ARGB
-        def scaled = new BufferedImage(w, h, type)
-        // Keep aspect ratio
-        int proposedWidth = Math.round((h / image.getHeight(null) as float) * image.getWidth(null))
-        // Half the width difference is excess
-        int excess = Math.abs(proposedWidth - w) / 2 as int
-        // Create graphics context with nice settings
-        def g = scaled.createGraphics()
-        g.composite = SRC_OVER
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION as RenderingHints.Key, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-        g.setRenderingHint(RenderingHints.KEY_RENDERING as RenderingHints.Key, RenderingHints.VALUE_RENDER_QUALITY)
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING as RenderingHints.Key, RenderingHints.VALUE_ANTIALIAS_ON)
-        // Draw with excess off screen
-        g.drawImage(image, -excess, 0, w + (2 * excess), h, null)
-        g.dispose()
-        return scaled
-    }
-
-    private static BufferedImage toCompatibleImage(BufferedImage image) {
-        // Obtain the current system graphical settings
-        def configuration = GraphicsEnvironment.localGraphicsEnvironment.defaultScreenDevice.defaultConfiguration
-
-        // If image is already compatible and optimized for current system settings, simply return it
-        if (image.colorModel == configuration.colorModel) return image
-        // Image is not optimized, create a new image that is
-        def copy = configuration.createCompatibleImage(image.width, image.height, image.transparency)
-        // Get the graphics context of the new image to draw the old image on
-        def g2d = copy.graphics as Graphics2D
-        g2d.drawImage(image, 0, 0, null)
-        g2d.dispose()
-        return copy
-    }
-
 }

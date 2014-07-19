@@ -5,6 +5,7 @@ import groovy.transform.TypeChecked
 import groovy.util.logging.Log
 
 import java.awt.*
+import java.awt.image.BufferedImage
 import java.util.List
 
 /**
@@ -18,13 +19,26 @@ import java.util.List
 abstract class VGUIRenderer {
 
     private static final AlphaComposite SRC_OVER = AlphaComposite.SrcOver
-    /** List of elements */
-    LinkedList<Element> getElements() {
-        return elements*.e as LinkedList<Element>
+    private static final Comparator<Element> LAYER_SORT = { Element a, Element b -> a.layer <=> b.layer } as Comparator
+    BufferedImage elementImage
+
+    BufferedImage getElementImage() {
+        if (elementImage) return elementImage
+        def img = new BufferedImage(screen.width as int, screen.height as int, BufferedImage.TYPE_INT_ARGB)
+        def g = img.createGraphics()
+        Collections.sort(elements, LAYER_SORT)
+        for (element in elements) {
+            g.composite = SRC_OVER
+            paintElement(element, g)
+        }
+        g.dispose()
+        elementImage = ImageUtils.toCompatibleImage(img)
     }
-    public final LinkedList<ElemenX> elements = new LinkedList<>()
+
+    /** List of elements */
+    final LinkedList<Element> elements = new LinkedList<>()
     /** List of currently selected elements */
-    List<ElemenX> selectedElements = new LinkedList<>()
+    List<Element> selectedElements = new LinkedList<>()
     /** Render scale */
     double scale = 1
     /** Screen space */
@@ -38,15 +52,13 @@ abstract class VGUIRenderer {
     /** Drag Y displacement */
     int dragY
     /** Currently hoverer */
-    ElemenX hoveredElement
+    Element hoveredElement
 
-    private static Rectangle fitRect(Point p1, Point p2, Rectangle r) {
-        Rectangle result = new Rectangle(r)
-        result.@x = Math.min(p1.@x, p2.@x)
-        result.@y = Math.min(p1.@y, p2.@y)
-        result.@width = Math.abs(p2.@x - p1.@x)
-        result.@height = Math.abs(p2.@y - p1.@y)
-        return result
+    private static void fitRect(Rectangle r, Point p1, Point p2) {
+        r.@x = Math.min(p1.@x, p2.@x)
+        r.@y = Math.min(p1.@y, p2.@y)
+        r.@width = Math.abs(p2.@x - p1.@x)
+        r.@height = Math.abs(p2.@y - p1.@y)
     }
 
     /**
@@ -61,13 +73,13 @@ abstract class VGUIRenderer {
         return (b == 0) ? a : gcm(b, a % b)
     }
 
-    void paintElement(ElemenX e, Graphics2D g) {
+    void paintElement(Element e, Graphics2D g) {
         def r = this
-        if (e.width && e.height) { // invisible? don't waste time
-            int elementX = (int) Math.round(e.x * (r.screen.width / r.internal.width) * r.scale)
-            int elementY = (int) Math.round(e.y * (r.screen.height / r.internal.height) * r.scale)
-            int elementW = (int) Math.round(e.width * (r.screen.width / r.internal.width) * r.scale)
-            int elementH = (int) Math.round(e.height * (r.screen.height / r.internal.height) * r.scale)
+        if (width(e) && height(e)) { // invisible? don't waste time
+            int elementX = (int) Math.round(x(e) * (r.screen.width / r.internal.width) * r.scale)
+            int elementY = (int) Math.round(y(e) * (r.screen.height / r.internal.height) * r.scale)
+            int elementW = (int) Math.round(width(e) * (r.screen.width / r.internal.width) * r.scale)
+            int elementH = (int) Math.round(height(e) * (r.screen.height / r.internal.height) * r.scale)
             if (r.selectedElements.contains(e)) {
                 elementX += r.dragX
                 elementY += r.dragY
@@ -83,9 +95,9 @@ abstract class VGUIRenderer {
             }
             if (e.image != null) {
                 if (e.fgColor != null) {
-                    g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, e.getFgColor().getAlpha())
+                    g.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, e.fgColor.alpha)
                 }
-                g.drawImage(e.getImage(), elementX, elementY, elementW, elementH, null)
+                g.drawImage(e.image, elementX, elementY, elementW, elementH, null)
             }
             if (r.selectedElements.contains(e)) {
                 g.color = Color.CYAN
@@ -94,7 +106,7 @@ abstract class VGUIRenderer {
             }
             g.drawRect(elementX, elementY, elementW - 1, elementH - 1)
             if (r.hoveredElement == e) {
-                g.color = new Color(255 - g.getColor().getRed(), 255 - g.getColor().getGreen(), 255 - g.getColor().getBlue())
+                g.color = new Color(255 - g.color.red, 255 - g.color.green, 255 - g.color.blue)
                 g.composite = SRC_OVER
                 //                g.drawRect(elementX + offX, elementY + offY, e.getWidth() - 1, e.getHeight() - 1) // border
                 g.drawRect(elementX + 1, elementY + 1, elementW - 3, elementH - 3) // inner
@@ -140,10 +152,10 @@ abstract class VGUIRenderer {
     abstract FontMetrics getFontMetrics(Font font)
 
     /** Checks if point p is inside the bounds of any element */
-    List<ElemenX> pick(Point p) {
-        List<ElemenX> potential = new LinkedList<>()
-        for (ElemenX e in elements) {
-            if (e.bounds.contains(p)) {
+    List<Element> pick(Point p) {
+        List<Element> potential = new LinkedList<>()
+        for (Element e in elements) {
+            if (bounds(e).contains(p)) {
                 potential.add(e)
             }
         }
@@ -153,9 +165,9 @@ abstract class VGUIRenderer {
     void select(Point p1, Point p2, boolean ctrl) {
         if (p1 && p2) {
             Rectangle originalSelectRect = new Rectangle(selectRect)
-            selectRect = fitRect(p1, p2, selectRect)
-            for (ElemenX e in elements) {
-                if (selectRect.intersects(e.bounds)) {
+            fitRect(selectRect, p1, p2)
+            for (Element e in elements) {
+                if (selectRect.intersects(bounds(e))) {
                     select(e) // TODO: not perfect, I want the selection inverted as it goes over
                 } else if (!ctrl) {
                     deselect(e)
@@ -195,25 +207,17 @@ abstract class VGUIRenderer {
     }
 
     void addElement(Element e) {
-        def x = new ElemenX(e)
-        if (elements.contains(x)) return
-        x.load()
-        //            x.setCanvas(this)
-        elements.add(x)
-        doRepaint(x.bounds)
+        if (elements.contains(e)) return
+        //            e.setCanvas(this)
+        elements.add(e)
+        doRepaint(bounds(e))
     }
 
-    void removeElements(List<ElemenX> remove) {
+    void removeElements(List<Element> remove) {
         elements.removeAll(remove)
     }
 
     void select(Element e) {
-        if (!e instanceof ElemenX) return
-        def x = e as ElemenX
-        select(x)
-    }
-
-    void select(ElemenX e) {
         if (!e) return;
         if (selectedElements.contains(e)) return
         selectedElements.add(e)
@@ -222,18 +226,18 @@ abstract class VGUIRenderer {
         //                    select(e.children.get(i))
         //                }
         //            }
-        doRepaint(e.bounds)
+        doRepaint(bounds(e))
     }
 
-    boolean isSelected(ElemenX e) {
+    boolean isSelected(Element e) {
         return selectedElements.contains(e)
     }
 
-    List<ElemenX> getSelected() {
+    List<Element> getSelected() {
         return Collections.unmodifiableList(selectedElements)
     }
 
-    void deselect(ElemenX e) {
+    void deselect(Element e) {
         if (!e) return;
         if (!selectedElements.contains(e)) return
         selectedElements.remove(e)
@@ -242,16 +246,16 @@ abstract class VGUIRenderer {
         //                    deselect(e.children.get(i))
         //                }
         //            }
-        doRepaint(e.bounds)
+        doRepaint(bounds(e))
     }
 
     void deselectAll() {
-        List<ElemenX> old = selectedElements
+        List<Element> old = selectedElements
         selectedElements = new LinkedList<>()
-        for (e in old) doRepaint(e.bounds)
+        for (e in old) doRepaint(bounds(e))
     }
 
-    void translate(ElemenX e, double dx, double dy) { // TODO: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
+    void translate(Element e, double dx, double dy) { // TODO: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
         //        Rectangle originalBounds = new Rectangle(e.getBounds())
         if (e.XAlignment == Element.Alignment.Right) {
             dx *= -1
@@ -270,68 +274,53 @@ abstract class VGUIRenderer {
         repaint() // helps
     }
 
-    class ElemenX {
-        @Delegate
-        Element e
-
-        ElemenX(Element p) { e = p }
-
-        ElemenX getParent() { new ElemenX(e.parent) }
-
-        int getX() {
-            if ((this.parent == null) || this.parent.name.replaceAll("\"", "").endsWith(".res")) {
-                if (this.XAlignment == Element.Alignment.Center) {
-                    return this.localX + (internal.width / 2)
-                } else {
-                    return (this.XAlignment == Element.Alignment.Right) ? (internal.width - this.localX) : this.localX
-                }
-            } else {
-                int x
-                if (this.XAlignment == Element.Alignment.Center) {
-                    x = (this.parent.width / 2 + this.localX) as int
-                } else {
-                    x = (this.XAlignment == Element.Alignment.Right ? (this.parent.width - this.localX) : this.localX)
-                }
-                return x + this.parent.x
+    int x(Element e) {
+        if (e) {
+            def parent = e.parent
+            int lx = e.localXi
+            int _x = x(parent)
+            switch (e.XAlignment) {
+                case Element.Alignment.Left: return _x + (lx) as int
+                case Element.Alignment.Center: return _x + (width(parent) / 2 + lx) as int
+                case Element.Alignment.Right: return _x + (width(parent) - lx) as int
             }
         }
+        return 0
+    }
 
-        int getY() {
-            if ((this.parent == null) || this.parent.name.replaceAll("\"", "").endsWith(".res")) {
-                if (this.YAlignment == Element.Alignment.Center) {
-                    return this.localY + (internal.height / 2)
-                } else {
-                    return (this.YAlignment == Element.Alignment.Right) ? (internal.height - this.localY) : this.localY
-                }
+    int y(Element e) {
+        if (e) {
+            def parent = e.parent
+            int ly = e.localYi
+            int _y = y(parent)
+            switch (e.YAlignment) {
+                case Element.VAlignment.Top: return _y + (ly) as int
+                case Element.VAlignment.Center: return _y + (height(parent) / 2 + ly) as int
+                case Element.VAlignment.Bottom: return _y + (height(parent) - ly) as int
             }
-            int y
-            if (this.YAlignment == Element.Alignment.Center) {
-                y = (this.parent.height / 2 + this.localY) as int
-            } else {
-                y = ((this.YAlignment == Element.Alignment.Right) ? (this.parent.height - this.localY) : this.localY) as int
-            }
-            return y + this.parent.y
         }
+        return 0
+    }
 
-        int getWidth() {
-            return (this.wideMode == Element.DimensionMode.Mode2) ? ((parent != null)
-                    ? (parent.width - this.wide)
-                    : (internal.width - this.wide)) : this.wide
-        }
+    int width(Element e) {
+        if (!e) return internal.width
+        return (e.wideMode == Element.DimensionMode.Mode1) ? (e.wide) : (width(e.parent) - e.wide)
+    }
 
-        int getHeight() {
-            return (this.tallMode == Element.DimensionMode.Mode2) ? ((parent != null)
-                    ? (parent.height - this.tall)
-                    : (internal.height - this.tall)) : this.tall
-        }
+    int height(Element e) {
+        if (!e) return internal.height
+        return (e.tallMode == Element.DimensionMode.Mode1) ? (e.tall) : (height(e.parent) - e.tall)
+    }
 
-        Rectangle getBounds() {
-            int minX = (int) Math.round(this.localX * (screen.width / internal.width) * scale)
-            int minY = (int) Math.round(this.localY * (screen.height / internal.height) * scale)
-            int maxX = (int) Math.round(this.wide * (screen.width / internal.width) * scale)
-            int maxY = (int) Math.round(this.tall * (screen.height / internal.height) * scale)
-            return new Rectangle(minX, minY, maxX + 1, maxY + 1)
-        }
+    Rectangle bounds(Element e) {
+        def scaleX = (screen.width / internal.width) * scale
+        def scaleY = (screen.height / internal.height) * scale
+        return [
+                Math.round(scaleX * e.localX) as int,
+                Math.round(scaleY * e.localY) as int,
+                Math.round(scaleX * e.wide) + 1 as int,
+                Math.round(scaleY * e.tall) + 1 as int
+        ] as Rectangle
     }
 
 }

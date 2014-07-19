@@ -1,5 +1,4 @@
 package com.timepath.vgui
-
 import com.timepath.hl2.io.image.VTF
 import com.timepath.io.utils.ViewableData
 import com.timepath.steam.io.VDFNode
@@ -15,7 +14,6 @@ import java.util.List
 import java.util.logging.Level
 
 import static com.timepath.steam.io.VDFNode.VDFProperty
-
 /**
  * @author TimePath
  */
@@ -51,7 +49,7 @@ class Element implements ViewableData {
     Alignment textAlignment = Alignment.Left
     Image image
 
-    @Delegate(excludes = ['addNode'])
+    @Delegate(includes = ['toTreeNode'])
     VDFNode vdf
 
     void addNode(Element e) {
@@ -111,7 +109,7 @@ class Element implements ViewableData {
     }
 
     static Element importVdf(VDFNode vdf) {
-        Element e = new Element(properties: vdf.properties)//, file: vdf.file)
+        Element e = new Element(vdf: vdf, properties: vdf.properties)//, file: vdf.file)
         e.load()
         return e
     }
@@ -316,9 +314,9 @@ class Element implements ViewableData {
         }
     }
 
-    int getLocalX() { Math.round(localX) as int }
+    int getLocalXi() { Math.round(localX) as int }
 
-    int getLocalY() { Math.round(localY) as int }
+    int getLocalYi() { Math.round(localY) as int }
 
     @Override
     Icon getIcon() { UIManager.getIcon "FileChooser.listViewIcon" }
