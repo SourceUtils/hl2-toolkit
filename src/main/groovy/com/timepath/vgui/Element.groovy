@@ -15,6 +15,7 @@ import java.util.List
 import java.util.logging.Level
 
 import static com.timepath.steam.io.VDFNode.VDFProperty
+
 /**
  * @author TimePath
  */
@@ -25,9 +26,6 @@ public class Element implements ViewableData {
 
     public static final Map<String, HudFont> fonts = [:]
     public static final Map<String, Element> areas = [:]
-    private final Dimension screen = [640, 480]
-    private final Dimension internal = [640, 480]
-    private final double scale = 1
     String name
     private String info
     Element parent
@@ -38,9 +36,9 @@ public class Element implements ViewableData {
     /** > 0 = out of screen */
     int layer
     int wide
-    private DimensionMode _wideMode = DimensionMode.Mode1
+    DimensionMode wideMode = DimensionMode.Mode1
     int tall
-    private DimensionMode _tallMode = DimensionMode.Mode1
+    DimensionMode tallMode = DimensionMode.Mode1
     boolean visible
     boolean enabled
     Font font
@@ -168,14 +166,14 @@ public class Element implements ViewableData {
                 case "wide":
                     if (v.startsWith("f")) {
                         v = v.substring(1)
-                        _wideMode = DimensionMode.Mode2
+                        wideMode = DimensionMode.Mode2
                     }
                     wide = vint
                     break
                 case "tall":
                     if (v.startsWith("f")) {
                         v = v.substring(1)
-                        _tallMode = DimensionMode.Mode2
+                        tallMode = DimensionMode.Mode2
                     }
                     tall = vint
                     break
@@ -199,7 +197,7 @@ public class Element implements ViewableData {
                     if (!fonts.containsKey(v)) {
                         continue
                     }
-                    Font f = fonts[v].font
+                    Font f = fonts.get(v).font
                     if (f) font = f
                     break
                 case "image":
@@ -209,7 +207,7 @@ public class Element implements ViewableData {
                         continue
                     }
                     try {
-                        VTF vtf = VTF.load(v + ".vtf")
+                        VTF vtf = VTF.load("${v}.vtf")
                         if (vtf == null) {
                             continue
                         }
@@ -226,7 +224,7 @@ public class Element implements ViewableData {
             }
         }
         if (controlName != null) {
-            def control = Controls.defaults[controlName];
+            def control = Controls.defaults.get(controlName);
             if (!control) LOG.log(Level.WARNING, "Unknown control: {0}", controlName)
         } else {
             if ("hudlayout".equalsIgnoreCase(file)) {
@@ -273,67 +271,13 @@ public class Element implements ViewableData {
         return sb.toString()
     }
 
-    // Extra stuff
-    int getSize() { // works well unless they are exactly the same size
+    int getSize() {
         return wide * tall
-    }
-
-    Rectangle getBounds() {
-        int minX = (int) Math.round(x * (screen.width / internal.width) * scale)
-        int minY = (int) Math.round(y * (screen.height / internal.height) * scale)
-        int maxX = (int) Math.round(width * (screen.width / internal.width) * scale)
-        int maxY = (int) Math.round(height * (screen.height / internal.height) * scale)
-        return [minX, minY, maxX + 1, maxY + 1] as Rectangle
     }
 
     @Override
     String toString() {
         name + (info != null) ? (" ~ " + info) : "" // elements cannot have a value, only info
-    }
-
-    int getX() {
-        if ((parent == null) || parent.name.replaceAll("\"", "").endsWith(".res")) {
-            if (XAlignment == Alignment.Center) {
-                return localX + (internal.width / 2)
-            } else {
-                return (XAlignment == Alignment.Right) ? (internal.width - localX) : localX
-            }
-        } else {
-            int x
-            if (XAlignment == Alignment.Center) {
-                x = (parent.width / 2i + localX) as int
-            } else {
-                x = (XAlignment == Alignment.Right ? (parent.width - localX) : localX) as int
-            }
-            return x + parent.x
-        }
-    }
-
-    int getY() {
-        if ((parent == null) || parent.name.replaceAll("\"", "").endsWith(".res")) {
-            if (YAlignment == Alignment.Center) {
-                return localY + (internal.height / 2)
-            } else {
-                return (YAlignment == Alignment.Right) ? (internal.height - localY) : localY
-            }
-        }
-        int y
-        if (YAlignment == Alignment.Center) {
-            y = (parent.height / 2i + localY) as int
-        } else {
-            y = ((YAlignment == Alignment.Right) ? (parent.height - localY) : localY) as int
-        }
-        return y + parent.y
-    }
-
-    int getWidth() {
-        return (_wideMode == DimensionMode.Mode2) ? (internal.width - wide) : wide
-    }
-
-    int getHeight() {
-        return (_tallMode == DimensionMode.Mode2) ? ((parent != null)
-                ? (parent.height - tall)
-                : (internal.height - tall)) : tall
     }
 
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
@@ -355,9 +299,9 @@ public class Element implements ViewableData {
                 } else if ("zpos".equalsIgnoreCase(k)) {
                     entry.value = layer
                 } else if ("wide".equalsIgnoreCase(k)) {
-                    entry.value = ((_wideMode == DimensionMode.Mode2) ? "f" : "") + wide
+                    entry.value = ((wideMode == DimensionMode.Mode2) ? "f" : "") + wide
                 } else if ("tall".equalsIgnoreCase(k)) {
-                    entry.value = ((_tallMode == DimensionMode.Mode2) ? "f" : "") + tall
+                    entry.value = ((tallMode == DimensionMode.Mode2) ? "f" : "") + tall
                 } else if ("labelText".equalsIgnoreCase(k)) {
                     entry.value = labelText
                 } else if ("ControlName".equalsIgnoreCase(k)) {
