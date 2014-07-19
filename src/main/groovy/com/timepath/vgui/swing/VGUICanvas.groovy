@@ -1,5 +1,6 @@
 package com.timepath.vgui.swing
 
+import com.timepath.steam.SteamUtils
 import com.timepath.steam.io.VDFNode
 import com.timepath.vgui.Element
 import com.timepath.vgui.ImageUtils
@@ -12,6 +13,8 @@ import javax.swing.*
 import java.awt.*
 import java.awt.event.*
 import java.awt.image.BufferedImage
+import java.nio.charset.StandardCharsets
+import java.util.List
 
 /**
  * @author TimePath
@@ -40,9 +43,13 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
                 p('textalignment', 'center'),
                 p('controlname', 'label'),
         ])
-        def e = Element.importVdf(node)
-        canvas.r.addElement(e)
-        def f = new JFrame(contentPane: canvas)
+        node = new VDFNode(new FileInputStream(new File(SteamUtils.steam, "resource/FileOpenDialog.res")), StandardCharsets.UTF_8)
+        for (VDFNode n in (node.nodes*.nodes.flatten() as List<VDFNode>)) {
+            def e = Element.importVdf(n)
+            canvas.r.addElement(e)
+        }
+        def f = new JFrame(contentPane: canvas, defaultCloseOperation: WindowConstants.DISPOSE_ON_CLOSE)
+        f.pack()
         f.locationRelativeTo = null
         f.visible = true
     }
@@ -87,7 +94,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     public VGUICanvas() {
         addMouseListener(this)
         addMouseMotionListener(this)
-        preferredSize = [640, 480] as Dimension
+        preferredSize = new Dimension(640, 480)
         addComponentListener new ComponentAdapter() {
             @Override
             void componentResized(ComponentEvent e) {
@@ -97,8 +104,9 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     }
 
     private void resize() {
-        offX = (width - r.internal.width) / 2 as int
-        offY = (height - r.internal.height) / 2 as int
+        offX = (int) ((width - r.internal.@width) / 2)
+        offY = (int) ((height - r.internal.@height) / 2)
+        repaint()
     }
 
     /** Fired when an element has been dropped */
@@ -112,10 +120,8 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     }
 
     private Rectangle getOutliers() {
-        def rect = [r.internal.width as int, r.internal.height as int] as Rectangle
-        for (Element element : r.@elements) {
-            rect.add(r.bounds(element))
-        }
+        def rect = new Rectangle(r.internal.@width, r.internal.@height)
+        for (elem in r.@elements) rect.add(r.bounds(elem))
         return rect
     }
 
@@ -126,45 +132,43 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
      */
     private void doRepaint(Rectangle bounds) {
         r.elementImage = null
-        repaint(offX + bounds.x as int, offY + bounds.y as int, bounds.width - 1 as int, bounds.height - 1 as int)
-        //        this.repaint()
+        repaint(offX + bounds.@x, offY + bounds.@y, bounds.@width - 1, bounds.@height - 1)
     }
 
     private void doRepaint1(Rectangle bounds) {
         r.elementImage = null
-        repaint(offX + bounds.x as int, offY + bounds.y as int, bounds.width as int, bounds.height as int)
+        repaint(offX + bounds.@x, offY + bounds.@y, bounds.@width, bounds.@height)
     }
 
     private void hover(Element e) {
-        if (r.hoveredElement == e) return  // Don't waste time re-drawing
-        if (r.hoveredElement != null) {    // There is something to clean up
-            doRepaint(r.bounds(r.hoveredElement))
-        }
-        r.hoveredElement = e
-        if (e != null) doRepaint(r.bounds(e))
+        if (r.hoveredElement == e) return // Nothing to do
+        // Clean up if needed
+        if (r.hoveredElement) doRepaint(r.bounds(r.hoveredElement))
+        // Draw the new element if needed
+        if ((r.hoveredElement = e)) doRepaint(r.bounds(e))
     }
 
     /** As soon as the height drops below 480, stops rendering */
     private BufferedImage drawGrid() {
-        def img = new BufferedImage(r.screen.width as int, r.screen.height as int, BufferedImage.TYPE_INT_ARGB)
+        def img = new BufferedImage(r.screen.@width, r.screen.@height, BufferedImage.TYPE_INT_ARGB)
         def g = img.createGraphics()
         g.composite = GRID_AC
         g.setRenderingHint(RenderingHints.KEY_RENDERING as RenderingHints.Key, RenderingHints.VALUE_RENDER_SPEED)
         g.color = GRID_COLOR
-        int w = r.screen.width as int
-        int h = r.screen.height as int
+        int w = r.screen.@width
+        int h = r.screen.@height
         int minGridSpacing = 10
         int i = minGridSpacing
         if (i < 0) return img
         if (i < 2) { // Optimize for small numbers, stop division by zero
-            g.fillRect(0, 0, r.screen.width as int, r.screen.height as int)
+            g.fillRect(0, 0, r.screen.@width, r.screen.@height)
             return img
         }
         int cross = 0
         int maxX = w - (w % i)
         int maxY = h - (h % i)
-        double multX = r.screen.width / (double) r.internal.width
-        double multY = r.screen.height / (double) r.internal.height
+        double multX = r.screen.width / r.internal.width
+        double multY = r.screen.height / r.internal.height
         for (int y = -1; y <= (maxY / i); y++) {
             for (int x = -1; x <= (maxX / i); x++) {
                 int dx = (int) Math.round((maxX * x * i * multX) / maxX)
@@ -179,15 +183,15 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     @Override
     public void setPreferredSize(Dimension preferredSize) {
-        def UISize = new Dimension(preferredSize.width + (2 * offX) as int, preferredSize.height + (2 * offY) as int)
+        def UISize = new Dimension(preferredSize.@width + (2 * offX), preferredSize.@height + (2 * offY))
         super.preferredSize = UISize
         currentbg = null
         gridbg = null
         r.screen = preferredSize
         //        long gcm = gcm(hudRes.width, hudRes.height)
-        long resX = r.screen.width as long
-        long resY = r.screen.height as long
-        double m = resX / (double) resY
+        double resX = r.screen.width
+        double resY = r.screen.height
+        double m = resX / resY
         //        System.out.println(resX + "/" + resY + "=" + m)
         //        System.out.println((resX / gcm) + ":" + (resY / gcm) + " = " + Math.round(m * 480) + "x" + 480)
         r.internal = new Dimension((int) Math.round(m * 480), 480)
@@ -196,41 +200,26 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     @Override
     protected void paintComponent(Graphics graphics) {
-        //        Rectangle outliers = getOutliers()
-        //        int left = -outliers.x
-        //        int right = outliers.width + outliers.x - internal.width
-        //        int top = -outliers.y
-        //        int down = outliers.height + outliers.y - internal.height
-        //        this.resize(this.getWidth() + left + right, this.getHeight() + top + down)
-        //        offX = ((this.getWidth() - internal.width) / 2)
-        //        offY = ((this.getHeight() - internal.height) / 2)
-        //        offX = ((this.getWidth() - internal.width) / 2) + ((-outliers.x) - (outliers.width + outliers.x - internal
-        // .width))
-        //        offY = ((this.getHeight() - internal.height) / 2) + ((-outliers.y) - (outliers.height + outliers.y - internal
-        // .height))
-        //        super.paintComponent(graphics)
-        Graphics2D g = (Graphics2D) graphics
+        Graphics2D g = graphics as Graphics2D
         g.color = BG_COLOR
-        g.fillRect(0, 0, getWidth(), getHeight())
-        if (background != null) {
-            if (currentbg == null) {
-                currentbg = ImageUtils.toCompatibleImage(ImageUtils.resizeImage(background, r.screen.@width, r.screen.@height))
-            }
+        g.fillRect(0, 0, width, height)
+        if (background) {
+            if (!currentbg) currentbg = ImageUtils.toCompatibleImage(ImageUtils.resizeImage(background, r.screen.@width, r.screen.@height))
             g.drawImage(currentbg, offX, offY, this)
         } else {
             g.color = Color.WHITE.darker().darker()
             g.fillRect(offX, offY, (int) Math.round(r.screen.width * r.scale), (int) Math.round(r.screen.height * r.scale))
         }
-        if (gridbg == null) {
-            gridbg = ImageUtils.toCompatibleImage(drawGrid())
-        }
+        if (!gridbg) gridbg = ImageUtils.toCompatibleImage(drawGrid())
         g.drawImage(gridbg, offX, offY, this)
         g.drawImage(r.elementImage, offX, offY, this)
-        g.composite = SELECT_AC
-        g.color = Color.CYAN.darker()
-        g.fillRect(offX + r.selectRect.x + 1 as int, offY + r.selectRect.y + 1 as int, r.selectRect.width - 2 as int, r.selectRect.height - 2 as int)
-        g.color = Color.BLUE
-        g.drawRect(offX + r.selectRect.x as int, offY + r.selectRect.y as int, r.selectRect.width - 1 as int, r.selectRect.height - 1 as int)
+        if (dragSelecting) {
+            g.composite = SELECT_AC
+            g.color = Color.CYAN.darker()
+            g.fillRect(offX + r.selectRect.@x + 1, offY + r.selectRect.@y + 1, r.selectRect.@width - 2, r.selectRect.@height - 2)
+            g.color = Color.BLUE
+            g.drawRect(offX + r.selectRect.@x, offY + r.selectRect.@y, r.selectRect.@width - 1, r.selectRect.@height - 1)
+        }
     }
 
     @Override
@@ -239,14 +228,14 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         p.translate(-offX, -offY) // Localize
         if (SwingUtilities.isLeftMouseButton(e)) {
             if (dragSelecting) {
-                r.select(dragStart, p, e.isControlDown())
+                r.select(dragStart, p, e.controlDown)
             } else if (dragMoving) {
                 cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)
-                r.dragX += p.x - dragStart.x as int
-                r.dragY += p.y - dragStart.y as int
+                r.dragX += p.@x - dragStart.@x
+                r.dragY += p.@y - dragStart.@y
                 r.elementImage = null
                 repaint()
-                dragStart = p // Hacky
+                dragStart = p
             }
         }
     }
@@ -263,10 +252,9 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
         def p = e.point
         p.translate(-offX, -offY) // Localize
         if (SwingUtilities.isLeftMouseButton(e)) {
-            dragStart = [p.x as int, p.y as int] as Point
-            r.selectRect.@x = p.@x
-            r.selectRect.@y = p.@y
-            if (r.hoveredElement == null) { // Clicked nothing
+            dragStart = new Point(p.@x, p.@y)
+            r.selectRect.setSize(p.@x, p.@y)
+            if (!r.hoveredElement) { // Clicked nothing
                 if (!e.controlDown) r.deselectAll()
                 dragSelecting = true
                 dragMoving = false
@@ -293,18 +281,15 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     @Override
     void mouseReleased(MouseEvent e) {
-        def p = e.point
-        p.translate(-offX, -offY) // Localize
         if (SwingUtilities.isLeftMouseButton(e)) {
-            setCursor(Cursor.defaultCursor)
+            cursor = Cursor.defaultCursor
             if (dragMoving) placed() // Release element
             dragSelecting = false
             dragMoving = false
             dragStart = null
             def original = new Rectangle(r.selectRect)
-            r.selectRect.@width = 0
-            r.selectRect.@height = 0
-            for (def elem in r.selectedElements) {
+            r.selectRect.setSize(0, 0)
+            for (elem in r.selectedElements) {
                 // ???
                 if (r.selectedElements.contains(elem.parent) &&
                         !elem.parent.name.replaceAll("\"", "").endsWith(".res")) { // XXX: hacky
@@ -327,19 +312,15 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
     @Override
     void mouseExited(MouseEvent e) {}
 
-    private static Element chooseBest(java.util.List<Element> potential) {
-        int pSize = potential.size()
-        if (pSize == 0) return null
-        if (pSize == 1) return potential.get(0)
-        def smallest = potential.get(0)
-        for (def iterator = potential.listIterator(1); iterator.hasNext();) {
-            def e = iterator.next() // Sort by layer, then by size
-            if (e.layer > smallest.layer) {
-                smallest = e
-            } else if (e.layer == smallest.layer) {
-                if (e.size < smallest.size) {
-                    smallest = e
-                }
+    private static Element chooseBest(List<Element> potential) {
+        Element smallest = null
+        for (elem in potential) {
+            if (!smallest) {
+                smallest = elem
+            } else if (elem.layer > smallest.layer) { // Sort by layer, then by size
+                smallest = elem
+            } else if (elem.layer == smallest.layer && elem.size < smallest.size) {
+                smallest = elem
             }
         }
         return smallest
