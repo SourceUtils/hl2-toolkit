@@ -101,7 +101,7 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
 
     private Rectangle getOutliers() {
         def rect = [r.internal.width as int, r.internal.height as int] as Rectangle
-        for (VGUIRenderer.ElemenX element : r.elements) {
+        for (VGUIRenderer.ElemenX element : r.@elements) {
             rect.add(element.bounds)
         }
         return rect
@@ -219,8 +219,8 @@ class VGUICanvas extends JPanel implements MouseListener, MouseMotionListener {
                     BufferedImage.TYPE_INT_ARGB)
             Graphics2D ge = img.createGraphics()
             ge.translate(offX, offY)
-            Collections.sort(r.elements, LAYER_SORT)
-            for (VGUIRenderer.ElemenX element : r.elements) {
+            Collections.sort(r.@elements, LAYER_SORT)
+            for (VGUIRenderer.ElemenX element : r.@elements) {
                 ge.composite = SRC_OVER
                 r.paintElement(element, ge)
             }

@@ -22,7 +22,7 @@ import static com.timepath.steam.io.VDFNode.VDFProperty
 @CompileStatic
 @TypeChecked
 @Log('LOG')
-public class Element implements ViewableData {
+class Element implements ViewableData {
 
     public static final Map<String, HudFont> fonts = [:]
     public static final Map<String, Element> areas = [:]
@@ -98,7 +98,7 @@ public class Element implements ViewableData {
 
     String getFile() { "" } // TODO
 
-    private Element() {
+    protected Element() {
     }
 
     private Element(String name) {

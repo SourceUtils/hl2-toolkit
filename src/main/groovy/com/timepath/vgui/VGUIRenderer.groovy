@@ -1,7 +1,5 @@
 package com.timepath.vgui
 
-import com.timepath.vgui.Element.Alignment
-import com.timepath.vgui.Element.VAlignment
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.util.logging.Log
@@ -21,7 +19,10 @@ abstract class VGUIRenderer {
 
     private static final AlphaComposite SRC_OVER = AlphaComposite.SrcOver
     /** List of elements */
-    final List<ElemenX> elements = new LinkedList<>()
+    LinkedList<Element> getElements() {
+        return elements*.e as LinkedList<Element>
+    }
+    public final LinkedList<ElemenX> elements = new LinkedList<>()
     /** List of currently selected elements */
     List<ElemenX> selectedElements = new LinkedList<>()
     /** Render scale */
@@ -116,11 +117,11 @@ abstract class VGUIRenderer {
                 int width = fm.stringWidth(e.labelText)
                 g.font = e.font
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING as RenderingHints.Key, RenderingHints.VALUE_ANTIALIAS_ON)
-                if (e.textAlignment == Alignment.Left) {
+                if (e.textAlignment == Element.Alignment.Left) {
                     g.drawString(e.labelText, elementX, elementY + fontSize)
-                } else if (e.textAlignment == Alignment.Right) {
+                } else if (e.textAlignment == Element.Alignment.Right) {
                     g.drawString(e.labelText, (elementX + elementW) - width, elementY + fontSize)
-                } else if (e.textAlignment == Alignment.Center) {
+                } else if (e.textAlignment == Element.Alignment.Center) {
                     g.drawString(e.labelText, elementX + ((elementW - width) / 2) as int, elementY + fontSize as int)
                 }
             }
@@ -206,6 +207,12 @@ abstract class VGUIRenderer {
         elements.removeAll(remove)
     }
 
+    void select(Element e) {
+        if (!e instanceof ElemenX) return
+        def x = e as ElemenX
+        select(x)
+    }
+
     void select(ElemenX e) {
         if (!e) return;
         if (selectedElements.contains(e)) return
@@ -246,13 +253,13 @@ abstract class VGUIRenderer {
 
     void translate(ElemenX e, double dx, double dy) { // TODO: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
         //        Rectangle originalBounds = new Rectangle(e.getBounds())
-        if (e.XAlignment == Alignment.Right) {
+        if (e.XAlignment == Element.Alignment.Right) {
             dx *= -1
         }
         double scaleX = screen.width / (double) internal.width
         dx = Math.round(dx / scaleX)
         e.localX += dx
-        if (e.YAlignment == VAlignment.Bottom) {
+        if (e.YAlignment == Element.VAlignment.Bottom) {
             dy *= -1
         }
         double scaleY = screen.height / (double) internal.height
@@ -273,17 +280,17 @@ abstract class VGUIRenderer {
 
         int getX() {
             if ((this.parent == null) || this.parent.name.replaceAll("\"", "").endsWith(".res")) {
-                if (this.XAlignment == Alignment.Center) {
+                if (this.XAlignment == Element.Alignment.Center) {
                     return this.localX + (internal.width / 2)
                 } else {
-                    return (this.XAlignment == Alignment.Right) ? (internal.width - this.localX) : this.localX
+                    return (this.XAlignment == Element.Alignment.Right) ? (internal.width - this.localX) : this.localX
                 }
             } else {
                 int x
-                if (this.XAlignment == Alignment.Center) {
+                if (this.XAlignment == Element.Alignment.Center) {
                     x = (this.parent.width / 2 + this.localX) as int
                 } else {
-                    x = (this.XAlignment == Alignment.Right ? (this.parent.width - this.localX) : this.localX)
+                    x = (this.XAlignment == Element.Alignment.Right ? (this.parent.width - this.localX) : this.localX)
                 }
                 return x + this.parent.x
             }
@@ -291,17 +298,17 @@ abstract class VGUIRenderer {
 
         int getY() {
             if ((this.parent == null) || this.parent.name.replaceAll("\"", "").endsWith(".res")) {
-                if (this.YAlignment == Alignment.Center) {
+                if (this.YAlignment == Element.Alignment.Center) {
                     return this.localY + (internal.height / 2)
                 } else {
-                    return (this.YAlignment == Alignment.Right) ? (internal.height - this.localY) : this.localY
+                    return (this.YAlignment == Element.Alignment.Right) ? (internal.height - this.localY) : this.localY
                 }
             }
             int y
-            if (this.YAlignment == Alignment.Center) {
+            if (this.YAlignment == Element.Alignment.Center) {
                 y = (this.parent.height / 2 + this.localY) as int
             } else {
-                y = ((this.YAlignment == Alignment.Right) ? (this.parent.height - this.localY) : this.localY) as int
+                y = ((this.YAlignment == Element.Alignment.Right) ? (this.parent.height - this.localY) : this.localY) as int
             }
             return y + this.parent.y
         }
