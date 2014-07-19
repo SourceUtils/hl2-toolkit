@@ -55,9 +55,6 @@ public class HL2DEM {
                 frame = Message.parse(this, buffer);
             } catch(BufferUnderflowException e) {
                 LOG.log(Level.WARNING, "Unexpected end of demo");
-                // Insert artificial stop
-                Message stop = new Message(this, MessageType.Stop, frames.get(frames.size() - 1).tick);
-                frames.add(stop);
                 break;
             }
             frames.add(frame);
