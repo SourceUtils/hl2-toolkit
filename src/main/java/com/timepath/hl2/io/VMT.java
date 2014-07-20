@@ -17,26 +17,26 @@ import java.util.logging.Logger;
  */
 public class VMT {
 
-    public static VDFNode load(File f) throws IOException {
+    public static VMTNode load(File f) throws IOException {
         return load(new FileInputStream(f));
     }
 
-    public static VDFNode load(InputStream is) throws IOException {
+    public static VMTNode load(InputStream is) throws IOException {
         return load(is, StandardCharsets.UTF_8);
     }
 
-    public static VDFNode load(InputStream is, Charset c) throws IOException {
+    public static VMTNode load(InputStream is, Charset c) throws IOException {
         return new VMTNode(is, c);
     }
 
-    public static VDFNode load(File f, Charset c) throws IOException {
+    public static VMTNode load(File f, Charset c) throws IOException {
         return load(new FileInputStream(f), c);
     }
 
-    private static class VMTNode extends VDFNode {
+    public static class VMTNode extends VDFNode {
 
         private static final Logger LOG = Logger.getLogger(VMTNode.class.getName());
-        private final VDFNode root;
+        public final VDFNode root;
 
         public VMTNode(final InputStream is, final Charset c) throws IOException {
             super(is, c);

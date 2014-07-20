@@ -1,5 +1,5 @@
 package com.timepath.vgui
-import com.timepath.hl2.io.image.VTF
+
 import com.timepath.io.utils.ViewableData
 import com.timepath.steam.io.VDFNode
 import groovy.transform.CompileStatic
@@ -94,7 +94,7 @@ class Element implements ViewableData {
         }
     }
 
-    String getFile() { "" } // TODO
+    String file
 
     protected Element() {
     }
@@ -122,20 +122,33 @@ class Element implements ViewableData {
         return s;
     }
 
+    private Integer parseInt(String v) {
+        Integer vint = null;
+        try {
+            vint = Integer.parseInt(v);
+        } catch (NumberFormatException ignored) {
+        }
+        if (!vint) try {
+            vint = (int) Float.parseFloat(v)
+        } catch (NumberFormatException ignored) {
+        }
+        return vint
+    }
+
     // TODO: remove duplicate keys (only keep the latest, or highlight duplicates)
     void load() {
         for (entry in properties) {
             def k = trim(entry.key)
             def v = trim(String.valueOf(entry.value))
-            Integer vint = null;
-            try {
-                vint = Integer.parseInt(v);
-            } catch (NumberFormatException ignored) {
-            }
+            Integer vint = parseInt(v);
             boolean vbool = vint == 1;
             switch (k.toLowerCase()) {
-                case "enabled": enabled = vbool; break
-                case "visible": enabled = vbool; break
+                case "enabled":
+                    if (vbool) enabled = vbool
+                    break
+                case "visible":
+                    if (vbool) enabled = vbool
+                    break
                 case "xpos":
                     if (v.startsWith("c")) {
                         XAlignment = Alignment.Center
@@ -146,7 +159,7 @@ class Element implements ViewableData {
                     } else {
                         XAlignment = Alignment.Left
                     }
-                    localX = vint
+                    if ((vint = parseInt(v))) localX = vint
                     break
                 case "ypos":
                     if (v.startsWith("c")) {
@@ -158,22 +171,22 @@ class Element implements ViewableData {
                     } else {
                         YAlignment = VAlignment.Top
                     }
-                    localY = vint
+                    if ((vint = parseInt(v))) localY = vint
                     break
-                case "zpos": layer = vint; break
+                case "zpos": if (vint) layer = vint; break
                 case "wide":
                     if (v.startsWith("f")) {
                         v = v.substring(1)
                         wideMode = DimensionMode.Mode2
                     }
-                    wide = vint
+                    if ((vint = parseInt(v))) wide = vint
                     break
                 case "tall":
                     if (v.startsWith("f")) {
                         v = v.substring(1)
                         tallMode = DimensionMode.Mode2
                     }
-                    tall = vint
+                    if ((vint = parseInt(v))) tall = vint
                     break
                 case "labeltext": labelText = v; break
                 case "textalignment":
@@ -183,42 +196,32 @@ class Element implements ViewableData {
                         textAlignment = "right".equalsIgnoreCase(v) ? Alignment.Right : Alignment.Left
                     }
                     break
-                case "controlname": controlName = v; break // Others are areas
+                case "controlname": // Others are areas
+                    controlName = v
+                    break
                 case "fgcolor":
                     String[] c = v.split(" ")
-                    fgColor = new Color(Integer.parseInt(c[0]),
-                            Integer.parseInt(c[1]),
-                            Integer.parseInt(c[2]),
-                            Integer.parseInt(c[3]))
+                    try {
+                        fgColor = new Color(Integer.parseInt(c[0]),
+                                Integer.parseInt(c[1]),
+                                Integer.parseInt(c[2]),
+                                Integer.parseInt(c[3]))
+                    } catch (NumberFormatException ignored) {
+                        // It's a variable
+                    }
                     break
                 case "font":
-                    if (!fonts.containsKey(v)) {
-                        continue
-                    }
+                    if (!fonts.containsKey(v)) continue
                     Font f = fonts.get(v).font
                     if (f) font = f
                     break
                 case "image":
                 case "icon":
-                    v = v.replaceAll("\"", "")
-                    if ((v != null) && v.empty) {
-                        continue
-                    }
-                    try {
-                        VTF vtf = VTF.load("${v}.vtf")
-                        if (vtf == null) {
-                            continue
-                        }
-                        Image img = vtf.getImage(0)
-                        if (img == null) {
-                            continue
-                        }
-                        image = img
-                    } catch (IOException ex) {
-                        LOG.log(Level.SEVERE, null, ex)
-                    }
+                    image = VGUIRenderer.locateImage(v)
                     break
-                default: LOG.log(Level.WARNING, "Unknown property: {0}", k); break
+                default:
+                    LOG.log(Level.WARNING, "Unknown property: {0}", k)
+                    break
             }
         }
         if (controlName != null) {
@@ -282,18 +285,18 @@ class Element implements ViewableData {
     void validateDisplay() {
         for (VDFProperty entry : properties) {
             String k = entry.key
-            if (k == null) {
-                continue
-            }
+            if (!k) continue
             try {
                 if ("enabled".equalsIgnoreCase(k)) {
                     entry.value = enabled ? 1 : 0
                 } else if ("visible".equalsIgnoreCase(k)) {
                     entry.value = visible ? 1 : 0
                 } else if ("xpos".equalsIgnoreCase(k)) {
-                    entry.value = XAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalX()
+                    def e = XAlignment
+                    entry.value = e.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalX()
                 } else if ("ypos".equalsIgnoreCase(k)) {
-                    entry.value = YAlignment.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalY()
+                    def e = Alignment.values()[YAlignment.ordinal()];
+                    entry.value = e.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + getLocalY()
                 } else if ("zpos".equalsIgnoreCase(k)) {
                     entry.value = layer
                 } else if ("wide".equalsIgnoreCase(k)) {

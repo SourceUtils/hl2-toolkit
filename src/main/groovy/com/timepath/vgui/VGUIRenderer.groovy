@@ -54,6 +54,32 @@ abstract class VGUIRenderer {
     /** Currently hoverer */
     Element hoveredElement
 
+    static abstract class ResourceLocator {
+        /**
+         * Locate a resource
+         * @return an InputStream to the resource, or null
+         */
+        abstract InputStream locate(String path);
+        abstract Image locateImage(String path);
+    }
+    private static LinkedList<ResourceLocator> locators = []
+
+    static void registerLocator(ResourceLocator locator) { locators << locator }
+
+    static InputStream locate(String path) {
+        for (locator in locators) {
+            def result = locator.locate(path)
+            if (result) return result
+        }
+    }
+
+    static Image locateImage(final String name) {
+        for (locator in locators) {
+            def result = locator.locateImage(name)
+            if (result) return result
+        }
+    }
+
     private static void fitRect(Rectangle r, Point p1, Point p2) {
         r.@x = Math.min(p1.@x, p2.@x)
         r.@y = Math.min(p1.@y, p2.@y)
