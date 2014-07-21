@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,7 +31,7 @@ public class Message {
     public final  MessageType type;
     private final HL2DEM      outer;
     public        ByteBuffer  data;
-    public Collection<Pair<Object, Object>> meta = new LinkedList<>();
+    public List<Pair<Object, Object>> meta = new LinkedList<>();
     public  boolean incomplete;
     private boolean parsed;
     /**
@@ -108,100 +107,98 @@ public class Message {
             case Signon:
             case Packet: {
                 BitBuffer bb = new BitBuffer(data);
-                List<Pair<Object, Object>> values = new LinkedList<>();
                 String error = null;
-                while(bb.remaining() >= 1) {
+                Throwable thrown = null;
+                int opSize = ( outer.header.networkProtocol >= 16 ) ? 6 : 5;
+                while(bb.remaining() > opSize) {
                     try {
-                        int mid = (int) bb.getBits(( outer.header.networkProtocol >= 16 ) ? 6 : 5);
-                        Packet p = Packet.get(mid);
-                        if(p != null) {
+                        int op = (int) bb.getBits(opSize);
+                        Packet p = Packet.get(op);
+                        if(p == null) {
+                            error = MessageFormat.format("Unknown message type {0} in {1}", op, this);
+                        } else {
                             List<Pair<Object, Object>> list = new LinkedList<>();
                             try {
                                 if(!p.handler.read(bb, list, outer)) {
-                                    error = MessageFormat.format("Incomplete read of {0} at {1}", p, tick);
+                                    error = MessageFormat.format("Incomplete read of {0} in {1}", p, this);
                                 }
                             } catch(BufferUnderflowException ignored) {
                             } catch(Exception e) {
-                                error = MessageFormat.format("Exception {0} in {1} at {2}", e, p, tick);
-                                LOG.log(Level.WARNING, null, e);
+                                error = MessageFormat.format("Exception in {0} in {1}", p, this);
+                                thrown = e;
                             }
-                            values.add(new Pair<Object, Object>(p, list));
-                        } else {
-                            error = MessageFormat.format("Unknown message type {0} at {1}", mid, tick);
+                            meta.add(new Pair<Object, Object>(p, list));
                         }
                     } catch(BufferUnderflowException e) {
-                        error = e.toString();
+                        error = MessageFormat.format("Out of data in {0}", this);
                     }
                     if(error != null) {
                         incomplete = true;
-                        values.add(new Pair<Object, Object>("error", error));
-                        LOG.log(Level.WARNING, error);
+                        meta.add(new Pair<Object, Object>("error", error));
+                        LOG.log(Level.WARNING, error, thrown);
                         break;
                     }
                 }
-                meta.add(new Pair<Object, Object>(this, values));
+                break;
             }
-            break;
             case ConsoleCmd: {
                 String cmd = DataUtils.getText(data, true);
-                meta.add(new Pair<Object, Object>(this, cmd));
+                meta.add(new Pair<Object, Object>("cmd", cmd));
                 if(data.remaining() > 0) {
                     LOG.log(Level.FINE, "Underflow: {0}, {1}", new Object[] { data.remaining(), data.position() });
                 }
+                break;
             }
-            break;
             case UserCmd: {
-                List<Pair<Object, Object>> values = new LinkedList<>();
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
                 BitBuffer bb = new BitBuffer(data);
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Command number", bb.getInt()));
+                    meta.add(new Pair<Object, Object>("Command number", bb.getInt()));
                 } // else assume steady increment
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Tick count", bb.getInt()));
+                    meta.add(new Pair<Object, Object>("Tick count", bb.getInt()));
                 } // else assume steady increment
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Viewangle pitch", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Viewangle pitch", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Viewangle yaw", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Viewangle yaw", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Viewangle roll", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Viewangle roll", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Foward move", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Foward move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Side move", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Side move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Up move", bb.getFloat()));
+                    meta.add(new Pair<Object, Object>("Up move", bb.getFloat()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Buttons", Input.get(bb.getInt())));
+                    meta.add(new Pair<Object, Object>("Buttons", Input.get(bb.getInt())));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Impulse", bb.getByte()));
+                    meta.add(new Pair<Object, Object>("Impulse", bb.getByte()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Weapon select", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
+                    meta.add(new Pair<Object, Object>("Weapon select", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
                     if(bb.getBoolean()) {
-                        values.add(new Pair<Object, Object>("Weapon subtype", bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)));
+                        meta.add(new Pair<Object, Object>("Weapon subtype", bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)));
                     }
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Mouse Dx", bb.getShort()));
+                    meta.add(new Pair<Object, Object>("Mouse Dx", bb.getShort()));
                 }
                 if(bb.getBoolean()) {
-                    values.add(new Pair<Object, Object>("Mouse Dy", bb.getShort()));
+                    meta.add(new Pair<Object, Object>("Mouse Dy", bb.getShort()));
                 }
                 if(bb.remaining() > 0) {
-                    values.add(new Pair<Object, Object>("Underflow", bb.remaining()));
+                    meta.add(new Pair<Object, Object>("Underflow", bb.remaining()));
                 }
-                meta.add(new Pair<Object, Object>(this, values));
+                break;
             }
-            break;
             // TODO
             case DataTables:
             case StringTables:
