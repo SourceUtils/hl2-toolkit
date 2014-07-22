@@ -133,6 +133,7 @@ public class Message {
                     } catch(BufferUnderflowException e) {
                         error = MessageFormat.format("Out of data in {0}", this);
                     }
+                    meta.add(new Pair<Object, Object>("remaining bits", bb.remainingBits()));
                     if(error != null) {
                         incomplete = true;
                         meta.add(new Pair<Object, Object>("error", error));

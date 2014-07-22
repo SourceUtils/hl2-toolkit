@@ -67,14 +67,16 @@ public enum UserMessage {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             String[] destination = {
-                    "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTCENTER", "HUD_PRINTTALK"
+                    "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK", "HUD_PRINTCENTER"
             };
-            l.add(new Pair<Object, Object>("Destination", destination[bb.getByte()]));
+            byte msgDest = bb.getByte();
+            l.add(new Pair<Object, Object>("Destination", destination[msgDest]));
             l.add(new Pair<Object, Object>("Message", bb.getString()));
-            l.add(new Pair<Object, Object>("arg[0]", bb.getString()));
-            l.add(new Pair<Object, Object>("arg[1]", bb.getString()));
-            l.add(new Pair<Object, Object>("arg[2]", bb.getString()));
-            l.add(new Pair<Object, Object>("arg[3]", bb.getString()));
+            // These seem to be disabled in TF2
+//            l.add(new Pair<Object, Object>("args[0]", bb.getString()));
+//            l.add(new Pair<Object, Object>("args[1]", bb.getString()));
+//            l.add(new Pair<Object, Object>("args[2]", bb.getString()));
+//            l.add(new Pair<Object, Object>("args[3]", bb.getString()));
             return true;
         }
     }),
@@ -182,13 +184,13 @@ public enum UserMessage {
     }
 
     static boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-        int userMsgType = (int) bb.getBits(8);
-        UserMessage m = get(userMsgType);
-        l.add(new Pair<Object, Object>("Message type", ( m != null ) ? m.name() : ( "Unknown: " + userMsgType )));
+        int msgType = (int) bb.getByte();
+        UserMessage m = get(msgType);
+        l.add(new Pair<Object, Object>("Message type", ( m != null ) ? m.name() : ( "Unknown: " + msgType )));
         int length = (int) bb.getBits(11);
         l.add(new Pair<Object, Object>("Length in bits", length));
         if(( m == null ) || ( m.handler == null )) {
-            l.add(new Pair<Object, Object>("TODO", userMsgType));
+            l.add(new Pair<Object, Object>("TODO", msgType));
             bb.getBits(length); // TODO
             return true;
         }
