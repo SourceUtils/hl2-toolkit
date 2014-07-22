@@ -2,6 +2,7 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.DataUtils;
 import com.timepath.Pair;
+import com.timepath.hl2.io.demo.Packet.Type;
 import com.timepath.io.BitBuffer;
 import com.timepath.io.OrderedOutputStream;
 import com.timepath.io.struct.StructField;
@@ -113,13 +114,13 @@ public class Message {
                 while(bb.remaining() > opSize) {
                     try {
                         int op = (int) bb.getBits(opSize);
-                        Packet p = Packet.get(op);
-                        if(p == null) {
+                        Type type = Type.get(op);
+                        if(type == null) {
                             error = MessageFormat.format("Unknown message type {0} in {1}", op, this);
                         } else {
-                            List<Pair<Object, Object>> list = new LinkedList<>();
+                            Packet p = new Packet(type, bb.positionBits());
                             try {
-                                if(!p.handler.read(bb, list, outer)) {
+                                if(!type.handler.read(bb, p.list, outer)) {
                                     error = MessageFormat.format("Incomplete read of {0} in {1}", p, this);
                                 }
                             } catch(BufferUnderflowException ignored) {
@@ -127,7 +128,7 @@ public class Message {
                                 error = MessageFormat.format("Exception in {0} in {1}", p, this);
                                 thrown = e;
                             }
-                            meta.add(new Pair<Object, Object>(p, list));
+                            meta.add(new Pair<Object, Object>(p, p.list));
                         }
                     } catch(BufferUnderflowException e) {
                         error = MessageFormat.format("Out of data in {0}", this);
