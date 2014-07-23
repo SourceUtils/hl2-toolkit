@@ -168,7 +168,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Table name", tableName));
                 int maxEntries = bb.getShort();
                 l.add(new Pair<Object, Object>("Max entries", maxEntries));
-                int encodeBits = (int) bb.getBits(log2(maxEntries));
+                int encodeBits = log2(maxEntries);
                 long numEntries = bb.getBits(encodeBits + 1);
                 l.add(new Pair<Object, Object>("Number of entries", numEntries));
                 int length = (int) bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS + 3);
