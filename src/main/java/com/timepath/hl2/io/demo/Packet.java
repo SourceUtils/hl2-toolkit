@@ -4,18 +4,17 @@ import com.timepath.Pair;
 import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.BitBuffer;
 
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * @author TimePath
  */
 public class Packet {
 
-    private static final Logger                     LOG  = Logger.getLogger(Packet.class.getName());
-    public final         List<Pair<Object, Object>> list = new LinkedList<>();
+    public final List<Pair<Object, Object>> list = new LinkedList<>();
     public final Type type;
     public final int  offset;
 
@@ -27,9 +26,7 @@ public class Packet {
     @Override
     public String toString() { return MessageFormat.format("{0}, offset {1}", type, offset); }
 
-    private static int log2(final int i) {
-        return (int) ( Math.log(i) / Math.log(2) );
-    }
+    private static int log2(int i) { return (int) ( Math.log(i) / Math.log(2) ); }
 
     /**
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.h
@@ -37,7 +34,7 @@ public class Packet {
     public static enum Type {
         net_NOP(0, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 return true;
             }
         }),
@@ -59,7 +56,7 @@ public class Packet {
         }),
         net_Tick(3, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Tick", bb.getInt()));
                 l.add(new Pair<Object, Object>("Host frametime", bb.getShort()));
                 l.add(new Pair<Object, Object>("Host frametime StdDev", bb.getShort()));
@@ -75,7 +72,7 @@ public class Packet {
         }),
         net_SetConVar(5, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 short n = bb.getByte();
                 for(int i = 0; i < n; i++) {
                     l.add(new Pair<Object, Object>(bb.getString(), bb.getString()));
@@ -85,7 +82,7 @@ public class Packet {
         }),
         net_SignonState(6, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 int state = bb.getByte() & 0xFF;
                 SignonState[] signon = SignonState.values();
                 l.add(new Pair<Object, Object>("Signon state", ( state < signon.length ) ? signon[state] : state));
@@ -98,14 +95,14 @@ public class Packet {
          */
         svc_Print(7, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Value", bb.getString()));
                 return true;
             }
         }),
         svc_ServerInfo(8, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 short version = (short) bb.getBits(16);
                 l.add(new Pair<Object, Object>("Version", version));
                 l.add(new Pair<Object, Object>("Server count", (int) bb.getBits(32)));
@@ -113,10 +110,14 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Dedicated", bb.getBoolean()));
                 l.add(new Pair<Object, Object>("Server client CRC", "0x" + Integer.toHexString(bb.getInt())));
                 l.add(new Pair<Object, Object>("Max classes", bb.getBits(16)));
-                if(version < 18) {
-                    l.add(new Pair<Object, Object>("Server map CRC", "0x" + Integer.toHexString(bb.getInt())));
+                if(version >= 18) {
+                    byte[] md5 = new byte[16];
+                    bb.get(md5);
+                    l.add(new Pair<Object, Object>("Server map MD5",
+                                                   String.format("%0" + ( md5.length * 2 ) + "x",
+                                                                 new BigInteger(1, md5))));
                 } else {
-                    bb.getBits(128); // TODO: display out map md5 hash
+                    l.add(new Pair<Object, Object>("Server map CRC", "0x" + Integer.toHexString(bb.getInt())));
                 }
                 l.add(new Pair<Object, Object>("Current player count", bb.getBits(8)));
                 l.add(new Pair<Object, Object>("Max player count", bb.getBits(8)));
@@ -136,16 +137,16 @@ public class Packet {
         svc_SendTable(9, new PacketHandler() {}),
         svc_ClassInfo(10, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 int n = bb.getShort();
                 l.add(new Pair<Object, Object>("Number of server classes", n));
                 boolean cc = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Create classes on client", cc));
-                serverClassBits = log2(n) + 1;
-                l.add(new Pair<Object, Object>("serverClassBits", serverClassBits));
+                demo.serverClassBits = log2(n) + 1;
+                l.add(new Pair<Object, Object>("serverClassBits", demo.serverClassBits));
                 if(!cc) {
                     for(int i = 0; i < n; i++) {
-                        l.add(new Pair<Object, Object>("Class ID", bb.getBits(serverClassBits)));
+                        l.add(new Pair<Object, Object>("Class ID", bb.getBits(demo.serverClassBits)));
                         l.add(new Pair<Object, Object>("Class name", bb.getString()));
                         l.add(new Pair<Object, Object>("Datatable name", bb.getString()));
                     }
@@ -162,13 +163,11 @@ public class Packet {
         }),
         /**
          * TODO
+         * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp#L898
          */
         svc_CreateStringTable(12, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                final int SUBSTRING_BITS = 5;
-                final int MAX_USERDATA_BITS = 14;
-                final int MAX_USERDATA_SIZE = ( 1 << MAX_USERDATA_BITS );
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 String tableName = bb.getString();
                 l.add(new Pair<Object, Object>("Table name", tableName));
                 int maxEntries = bb.getShort();
@@ -187,81 +186,36 @@ public class Packet {
                     userDataSizeBits = (int) bb.getBits(4);
                     l.add(new Pair<Object, Object>("Userdata bits", userDataSizeBits));
                 }
-                // TODO: https://github.com/LestaD/SourceEngine2007/blob/master/se2007/engine/networkstringtable.cpp#L595
+                StringTable.create(tableName, maxEntries, entryBits, userDataFixedSize, userDataSize, userDataSizeBits)
+                //                .parse(bb, l)
+                ;
                 bb.getBits(length); // Skip
-                /*
-                long lastEntry = -1;
-                List<String> history = new ArrayList<>(32); // Fixed size window
-
-                for(int i = 0; i < numEntries; i++) {
-                    long entryIndex = lastEntry + 1;
-                    if(!bb.getBoolean()) {
-                        entryIndex = bb.getBits(entryBits);
-                    }
-                    lastEntry = entryIndex;
-                    if(entryIndex < 0 || entryIndex >= maxEntries) {
-                        LOG.warning(String.format("Server sent bogus string index %d for table %s",
-                                                  entryIndex,
-                                                  tableName));
-                    }
-                    String entry = "";
-                    if(bb.getBoolean()) {
-                        if(bb.getBoolean()) { // Substring check
-                            int index = (int) bb.getBits(5);
-                            int bytestocopy = (int) bb.getBits(SUBSTRING_BITS);
-                            entry = history.get(index).substring(0, bytestocopy + 1);
-                            String substr = bb.getString(bytestocopy);
-                            entry += substr;
-                        } else {
-                            entry = bb.getString();
-                        }
-                        l.add(new Pair<Object, Object>("entry", entry));
-                    }
-                    // Read in the user data.
-                    if(bb.getBoolean()) {
-                        byte[] tempbuf = new byte[MAX_USERDATA_SIZE];
-                        if(userDataFixedSize) {
-                            assert userDataSize > 0;
-                            // TODO: store in tempbuf
-                            l.add(new Pair<Object, Object>("Userdata", bb.getBits(userDataSizeBits)));
-                        } else {
-                            int nBytes = (int) bb.getBits(MAX_USERDATA_BITS);
-                            assert nBytes <= MAX_USERDATA_SIZE : ( String.format("message too large (%d bytes).",
-                                                                                 nBytes) );
-                            bb.get(tempbuf, 0, nBytes);
-                        }
-                    }
-                    if(entryIndex < numEntries) { // Updating
-                    } else { // Adding
-                    }
-                    if(history.size() > 31) {
-                        history.remove(0);
-                    }
-                    history.add(entry);
-                }*/
                 return true;
             }
         }),
         /**
          * TODO
+         * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.cpp#L837
          */
         svc_UpdateStringTable(13, new PacketHandler() {
             @Override
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                int MAX_TABLES = 32;
-                long tableID = bb.getBits(log2(MAX_TABLES)); // 5 bits
+                int tableID = (int) bb.getBits(log2(StringTable.MAX_TABLES)); // 5 bits
                 l.add(new Pair<Object, Object>("Table ID", tableID));
                 long changedEntries = bb.getBoolean() ? bb.getBits(16) : 1;
                 l.add(new Pair<Object, Object>("Changed entries", changedEntries));
                 int length = (int) bb.getBits(20);
                 l.add(new Pair<Object, Object>("Length in bits", length));
-                bb.getBits(length); // TODO
+                StringTable.get(tableID)
+                //                .parse(bb, l)
+                ;
+                bb.getBits(length); // Skip
                 return true;
             }
         }),
         svc_VoiceInit(14, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Codec", bb.getString()));
                 l.add(new Pair<Object, Object>("Quality", bb.getByte()));
                 return true;
@@ -279,14 +233,14 @@ public class Packet {
          */
         svc_Sounds(17, new PacketHandler() {
             @Override
-            public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 boolean reliable = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Reliable", reliable));
                 int count = reliable ? 1 : bb.getByte();
                 l.add(new Pair<Object, Object>("Number of sounds", count));
                 int length = reliable ? bb.getByte() : bb.getShort();
                 l.add(new Pair<Object, Object>("Length in bits", length));
-                bb.getBits(length); // TODO
+                bb.getBits(length); // Skip
                 return true;
             }
         }),
@@ -323,7 +277,7 @@ public class Packet {
             }
         }),
         svc_BSPDecal(21, new PacketHandler() {
-            public float getCoord(BitBuffer bb) {
+            float getCoord(BitBuffer bb) {
                 boolean hasint = bb.getBoolean();
                 boolean hasfract = bb.getBoolean();
                 float value = 0;
@@ -342,7 +296,7 @@ public class Packet {
                 return value;
             }
 
-            public Vector3f getVecCoord(BitBuffer bb) {
+            Vector3f getVecCoord(BitBuffer bb) {
                 boolean hasx = bb.getBoolean();
                 boolean hasy = bb.getBoolean();
                 boolean hasz = bb.getBoolean();
@@ -390,7 +344,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Class ID: ", bb.getBits(9)));
                 int length = (int) bb.getBits(11);
                 l.add(new Pair<Object, Object>("Length in bits: ", length));
-                bb.getBits(length); // TODO
+                bb.getBits(length); // Skip
                 return true;
             }
         }),
@@ -439,7 +393,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Length in bits", length));
                 boolean updateBaseline = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Update baseline", updateBaseline));
-                bb.getBits(length); // TODO
+                bb.getBits(length); // Skip
                 return true;
             }
         }),
@@ -461,7 +415,7 @@ public class Packet {
                     numEntries = 1;
                 }
                 int classID = -1;
-                l.add(new Pair<Object, Object>("serverClassBits", serverClassBits));
+                l.add(new Pair<Object, Object>("serverClassBits", demo.serverClassBits));
                 for(int i = 0; i < numEntries; i++) {
                     float delay = 0;
                     if(bb.getBoolean()) {
@@ -469,7 +423,7 @@ public class Packet {
                     }
                     l.add(new Pair<Object, Object>("ent[" + i + "].delay", delay));
                     if(bb.getBoolean()) { // Full update
-                        classID = (int) bb.getBits(serverClassBits);
+                        classID = (int) bb.getBits(demo.serverClassBits);
                     }
                     l.add(new Pair<Object, Object>("ent[" + i + "].classID", classID));
                 }
@@ -479,10 +433,7 @@ public class Packet {
         svc_Prefetch(28, new PacketHandler() {
             @Override
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                int bits = HL2DEM.MAX_SOUND_INDEX_BITS;
-                if(demo.header.networkProtocol <= 22) {
-                    bits = 13;
-                }
+                int bits = demo.header.networkProtocol >= 23 ? HL2DEM.MAX_SOUND_INDEX_BITS : 13;
                 l.add(new Pair<Object, Object>("Sound index", bb.getBits(bits)));
                 return true;
             }
@@ -496,7 +447,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Menu type", bb.getBits(16)));
                 int length = (int) bb.getBits(16);
                 l.add(new Pair<Object, Object>("Length in bytes", length));
-                bb.getBits(length << 3); // TODO
+                bb.getBits(length * 8); // Skip
                 return true;
             }
         }),
@@ -533,13 +484,14 @@ public class Packet {
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 int length = bb.getInt();
                 l.add(new Pair<Object, Object>("Length in bits: ", length));
-                bb.getBits(length); // TODO
+                bb.getBits(length); // Skip
                 return true;
             }
         });
-        private static int           serverClassBits;
-        final          PacketHandler handler;
-        private final  int[]         id;
+        /** The handler associated with this packet */
+        final         PacketHandler handler;
+        /** The opcode for this packet */
+        private final int[]         id;
 
         Type(int id, PacketHandler handler) {
             this(new int[] { id }, handler);

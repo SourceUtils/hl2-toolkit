@@ -56,6 +56,7 @@ public class HL2DEM {
     private final        List<Message> frames                = new LinkedList<>();
     GameEvent[] gameEvents;
     DemoHeader  header;
+    int serverClassBits;
 
     private HL2DEM(ByteBuffer buffer, boolean eager) {
         header = DemoHeader.parse(DataUtils.getSlice(buffer, 32 + 260 * 4));

@@ -117,6 +117,7 @@ public class Message {
                         Type type = Type.get(op);
                         if(type == null) {
                             error = MessageFormat.format("Unknown message type {0} in {1}", op, this);
+                            thrown = new Exception("Unknown message");
                         } else {
                             Packet p = new Packet(type, bb.positionBits());
                             try {
@@ -137,7 +138,7 @@ public class Message {
                     if(error != null) {
                         incomplete = true;
                         meta.add(new Pair<Object, Object>("error", error));
-                        LOG.log(Level.WARNING, error, thrown);
+                        if(thrown != null) LOG.log(Level.WARNING, error, thrown);
                         break;
                     }
                 }
