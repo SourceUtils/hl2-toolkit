@@ -7,13 +7,15 @@ import com.timepath.io.BitBuffer;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * @author TimePath
  */
 public class Packet {
 
-    public final List<Pair<Object, Object>> list = new LinkedList<>();
+    private static final Logger                     LOG  = Logger.getLogger(Packet.class.getName());
+    public final         List<Pair<Object, Object>> list = new LinkedList<>();
     public final Type type;
     public final int  offset;
 
@@ -164,24 +166,79 @@ public class Packet {
         svc_CreateStringTable(12, new PacketHandler() {
             @Override
             public boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+                final int SUBSTRING_BITS = 5;
+                final int MAX_USERDATA_BITS = 14;
+                final int MAX_USERDATA_SIZE = ( 1 << MAX_USERDATA_BITS );
                 String tableName = bb.getString();
                 l.add(new Pair<Object, Object>("Table name", tableName));
                 int maxEntries = bb.getShort();
                 l.add(new Pair<Object, Object>("Max entries", maxEntries));
-                int encodeBits = log2(maxEntries);
-                long numEntries = bb.getBits(encodeBits + 1);
+                int entryBits = log2(maxEntries);
+                long numEntries = bb.getBits(entryBits + 1);
                 l.add(new Pair<Object, Object>("Number of entries", numEntries));
                 int length = (int) bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS + 3);
                 l.add(new Pair<Object, Object>("Length in bits", length));
-                boolean f = bb.getBoolean();
-                l.add(new Pair<Object, Object>("Userdata fixed size", f));
-                if(f) {
-                    l.add(new Pair<Object, Object>("Userdata size", bb.getBits(12)));
-                    l.add(new Pair<Object, Object>("Userdata bits", bb.getBits(4)));
+                boolean userDataFixedSize = bb.getBoolean();
+                l.add(new Pair<Object, Object>("Userdata fixed size", userDataFixedSize));
+                int userDataSize = -1, userDataSizeBits = -1;
+                if(userDataFixedSize) {
+                    userDataSize = (int) bb.getBits(12);
+                    l.add(new Pair<Object, Object>("Userdata size", userDataSize));
+                    userDataSizeBits = (int) bb.getBits(4);
+                    l.add(new Pair<Object, Object>("Userdata bits", userDataSizeBits));
                 }
-                // ???: this is not in Source 2007 netmessages.h/cpp it seems. protocol version?
-                // l.add(new Pair<Object, Object>("Compressed",bb.getBoolean());
-                bb.getBits(length); // TODO
+                // TODO: https://github.com/LestaD/SourceEngine2007/blob/master/se2007/engine/networkstringtable.cpp#L595
+                bb.getBits(length); // Skip
+                /*
+                long lastEntry = -1;
+                List<String> history = new ArrayList<>(32); // Fixed size window
+
+                for(int i = 0; i < numEntries; i++) {
+                    long entryIndex = lastEntry + 1;
+                    if(!bb.getBoolean()) {
+                        entryIndex = bb.getBits(entryBits);
+                    }
+                    lastEntry = entryIndex;
+                    if(entryIndex < 0 || entryIndex >= maxEntries) {
+                        LOG.warning(String.format("Server sent bogus string index %d for table %s",
+                                                  entryIndex,
+                                                  tableName));
+                    }
+                    String entry = "";
+                    if(bb.getBoolean()) {
+                        if(bb.getBoolean()) { // Substring check
+                            int index = (int) bb.getBits(5);
+                            int bytestocopy = (int) bb.getBits(SUBSTRING_BITS);
+                            entry = history.get(index).substring(0, bytestocopy + 1);
+                            String substr = bb.getString(bytestocopy);
+                            entry += substr;
+                        } else {
+                            entry = bb.getString();
+                        }
+                        l.add(new Pair<Object, Object>("entry", entry));
+                    }
+                    // Read in the user data.
+                    if(bb.getBoolean()) {
+                        byte[] tempbuf = new byte[MAX_USERDATA_SIZE];
+                        if(userDataFixedSize) {
+                            assert userDataSize > 0;
+                            // TODO: store in tempbuf
+                            l.add(new Pair<Object, Object>("Userdata", bb.getBits(userDataSizeBits)));
+                        } else {
+                            int nBytes = (int) bb.getBits(MAX_USERDATA_BITS);
+                            assert nBytes <= MAX_USERDATA_SIZE : ( String.format("message too large (%d bytes).",
+                                                                                 nBytes) );
+                            bb.get(tempbuf, 0, nBytes);
+                        }
+                    }
+                    if(entryIndex < numEntries) { // Updating
+                    } else { // Adding
+                    }
+                    if(history.size() > 31) {
+                        history.remove(0);
+                    }
+                    history.add(entry);
+                }*/
                 return true;
             }
         }),
