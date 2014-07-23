@@ -13,6 +13,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Format of a demo:
+ * HL2DEM {
+ *   DemoHeader,
+ *   Message {
+ *     Packet
+ *     ...
+ *   }
+ *   ...
+ * }
+ *
  * @author TimePath
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h</a>
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h</a>
