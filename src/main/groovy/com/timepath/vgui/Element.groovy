@@ -15,6 +15,41 @@ import java.util.logging.Level
 
 import static com.timepath.steam.io.VDFNode.VDFProperty
 /**
+ * Conditional handling:
+ * <br/>
+ * If there are multiple values with supported conditionals, the last one specified wins.
+ * <br/>
+ * Some tags:
+ * <table>
+ * <tr>
+ * <th>Conditional</th>
+ * <th>Meaning</th>
+ * </tr>
+ * <tr>
+ * <td>$WIN32</td>
+ * <td>Not a console</td>
+ * </tr>
+ * <tr>
+ * <td>$WINDOWS</td>
+ * <td>Windows</td>
+ * </tr>
+ * <tr>
+ * <td>$POSIX</td>
+ * <td>OSX or Linux</td>
+ * </tr>
+ * <tr>
+ * <td>$OSX</td>
+ * <td>Mac OSX</td>
+ * </tr>
+ * <tr>
+ * <td>$LINUX</td>
+ * <td>Linux</td>
+ * </tr>
+ * <tr>
+ * <td>$X360</td>
+ * <td>Xbox360</td>
+ * </tr>
+ * </table>
  * @author TimePath
  */
 @CompileStatic
