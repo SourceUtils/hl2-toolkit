@@ -189,9 +189,11 @@ public enum UserMessage {
         l.add(new Pair<Object, Object>("Message type", ( m != null ) ? m.name() : ( "Unknown: " + msgType )));
         int length = (int) bb.getBits(11);
         l.add(new Pair<Object, Object>("Length in bits", length));
+        l.add(new Pair<Object, Object>("Start bit", bb.positionBits()));
+        l.add(new Pair<Object, Object>("End bit", bb.positionBits() + length));
         if(( m == null ) || ( m.handler == null )) {
             l.add(new Pair<Object, Object>("TODO", msgType));
-            bb.getBits(length); // TODO
+            bb.getBits(length); // Skip
             return true;
         }
         return m.handler.read(bb, l, demo, length);

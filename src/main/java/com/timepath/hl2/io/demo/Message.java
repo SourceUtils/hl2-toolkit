@@ -111,7 +111,7 @@ public class Message {
                 String error = null;
                 Throwable thrown = null;
                 int opSize = ( outer.header.networkProtocol >= 16 ) ? 6 : 5;
-                while(bb.remaining() > opSize) {
+                while(bb.remainingBits() > opSize) {
                     try {
                         int op = (int) bb.getBits(opSize);
                         Type type = Type.get(op);
@@ -124,7 +124,8 @@ public class Message {
                                 if(!type.handler.read(bb, p.list, outer)) {
                                     error = MessageFormat.format("Incomplete read of {0} in {1}", p, this);
                                 }
-                            } catch(BufferUnderflowException ignored) {
+                            } catch(BufferUnderflowException e) {
+                                error = MessageFormat.format("Out of data in {0}", this);
                             } catch(Exception e) {
                                 error = MessageFormat.format("Exception in {0} in {1}", p, this);
                                 thrown = e;
@@ -147,9 +148,6 @@ public class Message {
             case ConsoleCmd: {
                 String cmd = DataUtils.getText(data, true);
                 meta.add(new Pair<Object, Object>("cmd", cmd));
-                if(data.remaining() > 0) {
-                    LOG.log(Level.FINE, "Underflow: {0}, {1}", new Object[] { data.remaining(), data.position() });
-                }
                 break;
             }
             case UserCmd: {

@@ -86,7 +86,7 @@ public class Packet {
                 int state = bb.getByte() & 0xFF;
                 SignonState[] signon = SignonState.values();
                 l.add(new Pair<Object, Object>("Signon state", ( state < signon.length ) ? signon[state] : state));
-                l.add(new Pair<Object, Object>("Spawn count", (long) bb.getInt()));
+                l.add(new Pair<Object, Object>("Spawn count", (int) bb.getBits(32)));
                 return true;
             }
         }),
@@ -340,10 +340,10 @@ public class Packet {
         svc_EntityMessage(24, new PacketHandler() {
             @Override
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                l.add(new Pair<Object, Object>("Entity index: ", bb.getBits(11)));
-                l.add(new Pair<Object, Object>("Class ID: ", bb.getBits(9)));
+                l.add(new Pair<Object, Object>("Entity index", bb.getBits(11)));
+                l.add(new Pair<Object, Object>("Class ID", bb.getBits(9)));
                 int length = (int) bb.getBits(11);
-                l.add(new Pair<Object, Object>("Length in bits: ", length));
+                l.add(new Pair<Object, Object>("Length in bits", length));
                 bb.getBits(length); // Skip
                 return true;
             }
@@ -357,6 +357,9 @@ public class Packet {
                 GameEvent gameEvent = demo.gameEvents[gameEventId];
                 if(gameEvent != null) {
                     l.add(new Pair<Object, Object>(gameEvent.name, gameEvent.parse(bb).entrySet()));
+                } else {
+                    l.add(new Pair<Object, Object>("Unknown event", gameEventId));
+                    bb.getBits(length - 9); // Skip
                 }
                 return true;
             }
@@ -409,7 +412,9 @@ public class Packet {
                 int length = (int) bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS);
                 l.add(new Pair<Object, Object>("Length in bits", length));
                 // FIXME: underflows, but is usually last
-                // bb.getBits(Math.min(length, bb.remainingBits()));
+                bb.getBits(length); // Skip
+                return true;
+                /*
                 if(numEntries == 0) {
                     boolean reliable = true;
                     numEntries = 1;
@@ -428,6 +433,7 @@ public class Packet {
                     l.add(new Pair<Object, Object>("ent[" + i + "].classID", classID));
                 }
                 return false;
+                */
             }
         }),
         svc_Prefetch(28, new PacketHandler() {
