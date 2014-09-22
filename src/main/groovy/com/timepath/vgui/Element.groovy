@@ -14,6 +14,7 @@ import java.util.List
 import java.util.logging.Level
 
 import static com.timepath.steam.io.VDFNode.VDFProperty
+
 /**
  * Conditional handling:
  * <br/>

@@ -14,23 +14,40 @@ import java.util.logging.Logger;
  */
 class StringTable {
 
-    private static final Logger                    LOG               = Logger.getLogger(StringTable.class.getName());
-    public static final  int                       SUBSTRING_BITS    = 5;
-    public static final  int                       MAX_USERDATA_BITS = 14;
-    public static final  int                       MAX_USERDATA_SIZE = 1 << MAX_USERDATA_BITS;
-    public static final  int                       MAX_TABLES        = 32;
-    public static final  Map<Integer, StringTable> tables            = new HashMap<>();
-    private String  tableName;
-    private int     id;
-    private int     maxEntries;
-    private int     numEntries;
-    private int     userDataSize;
-    private int     userDataSizeBits;
+    public static final int SUBSTRING_BITS = 5;
+    public static final int MAX_USERDATA_BITS = 14;
+    public static final int MAX_USERDATA_SIZE = 1 << MAX_USERDATA_BITS;
+    public static final int MAX_TABLES = 32;
+    public static final Map<Integer, StringTable> tables = new HashMap<>();
+    private static final Logger LOG = Logger.getLogger(StringTable.class.getName());
+    private String tableName;
+    private int id;
+    private int maxEntries;
+    private int numEntries;
+    private int userDataSize;
+    private int userDataSizeBits;
     private boolean userDataFixedSize;
-    private int     entryBits;
+    private int entryBits;
 
     static StringTable get(int id) {
         return tables.get(id);
+    }
+
+    static StringTable create(String tableName,
+                              int maxEntries,
+                              int entryBits,
+                              boolean userDataFixedSize,
+                              int userDataSize,
+                              int userDataSizeBits) {
+        StringTable st = new StringTable();
+        st.tableName = tableName;
+        st.id = tables.size();
+        st.maxEntries = maxEntries;
+        st.entryBits = entryBits;
+        st.userDataFixedSize = userDataFixedSize;
+        st.userDataSize = userDataSize;
+        st.userDataSizeBits = userDataSizeBits;
+        return st;
     }
 
     /**
@@ -39,18 +56,18 @@ class StringTable {
     void parse(BitBuffer bb, List<Pair<Object, Object>> l) {
         long lastEntry = -1;
         List<String> history = new ArrayList<>(32); // Fixed size window
-        for(int i = 0; i < numEntries; i++) {
+        for (int i = 0; i < numEntries; i++) {
             long entryIndex = lastEntry + 1;
-            if(!bb.getBoolean()) {
+            if (!bb.getBoolean()) {
                 entryIndex = bb.getBits(entryBits);
             }
             lastEntry = entryIndex;
-            if(entryIndex < 0 || entryIndex >= maxEntries) {
+            if (entryIndex < 0 || entryIndex >= maxEntries) {
                 LOG.warning(String.format("Server sent bogus string index %d for table %s", entryIndex, tableName));
             }
             String entry = "";
-            if(bb.getBoolean()) {
-                if(bb.getBoolean()) { // Substring check
+            if (bb.getBoolean()) {
+                if (bb.getBoolean()) { // Substring check
                     int index = (int) bb.getBits(5);
                     int bytestocopy = (int) bb.getBits(SUBSTRING_BITS);
                     entry = history.get(index).substring(0, bytestocopy + 1);
@@ -62,43 +79,25 @@ class StringTable {
                 l.add(new Pair<Object, Object>("entry", entry));
             }
             // Read in the user data.
-            if(bb.getBoolean()) {
+            if (bb.getBoolean()) {
                 byte[] tempbuf = new byte[MAX_USERDATA_SIZE];
-                if(userDataFixedSize) {
+                if (userDataFixedSize) {
                     assert userDataSize > 0;
                     // TODO: store in tempbuf
                     l.add(new Pair<Object, Object>("Userdata", bb.getBits(userDataSizeBits)));
                 } else {
                     int nBytes = (int) bb.getBits(MAX_USERDATA_BITS);
-                    assert nBytes <= MAX_USERDATA_SIZE : ( String.format("message too large (%d bytes).", nBytes) );
+                    assert nBytes <= MAX_USERDATA_SIZE : (String.format("message too large (%d bytes).", nBytes));
                     bb.get(tempbuf, 0, nBytes);
                 }
             }
-            if(entryIndex < numEntries) { // Updating
+            if (entryIndex < numEntries) { // Updating
             } else { // Adding
             }
-            if(history.size() > 31) {
+            if (history.size() > 31) {
                 history.remove(0);
             }
             history.add(entry);
         }
-    }
-
-    static StringTable create(String tableName,
-                                     int maxEntries,
-                                     int entryBits,
-                                     boolean userDataFixedSize,
-                                     int userDataSize,
-                                     int userDataSizeBits)
-    {
-        StringTable st = new StringTable();
-        st.tableName = tableName;
-        st.id = tables.size();
-        st.maxEntries = maxEntries;
-        st.entryBits = entryBits;
-        st.userDataFixedSize = userDataFixedSize;
-        st.userDataSize = userDataSize;
-        st.userDataSizeBits = userDataSizeBits;
-        return st;
     }
 }

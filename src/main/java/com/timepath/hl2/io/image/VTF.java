@@ -27,34 +27,35 @@ public class VTF implements ViewableData {
     /**
      * 'VTF\0' as little endian
      */
-    private static final int    HEADER               = 0x46_54_56;
-    private static final Logger LOG                  = Logger.getLogger(VTF.class.getName());
+    private static final int HEADER = 0x46_54_56;
+    private static final Logger LOG = Logger.getLogger(VTF.class.getName());
     /**
      * 'CRC\2' as little endian
      */
-    private static final int    VTF_RSRC_TEXTURE_CRC = 0x02_43_52_43;
-    private ByteBuffer  buf;
-    private float       bumpScale;
-    private int         depth;
-    private int         flags;
+    private static final int VTF_RSRC_TEXTURE_CRC = 0x02_43_52_43;
+    private ByteBuffer buf;
+    private float bumpScale;
+    private int depth;
+    private int flags;
     private ImageFormat format;
-    private int         frameCount;
+    private int frameCount;
     /**
      * Zero indexed
      */
-    private int         frameFirst;
-    private int         headerSize;
-    private int         height;
-    private int         mipCount;
-    private float[]     reflectivity;
+    private int frameFirst;
+    private int headerSize;
+    private int height;
+    private int mipCount;
+    private float[] reflectivity;
     private ImageFormat thumbFormat;
-    private int         thumbHeight;
-    private Image       thumbImage;
-    private int         thumbWidth;
-    private int[]       version;
-    private int         width;
+    private int thumbHeight;
+    private Image thumbImage;
+    private int thumbWidth;
+    private int[] version;
+    private int width;
 
-    public VTF() {}
+    public VTF() {
+    }
 
     public static VTF load(String s) throws IOException {
         return load(new FileInputStream(s));
@@ -62,16 +63,16 @@ public class VTF implements ViewableData {
 
     public static VTF load(InputStream is) throws IOException {
         VTF vtf = new VTF();
-        if(vtf.loadFromStream(is)) {
+        if (vtf.loadFromStream(is)) {
             return vtf;
         }
         return null;
     }
 
     boolean loadFromStream(InputStream is) throws IOException {
-        int magic = is.read() | ( is.read() << 8 ) | ( is.read() << 16 );
+        int magic = is.read() | (is.read() << 8) | (is.read() << 16);
         int type = is.read();
-        if(magic != HEADER) {
+        if (magic != HEADER) {
             LOG.log(Level.FINE, "Invalid VTF file: {0}", magic);
             return false;
         }
@@ -80,55 +81,57 @@ public class VTF implements ViewableData {
         buf = ByteBuffer.wrap(array);
         buf.order(ByteOrder.LITTLE_ENDIAN);
         buf.position(4);
-        version = new int[] { buf.getInt(), buf.getInt() };
+        version = new int[]{buf.getInt(), buf.getInt()};
         headerSize = buf.getInt();
-        if(type == 'X') {
+        if (type == 'X') {
             flags = buf.getInt();
         }
         width = buf.getShort();
         height = buf.getShort();
-        if(type == 'X') {
+        if (type == 'X') {
             depth = buf.getShort();
         }
-        if(type == 0) {
+        if (type == 0) {
             flags = buf.getInt();
         }
         EnumSet<VTFFlags> enumSet = EnumFlags.decode(flags, VTFFlags.class);
         frameCount = buf.getShort();
-        if(type == 0) {
+        if (type == 0) {
             frameFirst = buf.getShort();
             buf.get(new byte[4]);
-        } else if(type == 'X') {
+        } else if (type == 'X') {
             short preloadDataSize = buf.getShort();
             byte mipSkipCount = buf.get();
             byte numResources = buf.get();
         }
-        reflectivity = new float[] { buf.getFloat(), buf.getFloat(), buf.getFloat() };
-        if(type == 0) {
+        reflectivity = new float[]{buf.getFloat(), buf.getFloat(), buf.getFloat()};
+        if (type == 0) {
             buf.get(new byte[4]);
         }
         bumpScale = buf.getFloat();
         format = ImageFormat.getEnumForIndex(buf.getInt());
-        if(type == 0) {
+        if (type == 0) {
             mipCount = buf.get();
             thumbFormat = ImageFormat.getEnumForIndex(buf.getInt());
             thumbWidth = buf.get();
             thumbHeight = buf.get();
             depth = buf.getShort();
-        } else if(type == 'X') {
+        } else if (type == 'X') {
             byte[] lowResImageSample = new byte[4];
             buf.get(lowResImageSample);
             int compressedSize = buf.getInt();
         }
         Object[][] debug = {
-                { "Width = ", width },
-                { "Height = ", height },
-                { "Frames = ", frameCount },
-                { "Flags = ", enumSet },
-                { "Format = ", format },
-                { "MipCount = ", mipCount },
+                {"Width = ", width},
+                {"Height = ", height},
+                {"Frames = ", frameCount},
+                {"Flags = ", enumSet},
+                {"Format = ", format},
+                {"MipCount = ", mipCount},
         };
-        if(LOG.isLoggable(Level.FINE)) {LOG.fine(StringUtils.fromDoubleArray(debug, "VTF:"));}
+        if (LOG.isLoggable(Level.FINE)) {
+            LOG.fine(StringUtils.fromDoubleArray(debug, "VTF:"));
+        }
         return true;
     }
 
@@ -144,7 +147,7 @@ public class VTF implements ViewableData {
         // until here are for
         int crcHead = buf.getInt();
         int crc = buf.getInt();
-        if(crcHead == VTF_RSRC_TEXTURE_CRC) {
+        if (crcHead == VTF_RSRC_TEXTURE_CRC) {
             LOG.log(Level.INFO, "CRC=0x{0}", Integer.toHexString(crc).toUpperCase());
         } else {
             LOG.log(Level.WARNING, "CRC header {0} is invalid", crcHead);
@@ -206,10 +209,10 @@ public class VTF implements ViewableData {
     }
 
     public Image getThumbImage() {
-        if(thumbImage == null) {
+        if (thumbImage == null) {
             buf.position(headerSize);
-            byte[] thumbData = new byte[( Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) ) /
-                                        2]; // DXT1. Each 'block' is 4*4 pixels. 16 pixels become 8
+            byte[] thumbData = new byte[(Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4)) /
+                    2]; // DXT1. Each 'block' is 4*4 pixels. 16 pixels become 8
             // bytes
             buf.get(thumbData);
             thumbImage = DXTLoader.loadDXT1(thumbData, thumbWidth, thumbHeight);
@@ -220,11 +223,8 @@ public class VTF implements ViewableData {
     /**
      * Return the image for the given level of detail
      *
-     * @param level
-     *         From 0 to {@link #mipCount}-1
-     *
+     * @param level From 0 to {@link #mipCount}-1
      * @return *
-     *
      * @throws IOException
      */
     public Image getImage(int level) throws IOException {
@@ -234,40 +234,38 @@ public class VTF implements ViewableData {
     /**
      * Return the image for the given level of detail and frame
      *
-     * @param level
-     *         From 0 to {@link #mipCount}-1
-     * @param frame
-     *         From 0 to {@link #frameCount}-1
+     * @param level From 0 to {@link #mipCount}-1
+     * @param frame From 0 to {@link #frameCount}-1
      */
     public Image getImage(int level, int frame) {
-        if(( level < 0 ) || ( level >= mipCount )) {
+        if ((level < 0) || (level >= mipCount)) {
             return null;
         }
-        if(( frame < 0 ) || ( frame >= frameCount )) {
+        if ((frame < 0) || (frame >= frameCount)) {
             return null;
         }
-        int thumbLen = ( Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4) ) / 2; // Thumbnail is a minimum of 4*4
-        if(( thumbWidth == 0 ) || ( thumbHeight == 0 )) {
+        int thumbLen = (Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4)) / 2; // Thumbnail is a minimum of 4*4
+        if ((thumbWidth == 0) || (thumbHeight == 0)) {
             thumbLen = 0;
         }
         buf.position(headerSize + thumbLen);
         int[] sizesX = new int[mipCount]; // smallest -> largest {1, 2, 4, 8, 16, 32, 64, 128}
         int[] sizesY = new int[mipCount];
-        for(int n = 0; n < mipCount; n++) {
+        for (int n = 0; n < mipCount; n++) {
             sizesX[mipCount - 1 - n] = Math.max(width >>> n, 1);
             sizesY[mipCount - 1 - n] = Math.max(height >>> n, 1);
         }
         BufferedImage image = null;
-        for(int i = 0; i < mipCount; i++) {
+        for (int i = 0; i < mipCount; i++) {
             int w = sizesX[i];
             int h = sizesY[i];
-            LOG.log(Level.FINE, "{0}, {1}", new Object[] { w, h });
+            LOG.log(Level.FINE, "{0}, {1}", new Object[]{w, h});
             int nBytes = format.getBytes(w, h);
-            if(i == ( mipCount - level - 1 )) {
+            if (i == (mipCount - level - 1)) {
                 byte[] imageData = new byte[nBytes * frameCount];
                 try {
                     buf.get(imageData);
-                } catch(BufferUnderflowException ignored) {
+                } catch (BufferUnderflowException ignored) {
                     LOG.log(Level.SEVERE, "Underflow; {0}", nBytes);
                 }
                 System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes);

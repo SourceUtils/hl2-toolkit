@@ -22,10 +22,10 @@ import static com.timepath.hl2.io.studiomodel.StudioModel.MAX_NUM_BONES_PER_VERT
 
 class VTX {
 
-    private static final Logger LOG       = Logger.getLogger(VTX.class.getName());
-    private static final Level  verbosity = Level.FINE;
-    final         List<BodyPart>     bodyParts;
-    private final VtxHeader          header;
+    private static final Logger LOG = Logger.getLogger(VTX.class.getName());
+    private static final Level verbosity = Level.FINE;
+    final List<BodyPart> bodyParts;
+    private final VtxHeader header;
     private final OrderedInputStream is;
 
     private VTX(InputStream in) throws IOException, InstantiationException, IllegalAccessException {
@@ -40,7 +40,7 @@ class VTX {
         //                "\t\t\tparts[] = {2}: {0} vs {1}",
         //                new Object[] {is.position(), offset, header.numBodyParts});
         position(header.bodyPartOffset);
-        for(int partIdx = 0; partIdx < header.numBodyParts; partIdx++) {
+        for (int partIdx = 0; partIdx < header.numBodyParts; partIdx++) {
             BodyPart part = is.readStruct(new BodyPart());
             bodyParts.add(part);
             // Models
@@ -49,7 +49,7 @@ class VTX {
             //                    "\t\t\tparts[{3}].models[] = {2}: {0} vs {1}",
             //                    new Object[] {is.position(),  offset + part.modelOffset, part.numModels, partIdx});
             position(part.offset + part.modelOffset);
-            for(int modelIdx = 0; modelIdx < part.numModels; modelIdx++) {
+            for (int modelIdx = 0; modelIdx < part.numModels; modelIdx++) {
                 Model model = is.readStruct(new Model());
                 part.models.add(model);
                 // LODs
@@ -59,7 +59,7 @@ class VTX {
                 //                        new Object[] {is.position(), offset + model.lodOffset, model.numLODs,
                 //                                      partIdx, modelIdx});
                 position(model.offset + model.lodOffset);
-                for(int lodIdx = 0; lodIdx < model.numLODs; lodIdx++) {
+                for (int lodIdx = 0; lodIdx < model.numLODs; lodIdx++) {
                     ModelLOD lod = is.readStruct(new ModelLOD());
                     model.lods.add(lod);
                     // Meshes
@@ -69,7 +69,7 @@ class VTX {
                     //                            new Object[] {is.position(), offset + lod.meshOffset, lod.numMeshes,
                     //                                          partIdx, modelIdx, lodIdx});
                     position(lod.offset + lod.meshOffset);
-                    for(int meshIdx = 0; meshIdx < lod.numMeshes; meshIdx++) {
+                    for (int meshIdx = 0; meshIdx < lod.numMeshes; meshIdx++) {
                         Mesh mesh = is.readStruct(new Mesh());
                         lod.meshes.add(mesh);
                         // Strip groups
@@ -81,16 +81,16 @@ class VTX {
                         // mesh.numStripGroups,
                         //                                              partIdx, modelIdx, lodIdx, meshIdx});
                         position(mesh.offset + mesh.stripGroupHeaderOffset);
-                        for(int groupIdx = 0; groupIdx < mesh.numStripGroups; groupIdx++) {
+                        for (int groupIdx = 0; groupIdx < mesh.numStripGroups; groupIdx++) {
                             StripGroup stripGroup = is.readStruct(new StripGroup());
                             mesh.stripGroups.add(stripGroup);
-                            LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", new Object[] {
+                            LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", new Object[]{
                                             stripGroup.offset,
                                             stripGroup.offset + stripGroup.vertOffset,
                                             stripGroup.offset + stripGroup.stripOffset,
                                             stripGroup.offset + stripGroup.indexOffset
                                     }
-                                   );
+                            );
                             // Strips
                             stripGroup.strips = new ArrayList<>(stripGroup.numStrips);
                             //                            LOG.log(verbosity,
@@ -100,7 +100,7 @@ class VTX {
                             // stripGroup.numStrips,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.stripOffset);
-                            for(int stripIdx = 0; stripIdx < stripGroup.numStrips; stripIdx++) {
+                            for (int stripIdx = 0; stripIdx < stripGroup.numStrips; stripIdx++) {
                                 Strip strip = is.readStruct(new Strip());
                                 stripGroup.strips.add(strip);
                             }
@@ -113,7 +113,7 @@ class VTX {
                             // stripGroup.numVerts,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.vertOffset);
-                            for(int vertIdx = 0; vertIdx < stripGroup.numVerts; vertIdx++) {
+                            for (int vertIdx = 0; vertIdx < stripGroup.numVerts; vertIdx++) {
                                 Vertex vert = is.readStruct(new Vertex());
                                 stripGroup.verts.add(vert);
                             }
@@ -139,17 +139,7 @@ class VTX {
             }
             position(part.offset + Struct.sizeof(part));
         }
-        LOG.log(verbosity, "Underflow: {0}", new Object[] { is.available() });
-    }
-
-    private void position(int index) {
-        //        LOG.log(verbosity, "seeking to {0}", index);
-        try {
-            is.reset();
-            is.skipBytes(index - is.position());
-        } catch(IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        }
+        LOG.log(verbosity, "Underflow: {0}", new Object[]{is.available()});
     }
 
     public static VTX load(File file) throws IOException {
@@ -160,16 +150,26 @@ class VTX {
     public static VTX load(InputStream in) throws IOException {
         try {
             return new VTX(new BufferedInputStream(in));
-        } catch(InstantiationException | IllegalAccessException ex) {
+        } catch (InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return null;
     }
 
+    private void position(int index) {
+        //        LOG.log(verbosity, "seeking to {0}", index);
+        try {
+            is.reset();
+            is.skipBytes(index - is.position());
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
     private int position() {
         try {
             return is.position();
-        } catch(IOException ignored) {
+        } catch (IOException ignored) {
             return -1;
         }
     }
@@ -177,23 +177,24 @@ class VTX {
     private static class Strip {
 
         @StructField(index = 0)
-        int   numIndices;
+        int numIndices;
         @StructField(index = 1)
-        int   indexOffset;
+        int indexOffset;
         @StructField(index = 2)
-        int   numVerts;
+        int numVerts;
         @StructField(index = 3)
-        int   vertOffset;
+        int vertOffset;
         @StructField(index = 4)
         short numBones;
         @StructField(index = 5)
-        byte  flags;
+        byte flags;
         @StructField(index = 6)
-        int   numBoneStateChanges;
+        int numBoneStateChanges;
         @StructField(index = 7)
-        int   boneStateChangeOffset;
+        int boneStateChangeOffset;
 
-        private Strip() {}
+        private Strip() {
+        }
     }
 
     static class Vertex {
@@ -201,13 +202,14 @@ class VTX {
         @StructField(index = 0)
         byte[] boneWeightIndex = new byte[MAX_NUM_BONES_PER_VERT];
         @StructField(index = 1)
-        byte  numBones;
+        byte numBones;
         @StructField(index = 2)
         short origMeshVertID;
         @StructField(index = 3)
         byte[] boneID = new byte[MAX_NUM_BONES_PER_VERT];
 
-        Vertex() {}
+        Vertex() {
+        }
     }
 
     static class VtxHeader {
@@ -216,48 +218,49 @@ class VTX {
          * File version as defined by OPTIMIZED_MODEL_FILE_VERSION (currently 7)
          */
         @StructField(index = 0)
-        int   version;
+        int version;
         /**
          * Hardware parameters that affect how the model is to be optimized
          */
         @StructField(index = 1)
-        int   vertCacheSize;
+        int vertCacheSize;
         @StructField(index = 2)
         short maxBonesPerStrip;
         @StructField(index = 3)
         short maxBonesPerTri;
         @StructField(index = 4)
-        int   maxBonesPerVert;
+        int maxBonesPerVert;
         /**
          * Must match checkSum in the MDL
          */
         @StructField(index = 5)
-        int   checkSum;
+        int checkSum;
         /**
          * This is also specified in ModelHeader and should match
          */
         @StructField(index = 6)
-        int   numLODs;
+        int numLODs;
         /**
          * This is an offset to an array of 8 MaterialReplacementListHeaders, one of these for each LOD
          */
         @StructField(index = 7)
-        int   materialReplacementListOffset;
+        int materialReplacementListOffset;
         @StructField(index = 8)
-        int   numBodyParts;
+        int numBodyParts;
         /**
          * Offset to an array of BodyPartHeaders
          */
         @StructField(index = 9)
-        int   bodyPartOffset;
+        int bodyPartOffset;
 
-        VtxHeader() {}
+        VtxHeader() {
+        }
 
         @Override
         public String toString() {
             return MessageFormat.format(
                     "\t\t\tver:{0}, vertCache:{1}, bones/strip:{2}, bones/tri:{3}, bones/vert:{4}, check:{5}, lods:{6}, " +
-                    "replOff:{7}, parts:{8}, partOff:{9}",
+                            "replOff:{7}, parts:{8}, partOff:{9}",
                     version,
                     vertCacheSize,
                     maxBonesPerStrip,
@@ -268,7 +271,7 @@ class VTX {
                     materialReplacementListOffset,
                     numBodyParts,
                     bodyPartOffset
-                                       );
+            );
         }
     }
 
@@ -281,7 +284,8 @@ class VTX {
         @StructField(index = 1)
         int modelOffset;
 
-        BodyPart() {}
+        BodyPart() {
+        }
     }
 
     class Mesh {
@@ -289,13 +293,14 @@ class VTX {
         int offset = position();
         List<StripGroup> stripGroups;
         @StructField(index = 0)
-        int  numStripGroups;
+        int numStripGroups;
         @StructField(index = 1)
-        int  stripGroupHeaderOffset;
+        int stripGroupHeaderOffset;
         @StructField(index = 2)
         byte flags;
 
-        Mesh() {}
+        Mesh() {
+        }
     }
 
     class Model {
@@ -307,7 +312,8 @@ class VTX {
         @StructField(index = 1)
         int lodOffset;
 
-        Model() {}
+        Model() {
+        }
     }
 
     class ModelLOD {
@@ -315,36 +321,38 @@ class VTX {
         int offset = position();
         List<Mesh> meshes;
         @StructField(index = 0)
-        int   numMeshes;
+        int numMeshes;
         @StructField(index = 1)
-        int   meshOffset;
+        int meshOffset;
         @StructField(index = 2)
         float switchPoint;
 
-        ModelLOD() {}
+        ModelLOD() {
+        }
     }
 
     class StripGroup {
 
         int offset = position();
-        ByteBuffer   indexBuffer;
-        List<Strip>  strips;
+        ByteBuffer indexBuffer;
+        List<Strip> strips;
         List<Vertex> verts;
         @StructField(index = 0)
-        int  numVerts;
+        int numVerts;
         @StructField(index = 1)
-        int  vertOffset;
+        int vertOffset;
         @StructField(index = 2)
-        int  numIndices;
+        int numIndices;
         @StructField(index = 3)
-        int  indexOffset;
+        int indexOffset;
         @StructField(index = 4)
-        int  numStrips;
+        int numStrips;
         @StructField(index = 5)
-        int  stripOffset;
+        int stripOffset;
         @StructField(index = 6)
         byte flags;
 
-        StripGroup() {}
+        StripGroup() {
+        }
     }
 }

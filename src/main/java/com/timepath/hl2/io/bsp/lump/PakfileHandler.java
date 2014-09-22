@@ -16,11 +16,12 @@ class PakfileHandler implements LumpHandler<ZipFS> {
 
     private static final Logger LOG = Logger.getLogger(PakfileHandler.class.getName());
 
-    PakfileHandler() {}
+    PakfileHandler() {
+    }
 
     @Override
     public ZipFS handle(Lump l, OrderedInputStream in) throws IOException {
-        LOG.log(Level.INFO, "Unzipping {0}", new Object[] { l });
+        LOG.log(Level.INFO, "Unzipping {0}", new Object[]{l});
         byte[] data = new byte[l.length];
         in.readFully(data);
         return new ZipFS(data);

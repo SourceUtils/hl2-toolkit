@@ -20,9 +20,9 @@ import java.util.logging.Logger;
 class VoiceDataHandler extends PacketHandler {
 
     private static final Logger LOG = Logger.getLogger(VoiceDataHandler.class.getName());
-    private SourceDataLine audioOut;
-    private SpeexDecoder   speexDecoder;
     private static final int VOICE_OUTPUT_SAMPLE_RATE = 11025;
+    private SourceDataLine audioOut;
+    private SpeexDecoder speexDecoder;
 
     VoiceDataHandler() {
         try {
@@ -31,18 +31,31 @@ class VoiceDataHandler extends PacketHandler {
             speexDecoder.init(mode, 11025, 1, true);
             // Signed 16 bit LE mono
             AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
-                                                            VOICE_OUTPUT_SAMPLE_RATE,
-                                                            16,
-                                                            1,
-                                                            2,
-                                                            VOICE_OUTPUT_SAMPLE_RATE,
-                                                            false);
+                    VOICE_OUTPUT_SAMPLE_RATE,
+                    16,
+                    1,
+                    2,
+                    VOICE_OUTPUT_SAMPLE_RATE,
+                    false);
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat);
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, sourceVoiceFormat);
             audioOut = (SourceDataLine) AudioSystem.getLine(info);
             audioOut.open(sourceVoiceFormat);
             audioOut.start();
-        } catch(LineUnavailableException ex) {
+        } catch (LineUnavailableException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    static int bitsToBytes(int bits) {
+        return (bits + 7) / 8;
+    }
+
+    static void dump(int index, byte... data) {
+        try (FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
+            fos.write(data);
+            fos.flush();
+        } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
     }
@@ -54,10 +67,10 @@ class VoiceDataHandler extends PacketHandler {
         l.add(new Pair<Object, Object>("Proximity", bb.getByte()));
         int length = bb.getShort() & 0xFFFF;
         l.add(new Pair<Object, Object>("Length in bits", length));
-        if(length < 0) {
+        if (length < 0) {
             return false;
         }
-        if(length == 0) {
+        if (length == 0) {
             return true;
         }
         byte[] data = new byte[bitsToBytes(length)];
@@ -66,36 +79,23 @@ class VoiceDataHandler extends PacketHandler {
         return true;
     }
 
-    static int bitsToBytes(int bits) {
-        return ( bits + 7 ) / 8;
-    }
-
     void speex(int index, byte... data) {
         byte[] decoded = data;
         try {
             speexDecoder.processData(data, 0, data.length);
             decoded = new byte[speexDecoder.getProcessedDataByteSize()];
             speexDecoder.getProcessedData(decoded, 0);
-        } catch(StreamCorruptedException ex) {
+        } catch (StreamCorruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
 //        dump(index, decoded);
         pcm(index, decoded);
     }
 
-    static void dump(int index, byte... data) {
-        try(FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
-            fos.write(data);
-            fos.flush();
-        } catch(IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
-        }
-    }
-
     void pcm(int index, byte... data) {
         try {
             audioOut.write(data, 0, data.length);
-        } catch(IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             LOG.log(Level.SEVERE, null, ex.getMessage());
         }
     }

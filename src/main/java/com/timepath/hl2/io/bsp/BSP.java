@@ -27,25 +27,25 @@ import java.util.logging.Logger;
 public abstract class BSP {
 
     private static final Logger LOG = Logger.getLogger(BSP.class.getName());
-    protected BSPHeader          header;
+    protected BSPHeader header;
     protected OrderedInputStream in;
-    IntBuffer   indexBuffer;
+    IntBuffer indexBuffer;
     FloatBuffer vertexBuffer;
 
     static {
         Files.registerHandler(new FileHandler() {
             @Override
             public Collection<? extends SimpleVFile> handle(final File file) throws IOException {
-                if(!file.getName().endsWith(".bsp")) return null;
+                if (!file.getName().endsWith(".bsp")) return null;
                 final String name = file.getName().replace(".bsp", "");
                 return Collections.singleton(new SimpleVFile() {
                     void checkBSP() {
-                        if(z != null) return;
+                        if (z != null) return;
                         LOG.log(Level.INFO, "Loading {0}", file);
-                        try(InputStream is = new FileInputStream(file)) {
+                        try (InputStream is = new FileInputStream(file)) {
                             BSP b = BSP.load(is);
                             z = b.getLump(LumpType.LUMP_PAKFILE);
-                        } catch(IOException e) {
+                        } catch (IOException e) {
                             LOG.log(Level.SEVERE, null, e);
                         }
                     }
@@ -97,13 +97,13 @@ public abstract class BSP {
             bsp.in = in;
             bsp.header = header;
             // TODO: Struct parser callbacks
-            for(int i = 0; i < header.lumps.length; i++) {
+            for (int i = 0; i < header.lumps.length; i++) {
                 header.lumps[i].type = LumpType.values()[i];
             }
             LOG.info("Processing map...");
             bsp.process();
             return bsp;
-        } catch(InstantiationException | IllegalAccessException ex) {
+        } catch (InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return null;
@@ -122,13 +122,9 @@ public abstract class BSP {
      * <br/>
      * {@code String ents = b.getLump(LumpType.LUMP_ENTITIES);}
      *
-     * @param <T>
-     *         Expected return type. TODO: Wouldn't it be nice if we just knew at compile time?
-     * @param type
-     *         The lump
-     *
+     * @param <T>  Expected return type. TODO: Wouldn't it be nice if we just knew at compile time?
+     * @param type The lump
      * @return The lump
-     *
      * @throws IOException
      */
     @SuppressWarnings("unchecked")
@@ -141,19 +137,16 @@ public abstract class BSP {
      *
      * @param <T>
      * @param type
-     * @param handler
-     *         *
-     *
+     * @param handler *
      * @return *
-     *
      * @throws IOException
      */
     protected <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
-        if(handler == null) {
+        if (handler == null) {
             return null;
         }
         Lump lump = header.lumps[type.getID()];
-        if(lump.isEmpty()) {
+        if (lump.isEmpty()) {
             return null;
         }
         in.reset();
@@ -197,6 +190,7 @@ public abstract class BSP {
         @StructField(index = 1)
         int version;
 
-        private BSPHeader() {}
+        private BSPHeader() {
+        }
     }
 }

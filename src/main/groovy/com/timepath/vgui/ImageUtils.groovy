@@ -6,6 +6,7 @@ import groovy.util.logging.Log
 
 import java.awt.*
 import java.awt.image.BufferedImage
+
 /**
  * @author TimePath
  */

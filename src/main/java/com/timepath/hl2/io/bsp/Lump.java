@@ -33,7 +33,8 @@ public class Lump {
     @StructField(index = 2)
     private int version;
 
-    public Lump() {}
+    public Lump() {
+    }
 
     @Override
     public String toString() {
@@ -55,6 +56,6 @@ public class Lump {
      * @return True if not used
      */
     boolean isEmpty() {
-        return ( offset == 0 ) && ( length == 0 ) && ( version == 0 ) && ( ident == 0 );
+        return (offset == 0) && (length == 0) && (version == 0) && (ident == 0);
     }
 }

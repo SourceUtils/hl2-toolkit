@@ -20,14 +20,14 @@ import java.util.logging.Logger;
  */
 public class VBF {
 
-    private static final int                    BITMAPFONT_ID      = 'V' | ( 'F' << 8 ) | ( 'N' << 16 ) | ( 'T' << 24 );
-    private static final int                    BITMAPFONT_VERSION = 3;
-    private static final Logger                 LOG                = Logger.getLogger(VBF.class.getName());
-    private final        ArrayList<BitmapGlyph> glyphs             = new ArrayList<>(1);
+    private static final int BITMAPFONT_ID = 'V' | ('F' << 8) | ('N' << 16) | ('T' << 24);
+    private static final int BITMAPFONT_VERSION = 3;
+    private static final Logger LOG = Logger.getLogger(VBF.class.getName());
+    private final ArrayList<BitmapGlyph> glyphs = new ArrayList<>(1);
     /**
      * Maps characters to the glyph table
      */
-    private final        byte[]                 table              = new byte[256];
+    private final byte[] table = new byte[256];
     private short ascent;
     /**
      * style flags
@@ -67,7 +67,7 @@ public class VBF {
         buf.get(table);
         // BitmapGlyph @ offset 278
         glyphs.ensureCapacity(numGlyphs);
-        for(int i = 0; i < numGlyphs; i++) {
+        for (int i = 0; i < numGlyphs; i++) {
             BitmapGlyph g = new BitmapGlyph();
             g.setIndex((byte) i);
             g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort());
@@ -78,33 +78,33 @@ public class VBF {
         }
         // Debugging
         Object[][] dbg = {
-                { "Header = ", id },
-                { "Version = ", version },
-                { "Width = ", pageWidth },
-                { "Height = ", pageHeight },
-                { "MaxCharWidth = ", maxCharWidth },
-                { "MaxCharHeight = ", maxCharHeight },
-                { "Flags = ", flags },
-                { "Ascent = ", ascent },
-                { "Total = ", numGlyphs }
+                {"Header = ", id},
+                {"Version = ", version},
+                {"Width = ", pageWidth},
+                {"Height = ", pageHeight},
+                {"MaxCharWidth = ", maxCharWidth},
+                {"MaxCharHeight = ", maxCharHeight},
+                {"Flags = ", flags},
+                {"Ascent = ", ascent},
+                {"Total = ", numGlyphs}
         };
         StringBuilder sb = new StringBuilder(0);
-        for(int i = 0; i < dbg.length; i++) {
-            for(Object item : dbg[i]) {
+        for (int i = 0; i < dbg.length; i++) {
+            for (Object item : dbg[i]) {
                 sb.append(item);
             }
-            if(i < dbg.length) {
+            if (i < dbg.length) {
                 sb.append('\n');
             }
         }
         LOG.fine(sb.toString());
-        for(char i = 0; i < table.length; i++) { // for each character
+        for (char i = 0; i < table.length; i++) { // for each character
             int glyphIndex = table[i];
-            if(glyphIndex == 0) { // don't care about the default glyph
+            if (glyphIndex == 0) { // don't care about the default glyph
                 continue;
             }
             BitmapGlyph g = glyphs.get(glyphIndex);
-            LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", new Object[] { i, g.bounds, g.a, g.b, g.c });
+            LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", new Object[]{i, g.bounds, g.a, g.b, g.c});
         }
     }
 
@@ -129,8 +129,8 @@ public class VBF {
     }
 
     public boolean hasGlyph(int i) {
-        for(BitmapGlyph g : getGlyphs()) {
-            if(g.getIndex() == i) {
+        for (BitmapGlyph g : getGlyphs()) {
+            if (g.getIndex() == i) {
                 return true;
             }
         }
@@ -142,7 +142,7 @@ public class VBF {
     }
 
     public void save(OutputStream os) throws IOException {
-        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + ( glyphs.size() * 14 ));
+        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
         buf.order(ByteOrder.LITTLE_ENDIAN);
         buf.putInt(BITMAPFONT_ID);
         buf.putInt(BITMAPFONT_VERSION);
@@ -150,9 +150,9 @@ public class VBF {
         buf.putShort(pageHeight);
         short maxcharwidth = 0;
         short maxcharheight = 0;
-        for(BitmapGlyph glyph : glyphs) {
+        for (BitmapGlyph glyph : glyphs) {
             Rectangle r = glyph.getBounds();
-            if(( r.width != 0 ) && ( r.height != 0 )) {
+            if ((r.width != 0) && (r.height != 0)) {
                 maxcharwidth = (short) Math.max(maxcharwidth, r.width);
                 maxcharheight = (short) Math.max(maxcharwidth, r.height);
             }
@@ -163,12 +163,12 @@ public class VBF {
         buf.putShort(ascent);
         buf.putShort((short) glyphs.size());
         buf.put(table);
-        for(BitmapGlyph g : glyphs) {
+        for (BitmapGlyph g : glyphs) {
             Rectangle b = g.getBounds();
             buf.putShort((short) b.x);
             buf.putShort((short) b.y);
-            int width = ( b.height == 0 ) ? 0 : b.width;
-            int height = ( b.width == 0 ) ? 0 : b.height;
+            int width = (b.height == 0) ? 0 : b.width;
+            int height = (b.width == 0) ? 0 : b.height;
             buf.putShort((short) width);
             buf.putShort((short) height);
             buf.putShort(g.a);
@@ -196,7 +196,8 @@ public class VBF {
         short c;
         private byte index;
 
-        public BitmapGlyph() {}
+        public BitmapGlyph() {
+        }
 
         public Rectangle getBounds() {
             return bounds;

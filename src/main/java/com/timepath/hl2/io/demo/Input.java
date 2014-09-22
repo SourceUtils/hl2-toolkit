@@ -51,8 +51,8 @@ public enum Input {
 
     public static List<Input> get(int bits) {
         List<Input> l = new LinkedList<>();
-        for(Input name : Input.values()) {
-            if(( name.mask & bits ) != 0) {
+        for (Input name : Input.values()) {
+            if ((name.mask & bits) != 0) {
                 l.add(name);
             }
         }

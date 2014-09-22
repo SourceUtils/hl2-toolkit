@@ -52,7 +52,7 @@ public enum VTFFlags implements EnumFlag {
     BORDER(0x20000000, "Clamp All"),
     UNUSED_40000000(0x40000000),
     UNUSED_80000000(0x80000000);
-    private final int    mask;
+    private final int mask;
     private final String title;
 
     VTFFlags(int mask) {
@@ -66,8 +66,8 @@ public enum VTFFlags implements EnumFlag {
 
     public static VTFFlags getEnumForMask(int mask) {
         VTFFlags[] values = VTFFlags.values();
-        for(VTFFlags eachValue : values) {
-            if(eachValue.mask == mask) {
+        for (VTFFlags eachValue : values) {
+            if (eachValue.mask == mask) {
                 return eachValue;
             }
         }

@@ -12,14 +12,14 @@ import java.util.logging.Logger;
  */
 public class DemoHeader {
 
-    private static final Logger LOG        = Logger.getLogger(DemoHeader.class.getName());
-    private static final int    MAX_OSPATH = 260;
+    private static final Logger LOG = Logger.getLogger(DemoHeader.class.getName());
+    private static final int MAX_OSPATH = 260;
     @StructField(index = 0, limit = 8)
     public String head;
     @StructField(index = 1)
-    public int    demoProtocol;
+    public int demoProtocol;
     @StructField(index = 2)
-    public int    networkProtocol;
+    public int networkProtocol;
     @StructField(index = 3, limit = MAX_OSPATH)
     public String serverName;
     @StructField(index = 4, limit = MAX_OSPATH)
@@ -29,22 +29,22 @@ public class DemoHeader {
     @StructField(index = 6, limit = MAX_OSPATH)
     public String gameDirectory;
     @StructField(index = 7)
-    public float  playbackTime;
+    public float playbackTime;
     @StructField(index = 8)
-    public int    ticks;
+    public int ticks;
     @StructField(index = 9)
-    public int    frames;
+    public int frames;
     @StructField(index = 10)
-    public int    signonLength;
+    public int signonLength;
 
     static DemoHeader parse(ByteBuffer slice) {
         DemoHeader h = new DemoHeader();
         h.head = DataUtils.getText(DataUtils.getSlice(slice, 8));
-        if(!HL2DEM.HEADER.equals(h.head)) {
+        if (!HL2DEM.HEADER.equals(h.head)) {
             LOG.log(Level.WARNING, "Unexpected header");
         }
         h.demoProtocol = slice.getInt();
-        if(h.demoProtocol != HL2DEM.DEMO_PROTOCOL) {
+        if (h.demoProtocol != HL2DEM.DEMO_PROTOCOL) {
             LOG.log(Level.WARNING, "Unknown demo version {0}", h.demoProtocol);
         }
         h.networkProtocol = slice.getInt();

@@ -17,12 +17,13 @@ public class Plane {
      * Distance from origin
      */
     @StructField(index = 1)
-    public float    dist;
+    public float dist;
     /**
      * Plane axis identifier
      */
     @StructField(index = 2)
-    public int      type;
+    public int type;
 
-    public Plane() {}
+    public Plane() {
+    }
 }

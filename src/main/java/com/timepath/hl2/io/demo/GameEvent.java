@@ -11,14 +11,14 @@ class GameEvent {
 
     private static final Logger LOG = Logger.getLogger(GameEvent.class.getName());
     public final Map<String, GameEventMessageType> declarations;
-    public final String                            name;
+    public final String name;
 
     GameEvent(BitBuffer bb) {
         name = bb.getString();
         Map<String, GameEventMessageType> decl = new LinkedHashMap<>(0);
-        while(true) {
+        while (true) {
             int entryType = (int) bb.getBits(3);
-            if(entryType == 0) { // End of event description
+            if (entryType == 0) { // End of event description
                 break;
             }
             String entryName = bb.getString();
@@ -29,7 +29,7 @@ class GameEvent {
 
     public Map<String, Object> parse(BitBuffer bb) {
         Map<String, Object> values = new LinkedHashMap<String, Object>(declarations);
-        for(Map.Entry<String, GameEventMessageType> entry : declarations.entrySet()) {
+        for (Map.Entry<String, GameEventMessageType> entry : declarations.entrySet()) {
             values.put(entry.getKey(), entry.getValue().parse(bb));
         }
         return values;

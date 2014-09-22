@@ -272,7 +272,7 @@ public enum LumpType {
     LUMP_DISP_MULTIBLEND(63);
     private static final Logger LOG = Logger.getLogger(LumpType.class.getName());
     private final LumpHandler handler;
-    private final int         id;
+    private final int id;
 
     LumpType(int i) {
         this(i, null);
@@ -298,7 +298,7 @@ public enum LumpType {
 
     @SuppressWarnings("unchecked")
     public <T> T handle(Lump l, OrderedInputStream in) throws IOException {
-        if(handler == null) {
+        if (handler == null) {
             LOG.log(Level.WARNING, "No handler for {0}", this);
             return null;
         }

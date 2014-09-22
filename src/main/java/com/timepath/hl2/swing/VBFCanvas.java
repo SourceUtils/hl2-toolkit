@@ -19,11 +19,11 @@ import java.util.logging.Logger;
  */
 public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListener {
 
-    private static final Logger         LOG              = Logger.getLogger(VBFCanvas.class.getName());
-    private static final long           serialVersionUID = 1L;
-    private static final AlphaComposite acNormal         = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
-    private static final AlphaComposite acSelected       = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-    private static final AlphaComposite acText           = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+    private static final Logger LOG = Logger.getLogger(VBFCanvas.class.getName());
+    private static final long serialVersionUID = 1L;
+    private static final AlphaComposite acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1);
+    private static final AlphaComposite acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    private static final AlphaComposite acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
     private Image img;
     private Point last;
     private List<VBF.BitmapGlyph> selected = new LinkedList<>();
@@ -39,7 +39,7 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
     }
 
     public VBF.BitmapGlyph getSelected() {
-        if(selected.isEmpty()) {
+        if (selected.isEmpty()) {
             return null;
         }
         return selected.get(0);
@@ -64,36 +64,36 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mousePressed(MouseEvent e) {
         last = e.getPoint();
-        if(!SwingUtilities.isLeftMouseButton(e)) {
+        if (!SwingUtilities.isLeftMouseButton(e)) {
             return;
         }
         Iterable<VBF.BitmapGlyph> old = new LinkedList<>(selected);
         List<VBF.BitmapGlyph> clicked = get(e.getPoint());
-        for(VBF.BitmapGlyph g : clicked) {
-            if(selected.contains(g)) {
+        for (VBF.BitmapGlyph g : clicked) {
+            if (selected.contains(g)) {
                 return;
             }
         }
-        if(e.isControlDown()) {
+        if (e.isControlDown()) {
             selected.addAll(clicked);
         } else {
             selected = clicked;
         }
-        for(VBF.BitmapGlyph g : old) {
+        for (VBF.BitmapGlyph g : old) {
             repaint(g.getBounds());
         }
-        for(VBF.BitmapGlyph g : selected) {
+        for (VBF.BitmapGlyph g : selected) {
             repaint(g.getBounds());
         }
     }
 
     List<VBF.BitmapGlyph> get(Point p) {
         List<VBF.BitmapGlyph> intersected = new LinkedList<>();
-        if(( vbf == null ) || ( vbf.getGlyphs() == null )) {
+        if ((vbf == null) || (vbf.getGlyphs() == null)) {
             return intersected;
         }
-        for(VBF.BitmapGlyph g : vbf.getGlyphs()) {
-            if(g.getBounds().contains(p)) {
+        for (VBF.BitmapGlyph g : vbf.getGlyphs()) {
+            if (g.getBounds().contains(p)) {
                 intersected.add(g);
             }
         }
@@ -115,11 +115,11 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mouseDragged(MouseEvent e) {
         Point p = e.getPoint();
-        if(last != null) {
+        if (last != null) {
             e.translatePoint(-last.x, -last.y);
         }
-        for(VBF.BitmapGlyph sel : selected) {
-            if(SwingUtilities.isRightMouseButton(e)) {
+        for (VBF.BitmapGlyph sel : selected) {
+            if (SwingUtilities.isRightMouseButton(e)) {
                 sel.getBounds().width += e.getPoint().x;
                 sel.getBounds().height += e.getPoint().y;
             } else {
@@ -137,7 +137,7 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
 
     public void select(VBF.BitmapGlyph g) {
         selected.clear();
-        if(g != null) {
+        if (g != null) {
             selected.add(g);
             repaint(g.getBounds());
         }
@@ -149,33 +149,33 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
         g2.setComposite(acNormal);
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, getWidth(), getHeight());
-        if(( img == null ) && ( vtf != null )) {
+        if ((img == null) && (vtf != null)) {
             try {
                 img = vtf.getImage(0);
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
             }
         }
-        if(vbf != null) {
+        if (vbf != null) {
             g2.setColor(Color.GRAY);
             g2.fillRect(0, 0, vbf.getWidth(), vbf.getHeight());
         }
-        if(img != null) {
+        if (img != null) {
             g2.drawImage(img, 0, 0, this);
         }
-        if(vbf != null) {
-            for(VBF.BitmapGlyph glyph : vbf.getGlyphs()) {
-                if(glyph == null) {
+        if (vbf != null) {
+            for (VBF.BitmapGlyph glyph : vbf.getGlyphs()) {
+                if (glyph == null) {
                     continue;
                 }
                 Rectangle bounds = glyph.getBounds();
-                if(( bounds == null ) || bounds.isEmpty()) {
+                if ((bounds == null) || bounds.isEmpty()) {
                     continue;
                 }
                 g2.setComposite(acNormal);
                 g2.setColor(Color.GREEN);
                 g2.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
-                if(selected.contains(glyph)) {
+                if (selected.contains(glyph)) {
                     g2.setComposite(acSelected);
                     g2.fillRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
                 }
@@ -189,14 +189,14 @@ public class VBFCanvas extends JPanel implements MouseListener, MouseMotionListe
                 //                g.setXORMode(Color.WHITE);
                 g2.setComposite(acText);
                 g2.setColor(Color.GREEN);
-                g2.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1, ( bounds.y + bounds.height ) - 1);
+                g2.drawString(Integer.toString(glyph.getIndex()), bounds.x + 1, (bounds.y + bounds.height) - 1);
             }
         }
     }
 
     @Override
     public Dimension getPreferredSize() {
-        if(vbf == null) {
+        if (vbf == null) {
             return new Dimension(128, 128);
         }
         return new Dimension(vbf.getWidth(), vbf.getHeight());

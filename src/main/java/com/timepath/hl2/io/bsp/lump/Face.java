@@ -6,13 +6,13 @@ import java.util.logging.Logger;
 
 public class Face {
 
-    private static final Logger LOG          = Logger.getLogger(Face.class.getName());
-    private static final int    MAXLIGHTMAPS = 4;
+    private static final Logger LOG = Logger.getLogger(Face.class.getName());
+    private static final int MAXLIGHTMAPS = 4;
     /**
      * switchable lighting info
      */
     @StructField(index = 8)
-    public               byte[] styles       = new byte[MAXLIGHTMAPS];
+    public byte[] styles = new byte[MAXLIGHTMAPS];
     /**
      * The plane number. unsigned
      */
@@ -22,17 +22,17 @@ public class Face {
      * faces opposite to the node's plane direction
      */
     @StructField(index = 1)
-    public byte  side;
+    public byte side;
     /**
      * 1 of on node, 0 if in leaf
      */
     @StructField(index = 2)
-    public byte  onNode;
+    public byte onNode;
     /**
      * index into surfedges
      */
     @StructField(index = 3)
-    public int   firstedge;
+    public int firstedge;
     /**
      * number of surfedges
      */
@@ -57,7 +57,7 @@ public class Face {
      * offset into lightmap lump
      */
     @StructField(index = 9)
-    public int   lightofs;
+    public int lightofs;
     /**
      * face area in units^2
      */
@@ -77,7 +77,7 @@ public class Face {
      * original face this was split from
      */
     @StructField(index = 13)
-    public int   origFace;
+    public int origFace;
     /**
      * primitives. unsigned
      */
@@ -92,7 +92,8 @@ public class Face {
      * lightmap smoothing group. unsigned
      */
     @StructField(index = 16)
-    public int   smoothingGroups;
+    public int smoothingGroups;
 
-    public Face() {}
+    public Face() {
+    }
 }

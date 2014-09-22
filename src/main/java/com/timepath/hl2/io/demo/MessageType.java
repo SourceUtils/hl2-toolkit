@@ -18,7 +18,7 @@ public enum MessageType {
 
     static MessageType get(int i) {
         MessageType[] vals = MessageType.values();
-        if(( i < 1 ) || ( i > vals.length )) {
+        if ((i < 1) || (i > vals.length)) {
             return null;
         }
         return vals[i - 1];

@@ -18,13 +18,31 @@ import java.text.MessageFormat;
  */
 public class ReplayDMX {
 
-    public final SessionInfoHeader           info;
+    public final SessionInfoHeader info;
     public final RecordingSessionBlockSpec[] blocks;
 
+    private ReplayDMX(InputStream is) throws IOException, IllegalAccessException, InstantiationException, LZSSException {
+        OrderedInputStream in = new OrderedInputStream(is);
+        in.order(ByteOrder.LITTLE_ENDIAN);
+        info = in.readStruct(new SessionInfoHeader());
+        byte[] compressed = new byte[in.available()];
+        in.readFully(compressed);
+        in = new OrderedInputStream(new ByteArrayInputStream(LZSS.inflate(compressed)));
+        in.order(ByteOrder.LITTLE_ENDIAN);
+        blocks = new RecordingSessionBlockSpec[info.numBlocks];
+        for (int i = 0; i < info.numBlocks; i++) {
+            blocks[i] = in.readStruct(new RecordingSessionBlockSpec());
+        }
+    }
+
     public static ReplayDMX load(InputStream is)
-    throws IOException, InstantiationException, IllegalAccessException, LZSSException
-    {
+            throws IOException, InstantiationException, IllegalAccessException, LZSSException {
         return new ReplayDMX(new BufferedInputStream(is));
+    }
+
+    private static String md5(byte[] hash) {
+        BigInteger bi = new BigInteger(1, hash);
+        return String.format("%0" + (hash.length * 2) + "x", bi);
     }
 
     public void print(PrintStream out) {
@@ -39,36 +57,17 @@ public class ReplayDMX {
         out.println("payload size (uncompressed): " + info.payloadSizeUC);
         out.println("blocks:");
         out.println("index\tstatus\tMD5\t\t\t\t\t\t\t\t\tcompressor\tsize (uncompressed)\tsize (compressed)");
-        for(int i = 0, blocksLength = blocks.length; i < blocksLength; i++) {
+        for (int i = 0, blocksLength = blocks.length; i < blocksLength; i++) {
             RecordingSessionBlockSpec block = blocks[i];
             out.println(MessageFormat.format("{0}\t\t{1}\t{2}\t{3}\t{4}\t\t{5}\t\t\t\t\t{6}",
-                                                    i,
-                                                    block.reconstruction,
-                                                    block.remoteStatus,
-                                                    md5(block.hash),
-                                                    CompressorType.get(block.compressorType),
-                                                    block.fileSize,
-                                                    block.uncompressedSize));
+                    i,
+                    block.reconstruction,
+                    block.remoteStatus,
+                    md5(block.hash),
+                    CompressorType.get(block.compressorType),
+                    block.fileSize,
+                    block.uncompressedSize));
         }
-    }
-
-    private ReplayDMX(InputStream is) throws IOException, IllegalAccessException, InstantiationException, LZSSException {
-        OrderedInputStream in = new OrderedInputStream(is);
-        in.order(ByteOrder.LITTLE_ENDIAN);
-        info = in.readStruct(new SessionInfoHeader());
-        byte[] compressed = new byte[in.available()];
-        in.readFully(compressed);
-        in = new OrderedInputStream(new ByteArrayInputStream(LZSS.inflate(compressed)));
-        in.order(ByteOrder.LITTLE_ENDIAN);
-        blocks = new RecordingSessionBlockSpec[info.numBlocks];
-        for(int i = 0; i < info.numBlocks; i++) {
-            blocks[i] = in.readStruct(new RecordingSessionBlockSpec());
-        }
-    }
-
-    private static String md5(byte[] hash) {
-        BigInteger bi = new BigInteger(1, hash);
-        return String.format("%0" + ( hash.length * 2 ) + "x", bi);
     }
 
     private static enum CompressorType {
@@ -85,12 +84,12 @@ public class ReplayDMX {
 
         static final int MAX_SESSIONNAME_LENGTH = 260;
         @StructField(index = 0)
-        byte    version;
+        byte version;
         /**
          * Name of session.
          */
         @StructField(index = 1, limit = MAX_SESSIONNAME_LENGTH - 1)
-        String  sessionName;
+        String sessionName;
         /**
          * Is this session currently recording?
          */
@@ -100,13 +99,13 @@ public class ReplayDMX {
          * # blocks in the session so far if recording, or total if not recording.
          */
         @StructField(index = 3)
-        int     numBlocks;
+        int numBlocks;
         /**
          * {@link com.timepath.hl2.io.demo.ReplayDMX.CompressorType.INVALID} if header is not compressed.
          */
         @SuppressWarnings("JavadocReference")
         @StructField(index = 4)
-        int     compressorType;
+        int compressorType;
         /**
          * MD5 digest on payload.
          */
@@ -125,13 +124,14 @@ public class ReplayDMX {
         @StructField(index = 8)
         byte[] unused = new byte[128];
 
-        private SessionInfoHeader() {}
+        private SessionInfoHeader() {
+        }
     }
 
     private static class RecordingSessionBlockSpec {
 
         @StructField(index = 0)
-        int  reconstruction;
+        int reconstruction;
         @StructField(index = 1)
         byte remoteStatus;
         @StructField(index = 2)
@@ -139,12 +139,13 @@ public class ReplayDMX {
         @StructField(index = 3, skip = 2)
         byte compressorType;
         @StructField(index = 4)
-        int  fileSize;
+        int fileSize;
         @StructField(index = 5)
-        int  uncompressedSize;
+        int uncompressedSize;
         @StructField(index = 6)
         byte[] unused = new byte[8];
 
-        private RecordingSessionBlockSpec() {}
+        private RecordingSessionBlockSpec() {
+        }
     }
 }

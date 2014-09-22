@@ -60,6 +60,7 @@ abstract class VGUIRenderer {
          * @return an InputStream to the resource, or null
          */
         abstract InputStream locate(String path);
+
         abstract Image locateImage(String path);
     }
     private static LinkedList<ResourceLocator> locators = []

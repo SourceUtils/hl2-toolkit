@@ -6,12 +6,13 @@ import java.util.logging.Logger;
 
 public class Edge {
 
-    private static final Logger  LOG = Logger.getLogger(Edge.class.getName());
+    private static final Logger LOG = Logger.getLogger(Edge.class.getName());
     /**
      * Vertex indices
      */
     @StructField
-    public               short[] v   = new short[2];
+    public short[] v = new short[2];
 
-    public Edge() {}
+    public Edge() {
+    }
 }

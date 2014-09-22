@@ -16,17 +16,21 @@ public class Packet {
 
     public final List<Pair<Object, Object>> list = new LinkedList<>();
     public final Type type;
-    public final int  offset;
+    public final int offset;
 
     public Packet(Type type, int offset) {
         this.type = type;
         this.offset = offset;
     }
 
-    @Override
-    public String toString() { return MessageFormat.format("{0}, offset {1}", type, offset); }
+    private static int log2(int i) {
+        return (int) (Math.log(i) / Math.log(2));
+    }
 
-    private static int log2(int i) { return (int) ( Math.log(i) / Math.log(2) ); }
+    @Override
+    public String toString() {
+        return MessageFormat.format("{0}, offset {1}", type, offset);
+    }
 
     /**
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.h
@@ -74,7 +78,7 @@ public class Packet {
             @Override
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 short n = bb.getByte();
-                for(int i = 0; i < n; i++) {
+                for (int i = 0; i < n; i++) {
                     l.add(new Pair<Object, Object>(bb.getString(), bb.getString()));
                 }
                 return true;
@@ -85,7 +89,7 @@ public class Packet {
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 int state = bb.getByte() & 0xFF;
                 SignonState[] signon = SignonState.values();
-                l.add(new Pair<Object, Object>("Signon state", ( state < signon.length ) ? signon[state] : state));
+                l.add(new Pair<Object, Object>("Signon state", (state < signon.length) ? signon[state] : state));
                 l.add(new Pair<Object, Object>("Spawn count", (int) bb.getBits(32)));
                 return true;
             }
@@ -110,12 +114,12 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Dedicated", bb.getBoolean()));
                 l.add(new Pair<Object, Object>("Server client CRC", "0x" + Integer.toHexString(bb.getInt())));
                 l.add(new Pair<Object, Object>("Max classes", bb.getBits(16)));
-                if(version >= 18) {
+                if (version >= 18) {
                     byte[] md5 = new byte[16];
                     bb.get(md5);
                     l.add(new Pair<Object, Object>("Server map MD5",
-                                                   String.format("%0" + ( md5.length * 2 ) + "x",
-                                                                 new BigInteger(1, md5))));
+                            String.format("%0" + (md5.length * 2) + "x",
+                                    new BigInteger(1, md5))));
                 } else {
                     l.add(new Pair<Object, Object>("Server map CRC", "0x" + Integer.toHexString(bb.getInt())));
                 }
@@ -134,7 +138,8 @@ public class Packet {
         /**
          * TODO
          */
-        svc_SendTable(9, new PacketHandler() {}),
+        svc_SendTable(9, new PacketHandler() {
+        }),
         svc_ClassInfo(10, new PacketHandler() {
             @Override
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
@@ -144,8 +149,8 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Create classes on client", cc));
                 demo.serverClassBits = log2(n) + 1;
                 l.add(new Pair<Object, Object>("serverClassBits", demo.serverClassBits));
-                if(!cc) {
-                    for(int i = 0; i < n; i++) {
+                if (!cc) {
+                    for (int i = 0; i < n; i++) {
                         l.add(new Pair<Object, Object>("Class ID", bb.getBits(demo.serverClassBits)));
                         l.add(new Pair<Object, Object>("Class name", bb.getString()));
                         l.add(new Pair<Object, Object>("Datatable name", bb.getString()));
@@ -180,7 +185,7 @@ public class Packet {
                 boolean userDataFixedSize = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Userdata fixed size", userDataFixedSize));
                 int userDataSize = -1, userDataSizeBits = -1;
-                if(userDataFixedSize) {
+                if (userDataFixedSize) {
                     userDataSize = (int) bb.getBits(12);
                     l.add(new Pair<Object, Object>("Userdata size", userDataSize));
                     userDataSizeBits = (int) bb.getBits(4);
@@ -227,7 +232,8 @@ public class Packet {
          * svc_HLTV: HLTV control messages
          * svc_Print: split screen style message
          */
-        svc_Unknown16(16, new PacketHandler() {}),
+        svc_Unknown16(16, new PacketHandler() {
+        }),
         /**
          * TODO
          */
@@ -261,7 +267,7 @@ public class Packet {
             }
 
             float readBitAngle(BitBuffer bb, int numbits) {
-                return bb.getBits(numbits) * ( 360.0f / ( 1 << numbits ) );
+                return bb.getBits(numbits) * (360.0f / (1 << numbits));
             }
         }),
         svc_CrosshairAngle(20, new PacketHandler() {
@@ -273,7 +279,7 @@ public class Packet {
             }
 
             float readBitAngle(BitBuffer bb, int numbits) {
-                return bb.getBits(numbits) * ( 360.0f / ( 1 << numbits ) );
+                return bb.getBits(numbits) * (360.0f / (1 << numbits));
             }
         }),
         svc_BSPDecal(21, new PacketHandler() {
@@ -281,15 +287,15 @@ public class Packet {
                 boolean hasint = bb.getBoolean();
                 boolean hasfract = bb.getBoolean();
                 float value = 0;
-                if(hasint || hasfract) {
+                if (hasint || hasfract) {
                     boolean sign = bb.getBoolean();
-                    if(hasint) {
+                    if (hasint) {
                         value += bb.getBits(14) + 1;
                     }
-                    if(hasfract) {
-                        value += bb.getBits(5) * ( 1 / 32f );
+                    if (hasfract) {
+                        value += bb.getBits(5) * (1 / 32f);
                     }
-                    if(sign) {
+                    if (sign) {
                         value = -value;
                     }
                 }
@@ -307,10 +313,10 @@ public class Packet {
             boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Position", getVecCoord(bb)));
                 l.add(new Pair<Object, Object>("Decal texture index", bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)));
-                if(bb.getBoolean()) {
+                if (bb.getBoolean()) {
                     l.add(new Pair<Object, Object>("Entity index", bb.getBits(HL2DEM.MAX_EDICT_BITS)));
                     int bits = HL2DEM.SP_MODEL_INDEX_BITS;
-                    if(demo.header.demoProtocol <= 21) {
+                    if (demo.header.demoProtocol <= 21) {
                         bits--;
                     }
                     l.add(new Pair<Object, Object>("Model index", bb.getBits(bits)));
@@ -324,7 +330,8 @@ public class Packet {
          * svc_TerrainMod: modification to the terrain/displacement
          * svc_SplitScreen: split screen style message
          */
-        svc_unknown2(22, new PacketHandler() {}),
+        svc_unknown2(22, new PacketHandler() {
+        }),
         /**
          * TODO
          */
@@ -355,7 +362,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Length in bits", length));
                 int gameEventId = (int) bb.getBits(9);
                 GameEvent gameEvent = demo.gameEvents[gameEventId];
-                if(gameEvent != null) {
+                if (gameEvent != null) {
                     l.add(new Pair<Object, Object>(gameEvent.name, gameEvent.parse(bb).entrySet()));
                 } else {
                     l.add(new Pair<Object, Object>("Unknown event", gameEventId));
@@ -384,7 +391,7 @@ public class Packet {
                 boolean isDelta = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Is delta", isDelta));
                 long deltaFrom = -1;
-                if(isDelta) {
+                if (isDelta) {
                     deltaFrom = bb.getBits(32);
                     l.add(new Pair<Object, Object>("Delta from", deltaFrom));
                 }
@@ -465,11 +472,11 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Number of events", numGameEvents));
                 int length = (int) bb.getBits(20);
                 l.add(new Pair<Object, Object>("Length in bits", length));
-                for(int i = 0; i < numGameEvents; i++) {
+                for (int i = 0; i < numGameEvents; i++) {
                     int id = (int) bb.getBits(9);
                     demo.gameEvents[id] = new GameEvent(bb);
                     l.add(new Pair<Object, Object>("gameEvents[" + id + "] = " + demo.gameEvents[id].name,
-                                                   demo.gameEvents[id].declarations.entrySet()));
+                            demo.gameEvents[id].declarations.entrySet()));
                 }
                 return true;
             }
@@ -494,13 +501,17 @@ public class Packet {
                 return true;
             }
         });
-        /** The handler associated with this packet */
-        final         PacketHandler handler;
-        /** The opcode for this packet */
-        private final int[]         id;
+        /**
+         * The handler associated with this packet
+         */
+        final PacketHandler handler;
+        /**
+         * The opcode for this packet
+         */
+        private final int[] id;
 
         Type(int id, PacketHandler handler) {
-            this(new int[] { id }, handler);
+            this(new int[]{id}, handler);
         }
 
         Type(int[] id, PacketHandler handler) {
@@ -509,9 +520,9 @@ public class Packet {
         }
 
         public static Type get(int i) {
-            for(Type t : Type.values()) {
-                for(int j : t.id) {
-                    if(j == i) {
+            for (Type t : Type.values()) {
+                for (int j : t.id) {
+                    if (j == i) {
                         return t;
                     }
                 }

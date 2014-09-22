@@ -18,7 +18,8 @@ public class VCCDTest {
 
     private static final Logger LOG = Logger.getLogger(VCCDTest.class.getName());
 
-    public VCCDTest() {}
+    public VCCDTest() {
+    }
 
     /**
      * Tests whether loading and saving produce the same output
@@ -28,7 +29,7 @@ public class VCCDTest {
         InputStream is = getClass().getResourceAsStream("/test.dat");
         byte[] src = new byte[is.available()];
         //noinspection StatementWithEmptyBody
-        for(int offset = 0; ( offset = is.read(src, offset, src.length - offset) ) != -1; ) ;
+        for (int offset = 0; (offset = is.read(src, offset, src.length - offset)) != -1; ) ;
         is.close();
         ByteArrayOutputStream baos = new ByteArrayOutputStream(src.length);
         com.timepath.hl2.io.captions.VCCD.save(com.timepath.hl2.io.captions.VCCD.load(new ByteArrayInputStream(src)), baos);

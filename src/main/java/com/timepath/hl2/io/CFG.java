@@ -18,22 +18,23 @@ public class CFG {
     private static final Logger LOG = Logger.getLogger(CFG.class.getName());
     List<Alias> aliases = new LinkedList<>();
 
-    public CFG() {}
+    public CFG() {
+    }
 
     private static List<Token> lex(CharSequence input) {
         List<Token> tokens = new LinkedList<>();
         StringBuilder tokenPatternsBuffer = new StringBuilder();
         TokenType[] values = TokenType.values();
-        for(TokenType tokenType : values) {
+        for (TokenType tokenType : values) {
             tokenPatternsBuffer.append(String.format("|%s", tokenType.pattern));
         }
         Pattern tokenPatterns = Pattern.compile(tokenPatternsBuffer.substring(1));
         Matcher matcher = tokenPatterns.matcher(input);
-        while(matcher.find()) {
-            for(int i = 0; i < values.length; i++) {
+        while (matcher.find()) {
+            for (int i = 0; i < values.length; i++) {
                 TokenType type = values[i];
                 String group = matcher.group(i + 1);
-                if(group != null) {
+                if (group != null) {
                     tokens.add(new Token(type, group));
                     break;
                 }
@@ -59,10 +60,10 @@ public class CFG {
         try {
             scanner = new Scanner(in, encoding);
             parse(scanner);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
         } finally {
-            if(scanner != null) {
+            if (scanner != null) {
                 scanner.close();
             }
         }
@@ -72,19 +73,19 @@ public class CFG {
     private static CFG parse(Scanner scanner) {
         CFG cfg = new CFG();
         int lineNum = 0;
-        while(scanner.hasNext()) {
+        while (scanner.hasNext()) {
             String line = scanner.nextLine().trim();
             lineNum++;
             List<Token> q = lex(line);
             LOG.info(String.valueOf(q));
             Deque<Token> cmd = new LinkedList<>();
             boolean quoted = false;
-            for(Token t : q) {
-                switch(t.type) {
+            for (Token t : q) {
+                switch (t.type) {
                     case QUOTE:
                         quoted = !quoted;
                     case SEPARATOR:
-                        if(!quoted) {
+                        if (!quoted) {
                             LOG.info(eval(cmd));
                             cmd.clear();
                             break;
@@ -106,9 +107,9 @@ public class CFG {
 
     private static String eval(Deque<Token> deque) {
         StringBuilder sb = new StringBuilder();
-        while(!deque.isEmpty()) {
+        while (!deque.isEmpty()) {
             Token t = deque.pop();
-            switch(t.type) {
+            switch (t.type) {
                 case COMMENT:
                     break;
                 case SPACE:
@@ -118,10 +119,10 @@ public class CFG {
                 case QUOTE:
                     break;
                 case TOKEN:
-                    if("alias".equals(t.data)) {
+                    if ("alias".equals(t.data)) {
                         Alias a = new Alias();
                         a.name = t.data;
-                        if(!deque.isEmpty() && ( deque.peek().type == TokenType.SPACE )) {
+                        if (!deque.isEmpty() && (deque.peek().type == TokenType.SPACE)) {
                             deque.pop();
                         }
                         a.cmd = eval(deque);
@@ -154,7 +155,7 @@ public class CFG {
     public static class Token {
 
         public TokenType type;
-        public String    data;
+        public String data;
 
         public Token(TokenType type, String data) {
             this.type = type;
@@ -175,7 +176,8 @@ public class CFG {
         String name;
         String cmd;
 
-        public Alias() {}
+        public Alias() {
+        }
 
         @Override
         public String toString() {

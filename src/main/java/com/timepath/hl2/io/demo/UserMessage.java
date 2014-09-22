@@ -18,7 +18,7 @@ public enum UserMessage {
     Geiger(0, 1, new PacketHandler() {
         @Override
         boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
-            l.add(new Pair<Object, Object>("Range", ( bb.getByte() & 0xFF ) * 2));
+            l.add(new Pair<Object, Object>("Range", (bb.getByte() & 0xFF) * 2));
             return true;
         }
     }),
@@ -55,7 +55,7 @@ public enum UserMessage {
             l.add(new Pair<Object, Object>("Text", msg));
             // This message can have two optional string parameters.
             List<String> args = new LinkedList<>();
-            while(bb.positionBits() < endBit) {
+            while (bb.positionBits() < endBit) {
                 String arg = bb.getString();
                 args.add(arg);
             }
@@ -169,8 +169,8 @@ public enum UserMessage {
     HapSetDrag(55, -1),
     HapSetConst(56, -1),
     HapMeleeContact(57, 0);
-    private final int           i;
-    private final int           size;
+    private final int i;
+    private final int size;
     private final PacketHandler handler;
 
     UserMessage(int id, int size) {
@@ -186,12 +186,12 @@ public enum UserMessage {
     static boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
         int msgType = (int) bb.getByte();
         UserMessage m = get(msgType);
-        l.add(new Pair<Object, Object>("Message type", ( m != null ) ? m.name() : ( "Unknown: " + msgType )));
+        l.add(new Pair<Object, Object>("Message type", (m != null) ? m.name() : ("Unknown: " + msgType)));
         int length = (int) bb.getBits(11);
         l.add(new Pair<Object, Object>("Length in bits", length));
         l.add(new Pair<Object, Object>("Start bit", bb.positionBits()));
         l.add(new Pair<Object, Object>("End bit", bb.positionBits() + length));
-        if(( m == null ) || ( m.handler == null )) {
+        if ((m == null) || (m.handler == null)) {
             l.add(new Pair<Object, Object>("TODO", msgType));
             bb.getBits(length); // Skip
             return true;
@@ -200,6 +200,6 @@ public enum UserMessage {
     }
 
     private static UserMessage get(int i) {
-        return ( i < values().length ) ? values()[i] : null;
+        return (i < values().length) ? values()[i] : null;
     }
 }
