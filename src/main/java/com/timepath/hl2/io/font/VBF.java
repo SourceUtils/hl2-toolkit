@@ -148,17 +148,17 @@ public class VBF {
         buf.putInt(BITMAPFONT_VERSION);
         buf.putShort(pageWidth);
         buf.putShort(pageHeight);
-        short maxcharwidth = 0;
-        short maxcharheight = 0;
+        short maxCharWidth = 0;
+        short maxCharHeight = 0;
         for (BitmapGlyph glyph : glyphs) {
             Rectangle r = glyph.getBounds();
             if ((r.width != 0) && (r.height != 0)) {
-                maxcharwidth = (short) Math.max(maxcharwidth, r.width);
-                maxcharheight = (short) Math.max(maxcharwidth, r.height);
+                maxCharWidth = (short) Math.max(maxCharWidth, r.width);
+                maxCharHeight = (short) Math.max(maxCharHeight, r.height);
             }
         }
-        buf.putShort(maxcharwidth);
-        buf.putShort(maxcharheight);
+        buf.putShort(maxCharWidth);
+        buf.putShort(maxCharHeight);
         buf.putShort(flags);
         buf.putShort(ascent);
         buf.putShort((short) glyphs.size());
