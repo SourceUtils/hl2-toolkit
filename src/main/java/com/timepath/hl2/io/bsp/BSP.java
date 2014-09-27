@@ -47,7 +47,9 @@ public abstract class BSP {
                         LOG.log(Level.INFO, "Loading {0}", file);
                         try (@NotNull InputStream is = new FileInputStream(file)) {
                             @Nullable BSP b = BSP.load(is);
-                            z = b.getLump(LumpType.LUMP_PAKFILE);
+                            if (b != null) {
+                                z = b.getLump(LumpType.LUMP_PAKFILE);
+                            }
                         } catch (IOException e) {
                             LOG.log(Level.SEVERE, null, e);
                         }
@@ -61,6 +63,7 @@ public abstract class BSP {
                         return true;
                     }
 
+                    @NotNull
                     @Override
                     public String getName() {
                         return name;
@@ -72,18 +75,18 @@ public abstract class BSP {
                         return null;
                     }
 
-                    @Nullable
+                    @NotNull
                     @Override
                     public Collection<? extends SimpleVFile> list() {
                         checkBSP();
-                        return z.list();
+                        return z != null ? z.list() : Collections.<SimpleVFile>emptyList();
                     }
 
                     @Nullable
                     @Override
                     public SimpleVFile get(final String name) {
                         checkBSP();
-                        return z.get(name);
+                        return z != null ? z.get(name) : null;
                     }
                 });
             }

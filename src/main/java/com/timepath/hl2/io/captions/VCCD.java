@@ -121,10 +121,12 @@ public class VCCD {
      * @return
      */
     @NotNull
-    public static List<VCCDEntry> parse(InputStream is) throws IOException {
+    public static List<VCCDEntry> parse(@NotNull InputStream is) throws IOException {
         @NotNull VDFNode v = VDF.load(is, StandardCharsets.UTF_16);
         @NotNull List<VCCDEntry> children = new LinkedList<>();
-        @NotNull List<VDFProperty> props = v.get("lang", "Tokens").getProperties();
+        final VDFNode vdfNode = v.get("lang", "Tokens");
+        if(vdfNode == null) return Collections.emptyList();
+        @NotNull List<VDFProperty> props = vdfNode.getProperties();
         @NotNull Collection<String> usedKeys = new LinkedList<>();
         for (int i = props.size() - 1; i >= 0; i--) { // do it in reverse to make overriding easier. TODO: use iterator
             VDFProperty p = props.get(i);
