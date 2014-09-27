@@ -31,14 +31,33 @@ public class VBF {
     private short ascent;
     /**
      * style flags
-     * #define BF_BOLD	0x0001
-     * #define BF_ITALIC	0x0002
-     * #define BF_OUTLINED	0x0004
-     * #define BF_DROPSHADOW	0x0008
-     * #define BF_BLURRED	0x0010
-     * #define BF_SCANLINES	0x0020
-     * #define BF_ANTIALIASED	0x0040
-     * #define BF_CUSTOM	0x0080
+     * <table>
+     * <tr>
+     * <td>BF_BOLD</td>
+     * <td>0x0001</td>
+     * </tr><tr>
+     * <td>BF_ITALIC</td>
+     * <td>0x0002</td>
+     * </tr><tr>
+     * <td>BF_OUTLINED</td>
+     * <td>0x0004</td>
+     * </tr><tr>
+     * <td>BF_DROPSHADOW</td>
+     * <td>0x0008</td>
+     * </tr><tr>
+     * <td>BF_BLURRED</td>
+     * <td>0x0010</td>
+     * </tr><tr>
+     * <td>BF_SCANLINES</td>
+     * <td>0x0020</td>
+     * </tr><tr>
+     * <td>BF_ANTIALIASED</td>
+     * <td>0x0040</td>
+     * </tr><tr>
+     * <td>BF_CUSTOM</td>
+     * <td>0x0080</td>
+     * </tr>
+     * </table>
      */
     private short flags;
     private short pageHeight;
