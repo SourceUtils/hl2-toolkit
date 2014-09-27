@@ -6,6 +6,8 @@ import com.timepath.hl2.io.demo.Packet.Type;
 import com.timepath.io.BitBuffer;
 import com.timepath.io.OrderedOutputStream;
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
@@ -30,6 +32,7 @@ public class Message {
     public final MessageType type;
     private final HL2DEM outer;
     public ByteBuffer data;
+    @NotNull
     public List<Pair<Object, Object>> meta = new LinkedList<>();
     public boolean incomplete;
     /**
@@ -54,9 +57,10 @@ public class Message {
         this.tick = tick;
     }
 
-    static Message parse(HL2DEM outer, ByteBuffer buffer) {
+    @NotNull
+    static Message parse(HL2DEM outer, @NotNull ByteBuffer buffer) {
         int op = buffer.get();
-        MessageType type = MessageType.get(op);
+        @Nullable MessageType type = MessageType.get(op);
         if (type == null) {
             LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", op);
         }
@@ -65,15 +69,15 @@ public class Message {
         LOG.log(Level.FINE,
                 "{0} at tick {1} ({2}), {3} remaining bytes",
                 new Object[]{type, tick, buffer.position(), buffer.remaining()});
-        Message m = new Message(outer, type, tick);
+        @NotNull Message m = new Message(outer, type, tick);
         if (!(m.type == MessageType.Synctick || m.type == MessageType.Stop)) {
             if (m.type == MessageType.Packet || m.type == MessageType.Signon) {
-                byte[] dst = new byte[21 * 4];
+                @NotNull byte[] dst = new byte[21 * 4];
                 buffer.get(dst);
                 m.cseq = dst;
             }
             if (m.type == MessageType.UserCmd) {
-                byte[] dst = new byte[4];
+                @NotNull byte[] dst = new byte[4];
                 buffer.get(dst);
                 m.oseq = dst;
             }
@@ -82,7 +86,7 @@ public class Message {
         return m;
     }
 
-    public void write(final OrderedOutputStream out) throws IOException {
+    public void write(@NotNull final OrderedOutputStream out) throws IOException {
         out.writeByte(type.ordinal() + 1);
         out.writeInt(tick); // TODO: technically MessageType.Stop is 1 byte less
         if (cseq != null) out.write(cseq);
@@ -90,11 +94,12 @@ public class Message {
         if (!(type == MessageType.Synctick || type == MessageType.Stop)) out.writeInt(size);
         if (data == null) return;
         data.position(0);
-        byte[] dst = new byte[data.limit()];
+        @NotNull byte[] dst = new byte[data.limit()];
         data.get(dst);
         out.write(dst);
     }
 
+    @NotNull
     @Override
     public String toString() {
         return MessageFormat.format("{0}, tick {1}, {2} bytes", type, tick, (data != null) ? data.limit() : 0);
@@ -107,19 +112,19 @@ public class Message {
         switch (type) {
             case Signon:
             case Packet: {
-                BitBuffer bb = new BitBuffer(data);
-                String error = null;
-                Throwable thrown = null;
+                @NotNull BitBuffer bb = new BitBuffer(data);
+                @Nullable String error = null;
+                @Nullable Throwable thrown = null;
                 int opSize = (outer.header.networkProtocol >= 16) ? 6 : 5;
                 while (bb.remainingBits() > opSize) {
                     try {
                         int op = (int) bb.getBits(opSize);
-                        Type type = Type.get(op);
+                        @Nullable Type type = Type.get(op);
                         if (type == null) {
                             error = MessageFormat.format("Unknown message type {0} in {1}", op, this);
                             thrown = new Exception("Unknown message");
                         } else {
-                            Packet p = new Packet(type, bb.positionBits());
+                            @NotNull Packet p = new Packet(type, bb.positionBits());
                             try {
                                 if (!type.handler.read(bb, p.list, outer)) {
                                     error = MessageFormat.format("Incomplete read of {0} in {1}", p, this);
@@ -146,13 +151,13 @@ public class Message {
                 break;
             }
             case ConsoleCmd: {
-                String cmd = DataUtils.getText(data, true);
+                @NotNull String cmd = DataUtils.getText(data, true);
                 meta.add(new Pair<Object, Object>("cmd", cmd));
                 break;
             }
             case UserCmd: {
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
-                BitBuffer bb = new BitBuffer(data);
+                @NotNull BitBuffer bb = new BitBuffer(data);
                 if (bb.getBoolean()) {
                     meta.add(new Pair<Object, Object>("Command number", bb.getInt()));
                 } // else assume steady increment
@@ -208,7 +213,7 @@ public class Message {
         parsed = true;
     }
 
-    public void setData(final byte[] data) {
+    public void setData(@NotNull final byte[] data) {
         this.data = ByteBuffer.wrap(data);
         this.size = data.length;
     }

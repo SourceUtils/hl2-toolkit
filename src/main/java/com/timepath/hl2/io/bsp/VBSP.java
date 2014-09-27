@@ -5,6 +5,8 @@ import com.timepath.hl2.io.bsp.lump.Face;
 import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.steam.io.storage.ACF;
 import com.timepath.vfs.ZipFS;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,17 +26,17 @@ public class VBSP extends BSP {
     }
 
     public static void main(String... args) throws Exception {
-        BSP b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp").openStream());
+        @Nullable BSP b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp").openStream());
         LOG.log(Level.INFO, "Revision: {0}", b.getRevision());
-        String ents = b.getLump(LumpType.LUMP_ENTITIES);
+        @Nullable String ents = b.getLump(LumpType.LUMP_ENTITIES);
         //        System.out.println(ents);
-        ZipFS z = b.getLump(LumpType.LUMP_PAKFILE);
+        @Nullable ZipFS z = b.getLump(LumpType.LUMP_PAKFILE);
         LOG.info(z.name);
         b.getLump(LumpType.LUMP_VERTEXES);
     }
 
     @SuppressWarnings({"empty-statement", "StatementWithEmptyBody"})
-    private static int compileGpuVertex(FloatBuffer verts, int pos, Collection<Float> vertices) {
+    private static int compileGpuVertex(@NotNull FloatBuffer verts, int pos, @NotNull Collection<Float> vertices) {
         int index = vertices.size() / 3;
         verts.position(pos);
         for (int i = 0; i++ < 3; vertices.add(verts.get())) ;
@@ -46,22 +48,22 @@ public class VBSP extends BSP {
      * @see @see <a>https://github.com/toji/webgl-source/blob/master/js/source-bsp.js#L567</a>
      */
     public void processToji() throws IOException {
-        FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
+        @Nullable FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
         LOG.log(Level.INFO, "Vertices: {0}", bspVertices.capacity());
-        Edge[] bspEdges = getLump(LumpType.LUMP_EDGES);
+        @Nullable Edge[] bspEdges = getLump(LumpType.LUMP_EDGES);
         LOG.log(Level.INFO, "Edges: {0}", bspEdges.length);
-        int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES);
+        @Nullable int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES);
         LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges.length);
-        Face[] bspFaces = getLump(LumpType.LUMP_FACES);
+        @Nullable Face[] bspFaces = getLump(LumpType.LUMP_FACES);
         LOG.log(Level.INFO, "Faces: {0}", bspFaces.length);
-        List<Float> vertices = new LinkedList<>();
-        List<Integer> indices = new LinkedList<>();
+        @NotNull List<Float> vertices = new LinkedList<>();
+        @NotNull List<Integer> indices = new LinkedList<>();
         int vertexBase = 0;
         int rootPoint = 0;
         int rootVertId = 0;
-        for (Face face : bspFaces) {
+        for (@NotNull Face face : bspFaces) {
             int edgeId = face.firstedge;
-            Map<Integer, Integer> vertLookupTable = new HashMap<>(0);
+            @NotNull Map<Integer, Integer> vertLookupTable = new HashMap<>(0);
             for (int i = 0; i < face.numedges; i++) {
                 int surfEdge = bspSurfEdges[edgeId + 1];
                 Edge edge = bspEdges[Math.abs(surfEdge)];
@@ -106,7 +108,7 @@ public class VBSP extends BSP {
         done(vertices, indices);
     }
 
-    private void done(List<Float> vertices, List<Integer> indices) {
+    private void done(@Nullable List<Float> vertices, @Nullable List<Integer> indices) {
         if ((indices != null) && !indices.isEmpty()) {
             indexBuffer = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer();
             for (int i : indices) {
@@ -131,21 +133,21 @@ public class VBSP extends BSP {
      */
     @SuppressWarnings({"empty-statement", "StatementWithEmptyBody"})
     public void processW23() throws IOException {
-        FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
+        @Nullable FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
         LOG.log(Level.INFO, "Vertices: {0}", bspVertices.capacity());
-        Edge[] bspEdges = getLump(LumpType.LUMP_EDGES);
+        @Nullable Edge[] bspEdges = getLump(LumpType.LUMP_EDGES);
         LOG.log(Level.INFO, "Edges: {0}", bspEdges.length);
-        int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES);
+        @Nullable int[] bspSurfEdges = getLump(LumpType.LUMP_SURFEDGES);
         LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges.length);
         // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L253
         for (int i = 0; i < bspSurfEdges.length; i++) {
             bspSurfEdges[i] = bspSurfEdges[i] >= 0 ? bspEdges[bspSurfEdges[i]].v[0] : bspEdges[-bspSurfEdges[i]].v[1];
         }
-        Face[] bspFaces = getLump(LumpType.LUMP_FACES);
+        @Nullable Face[] bspFaces = getLump(LumpType.LUMP_FACES);
         LOG.log(Level.INFO, "Faces: {0}", bspFaces.length);
-        List<Float> vertices = new LinkedList<>();
-        List<Integer> indices = new LinkedList<>();
-        for (Face face : bspFaces) {
+        @NotNull List<Float> vertices = new LinkedList<>();
+        @NotNull List<Integer> indices = new LinkedList<>();
+        for (@NotNull Face face : bspFaces) {
             int edgeId = face.firstedge;
             // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L347
             int index_shift = vertices.size();
@@ -169,8 +171,8 @@ public class VBSP extends BSP {
 
     @SuppressWarnings({"empty-statement", "StatementWithEmptyBody"})
     void processBasic() throws IOException {
-        List<Float> vertices = new LinkedList<>();
-        FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
+        @NotNull List<Float> vertices = new LinkedList<>();
+        @Nullable FloatBuffer bspVertices = getLump(LumpType.LUMP_VERTEXES);
         for (; bspVertices.hasRemaining(); vertices.add(bspVertices.get())) ;
         done(vertices, null);
     }

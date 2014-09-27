@@ -1,6 +1,8 @@
 package com.timepath.hl2.io.demo;
 
 import com.timepath.io.BitBuffer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author TimePath
@@ -10,8 +12,9 @@ public enum GameEventMessageType {
      * A zero terminated string
      */
     STRING(1) {
+        @NotNull
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getString();
         }
     },
@@ -20,7 +23,7 @@ public enum GameEventMessageType {
      */
     FLOAT(2) {
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getFloat();
         }
     },
@@ -29,7 +32,7 @@ public enum GameEventMessageType {
      */
     LONG(3) {
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getInt();
         }
     },
@@ -38,7 +41,7 @@ public enum GameEventMessageType {
      */
     SHORT(4) {
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getShort();
         }
     },
@@ -47,7 +50,7 @@ public enum GameEventMessageType {
      */
     BYTE(5) {
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getByte();
         }
     },
@@ -56,7 +59,7 @@ public enum GameEventMessageType {
      */
     BOOL(6) {
         @Override
-        public Object parse(BitBuffer bb) {
+        public Object parse(@NotNull BitBuffer bb) {
             return bb.getBoolean();
         }
     },
@@ -68,6 +71,7 @@ public enum GameEventMessageType {
     GameEventMessageType(int i) {
     }
 
+    @Nullable
     static GameEventMessageType get(int i) {
         GameEventMessageType[] vals = values();
         if ((i < 1) || (i > vals.length)) {
@@ -76,6 +80,7 @@ public enum GameEventMessageType {
         return vals[i - 1];
     }
 
+    @Nullable
     public Object parse(BitBuffer bb) {
         return null;
     }

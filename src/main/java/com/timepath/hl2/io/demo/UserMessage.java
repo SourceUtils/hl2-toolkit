@@ -2,6 +2,8 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.LinkedList;
@@ -17,21 +19,21 @@ import java.util.List;
 public enum UserMessage {
     Geiger(0, 1, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             l.add(new Pair<Object, Object>("Range", (bb.getByte() & 0xFF) * 2));
             return true;
         }
     }),
     Train(1, 1, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             l.add(new Pair<Object, Object>("Pos", bb.getByte()));
             return true;
         }
     }),
     HudText(2, -1, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             l.add(new Pair<Object, Object>("Text", bb.getString()));
             return true;
         }
@@ -39,7 +41,7 @@ public enum UserMessage {
     SayText(3, -1),
     SayText2(4, -1, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             int endBit = bb.positionBits() + lengthBits;
             long client = bb.getBits(8);
             l.add(new Pair<Object, Object>("Client", client));
@@ -47,16 +49,16 @@ public enum UserMessage {
             boolean isRaw = bb.getBits(8) != 0;
             l.add(new Pair<Object, Object>("Raw", isRaw));
             // \x03 in the message for the team color of the specified clientid
-            String kind = bb.getString();
+            @NotNull String kind = bb.getString();
             l.add(new Pair<Object, Object>("Kind", kind));
-            String from = bb.getString();
+            @NotNull String from = bb.getString();
             l.add(new Pair<Object, Object>("From", from));
-            String msg = bb.getString();
+            @NotNull String msg = bb.getString();
             l.add(new Pair<Object, Object>("Text", msg));
             // This message can have two optional string parameters.
-            List<String> args = new LinkedList<>();
+            @NotNull List<String> args = new LinkedList<>();
             while (bb.positionBits() < endBit) {
-                String arg = bb.getString();
+                @NotNull String arg = bb.getString();
                 args.add(arg);
             }
             l.add(new Pair<Object, Object>("Args", args));
@@ -65,8 +67,8 @@ public enum UserMessage {
     }),
     TextMsg(5, -1, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
-            String[] destination = {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+            @NotNull String[] destination = {
                     "HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK", "HUD_PRINTCENTER"
             };
             byte msgDest = bb.getByte();
@@ -114,10 +116,10 @@ public enum UserMessage {
         private static final int MAX_NETMESSAGE = 6;
 
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
-            Point pos = new Point(bb.getByte(), bb.getByte());
-            Color color = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
-            Color color2 = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+            @NotNull Point pos = new Point(bb.getByte(), bb.getByte());
+            @NotNull Color color = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
+            @NotNull Color color2 = new Color(bb.getByte(), bb.getByte(), bb.getByte(), bb.getByte());
             float effect = bb.getByte();
             float fadein = bb.getFloat();
             float fadeout = bb.getFloat();
@@ -129,7 +131,7 @@ public enum UserMessage {
     }),
     AmmoDenied(22, 2, new PacketHandler() {
         @Override
-        boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
+        boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo, int lengthBits) {
             l.add(new Pair<Object, Object>("Ammo", bb.getShort() & 0xFFFF));
             return true;
         }
@@ -183,9 +185,9 @@ public enum UserMessage {
         this.handler = handler;
     }
 
-    static boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+    static boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
         int msgType = (int) bb.getByte();
-        UserMessage m = get(msgType);
+        @Nullable UserMessage m = get(msgType);
         l.add(new Pair<Object, Object>("Message type", (m != null) ? m.name() : ("Unknown: " + msgType)));
         int length = (int) bb.getBits(11);
         l.add(new Pair<Object, Object>("Length in bits", length));
@@ -199,6 +201,7 @@ public enum UserMessage {
         return m.handler.read(bb, l, demo, length);
     }
 
+    @Nullable
     private static UserMessage get(int i) {
         return (i < values().length) ? values()[i] : null;
     }

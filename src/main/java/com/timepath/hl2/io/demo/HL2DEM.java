@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.demo;
 
 import com.timepath.DataUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class HL2DEM {
     DemoHeader header;
     int serverClassBits;
 
-    private HL2DEM(ByteBuffer buffer, boolean eager) {
+    private HL2DEM(@NotNull ByteBuffer buffer, boolean eager) {
         header = DemoHeader.parse(DataUtils.getSlice(buffer, 32 + 260 * 4));
         while (true) {
             Message frame;
@@ -73,7 +74,7 @@ public class HL2DEM {
             frames.add(frame);
             if (frame.type == MessageType.Stop) break;
             if (frame.size == 0) continue;
-            byte[] dst = new byte[frame.size];
+            @NotNull byte[] dst = new byte[frame.size];
             try {
                 buffer.get(dst);
             } catch (BufferUnderflowException e) {
@@ -86,11 +87,13 @@ public class HL2DEM {
         }
     }
 
-    public static HL2DEM load(File f) throws IOException {
+    @NotNull
+    public static HL2DEM load(@NotNull File f) throws IOException {
         return load(f, true);
     }
 
-    public static HL2DEM load(File f, boolean eager) throws IOException {
+    @NotNull
+    public static HL2DEM load(@NotNull File f, boolean eager) throws IOException {
         LOG.log(Level.INFO, "Parsing {0}", f);
         ByteBuffer buffer = DataUtils.mapFile(f);
         return new HL2DEM(buffer, eager);
@@ -99,6 +102,7 @@ public class HL2DEM {
     /**
      * @return the frames
      */
+    @NotNull
     public List<Message> getFrames() {
         return frames;
     }

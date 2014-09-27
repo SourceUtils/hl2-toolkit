@@ -3,6 +3,8 @@ package com.timepath.hl2.io.demo;
 import com.timepath.Pair;
 import com.timepath.hl2.io.util.Vector3f;
 import com.timepath.io.BitBuffer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.text.MessageFormat;
@@ -27,6 +29,7 @@ public class Packet {
         return (int) (Math.log(i) / Math.log(2));
     }
 
+    @NotNull
     @Override
     public String toString() {
         return MessageFormat.format("{0}, offset {1}", type, offset);
@@ -44,14 +47,14 @@ public class Packet {
         }),
         net_Disconnect(1, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Reason", bb.getString()));
                 return true;
             }
         }),
         net_File(2, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Transfer ID", bb.getInt()));
                 l.add(new Pair<Object, Object>("Filename", bb.getString()));
                 l.add(new Pair<Object, Object>("Requested", bb.getBoolean()));
@@ -60,7 +63,7 @@ public class Packet {
         }),
         net_Tick(3, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Tick", bb.getInt()));
                 l.add(new Pair<Object, Object>("Host frametime", bb.getShort()));
                 l.add(new Pair<Object, Object>("Host frametime StdDev", bb.getShort()));
@@ -69,14 +72,14 @@ public class Packet {
         }),
         net_StringCmd(4, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Command", bb.getString()));
                 return true;
             }
         }),
         net_SetConVar(5, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 short n = bb.getByte();
                 for (int i = 0; i < n; i++) {
                     l.add(new Pair<Object, Object>(bb.getString(), bb.getString()));
@@ -86,7 +89,7 @@ public class Packet {
         }),
         net_SignonState(6, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 int state = bb.getByte() & 0xFF;
                 SignonState[] signon = SignonState.values();
                 l.add(new Pair<Object, Object>("Signon state", (state < signon.length) ? signon[state] : state));
@@ -99,14 +102,14 @@ public class Packet {
          */
         svc_Print(7, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Value", bb.getString()));
                 return true;
             }
         }),
         svc_ServerInfo(8, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 short version = (short) bb.getBits(16);
                 l.add(new Pair<Object, Object>("Version", version));
                 l.add(new Pair<Object, Object>("Server count", (int) bb.getBits(32)));
@@ -115,7 +118,7 @@ public class Packet {
                 l.add(new Pair<Object, Object>("Server client CRC", "0x" + Integer.toHexString(bb.getInt())));
                 l.add(new Pair<Object, Object>("Max classes", bb.getBits(16)));
                 if (version >= 18) {
-                    byte[] md5 = new byte[16];
+                    @NotNull byte[] md5 = new byte[16];
                     bb.get(md5);
                     l.add(new Pair<Object, Object>("Server map MD5",
                             String.format("%0" + (md5.length * 2) + "x",
@@ -142,7 +145,7 @@ public class Packet {
         }),
         svc_ClassInfo(10, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
                 int n = bb.getShort();
                 l.add(new Pair<Object, Object>("Number of server classes", n));
                 boolean cc = bb.getBoolean();
@@ -161,7 +164,7 @@ public class Packet {
         }),
         svc_SetPause(11, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Paused", bb.getBoolean()));
                 return true;
             }
@@ -172,8 +175,8 @@ public class Packet {
          */
         svc_CreateStringTable(12, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                String tableName = bb.getString();
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
+                @NotNull String tableName = bb.getString();
                 l.add(new Pair<Object, Object>("Table name", tableName));
                 int maxEntries = bb.getShort();
                 l.add(new Pair<Object, Object>("Max entries", maxEntries));
@@ -204,7 +207,7 @@ public class Packet {
          */
         svc_UpdateStringTable(13, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 int tableID = (int) bb.getBits(log2(StringTable.MAX_TABLES)); // 5 bits
                 l.add(new Pair<Object, Object>("Table ID", tableID));
                 long changedEntries = bb.getBoolean() ? bb.getBits(16) : 1;
@@ -220,7 +223,7 @@ public class Packet {
         }),
         svc_VoiceInit(14, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Codec", bb.getString()));
                 l.add(new Pair<Object, Object>("Quality", bb.getByte()));
                 return true;
@@ -239,7 +242,7 @@ public class Packet {
          */
         svc_Sounds(17, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 boolean reliable = bb.getBoolean();
                 l.add(new Pair<Object, Object>("Reliable", reliable));
                 int count = reliable ? 1 : bb.getByte();
@@ -252,38 +255,38 @@ public class Packet {
         }),
         svc_SetView(18, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Entity index", bb.getBits(11)));
                 return true;
             }
         }),
         svc_FixAngle(19, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Relative", bb.getBoolean()));
-                Vector3f v = new Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16));
+                @NotNull Vector3f v = new Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16));
                 l.add(new Pair<Object, Object>("Vector", v));
                 return true;
             }
 
-            float readBitAngle(BitBuffer bb, int numbits) {
+            float readBitAngle(@NotNull BitBuffer bb, int numbits) {
                 return bb.getBits(numbits) * (360.0f / (1 << numbits));
             }
         }),
         svc_CrosshairAngle(20, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
-                Vector3f v = new Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16));
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
+                @NotNull Vector3f v = new Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16));
                 l.add(new Pair<Object, Object>("Vector", v));
                 return true;
             }
 
-            float readBitAngle(BitBuffer bb, int numbits) {
+            float readBitAngle(@NotNull BitBuffer bb, int numbits) {
                 return bb.getBits(numbits) * (360.0f / (1 << numbits));
             }
         }),
         svc_BSPDecal(21, new PacketHandler() {
-            float getCoord(BitBuffer bb) {
+            float getCoord(@NotNull BitBuffer bb) {
                 boolean hasint = bb.getBoolean();
                 boolean hasfract = bb.getBoolean();
                 float value = 0;
@@ -302,7 +305,8 @@ public class Packet {
                 return value;
             }
 
-            Vector3f getVecCoord(BitBuffer bb) {
+            @NotNull
+            Vector3f getVecCoord(@NotNull BitBuffer bb) {
                 boolean hasx = bb.getBoolean();
                 boolean hasy = bb.getBoolean();
                 boolean hasz = bb.getBoolean();
@@ -310,7 +314,7 @@ public class Packet {
             }
 
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Position", getVecCoord(bb)));
                 l.add(new Pair<Object, Object>("Decal texture index", bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)));
                 if (bb.getBoolean()) {
@@ -337,7 +341,7 @@ public class Packet {
          */
         svc_UserMessage(23, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 return UserMessage.read(bb, l, demo);
             }
         }),
@@ -346,7 +350,7 @@ public class Packet {
          */
         svc_EntityMessage(24, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Entity index", bb.getBits(11)));
                 l.add(new Pair<Object, Object>("Class ID", bb.getBits(9)));
                 int length = (int) bb.getBits(11);
@@ -357,7 +361,7 @@ public class Packet {
         }),
         svc_GameEvent(25, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
                 int length = (int) bb.getBits(11);
                 l.add(new Pair<Object, Object>("Length in bits", length));
                 int gameEventId = (int) bb.getBits(9);
@@ -383,7 +387,7 @@ public class Packet {
          */
         svc_PacketEntities(26, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 int MAX_EDICT_BITS = 11;
                 int DELTASIZE_BITS = 20;
                 long maxEntries = bb.getBits(MAX_EDICT_BITS);
@@ -413,7 +417,7 @@ public class Packet {
          */
         svc_TempEntities(27, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 long numEntries = bb.getBits(HL2DEM.EVENT_INDEX_BITS);
                 l.add(new Pair<Object, Object>("Number of entries", numEntries));
                 int length = (int) bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS);
@@ -445,7 +449,7 @@ public class Packet {
         }),
         svc_Prefetch(28, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
                 int bits = demo.header.networkProtocol >= 23 ? HL2DEM.MAX_SOUND_INDEX_BITS : 13;
                 l.add(new Pair<Object, Object>("Sound index", bb.getBits(bits)));
                 return true;
@@ -456,7 +460,7 @@ public class Packet {
          */
         svc_Menu(29, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Menu type", bb.getBits(16)));
                 int length = (int) bb.getBits(16);
                 l.add(new Pair<Object, Object>("Length in bytes", length));
@@ -466,7 +470,7 @@ public class Packet {
         }),
         svc_GameEventList(30, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
                 int numGameEvents = (int) bb.getBits(9);
                 demo.gameEvents = new GameEvent[HL2DEM.MAX_GAME_EVENTS];
                 l.add(new Pair<Object, Object>("Number of events", numGameEvents));
@@ -483,7 +487,7 @@ public class Packet {
         }),
         svc_GetCvarValue(31, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 l.add(new Pair<Object, Object>("Cookie", "0x" + Integer.toHexString(bb.getInt())));
                 l.add(new Pair<Object, Object>("value", bb.getString()));
                 return true;
@@ -494,7 +498,7 @@ public class Packet {
          */
         svc_CmdKeyValues(32, new PacketHandler() {
             @Override
-            boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+            boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
                 int length = bb.getInt();
                 l.add(new Pair<Object, Object>("Length in bits: ", length));
                 bb.getBits(length); // Skip
@@ -519,8 +523,9 @@ public class Packet {
             this.handler = handler;
         }
 
+        @Nullable
         public static Type get(int i) {
-            for (Type t : Type.values()) {
+            for (@NotNull Type t : Type.values()) {
                 for (int j : t.id) {
                     if (j == i) {
                         return t;

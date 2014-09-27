@@ -4,6 +4,7 @@ import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.Struct;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -17,15 +18,16 @@ class FaceHandler implements LumpHandler<Face[]> {
     FaceHandler() {
     }
 
+    @NotNull
     @Override
-    public Face[] handle(Lump l, OrderedInputStream in) throws IOException {
+    public Face[] handle(@NotNull Lump l, @NotNull OrderedInputStream in) throws IOException {
         try {
-            Face[] e = new Face[l.length / Struct.sizeof(new Face())];
+            @NotNull Face[] e = new Face[l.length / Struct.sizeof(new Face())];
             for (int i = 0; i < e.length; i++) {
                 e[i] = in.readStruct(new Face());
             }
             return e;
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (@NotNull InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return new Face[0];

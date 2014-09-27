@@ -4,6 +4,7 @@ import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.vfs.ZipFS;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -19,10 +20,11 @@ class PakfileHandler implements LumpHandler<ZipFS> {
     PakfileHandler() {
     }
 
+    @NotNull
     @Override
-    public ZipFS handle(Lump l, OrderedInputStream in) throws IOException {
+    public ZipFS handle(@NotNull Lump l, @NotNull OrderedInputStream in) throws IOException {
         LOG.log(Level.INFO, "Unzipping {0}", new Object[]{l});
-        byte[] data = new byte[l.length];
+        @NotNull byte[] data = new byte[l.length];
         in.readFully(data);
         return new ZipFS(data);
     }

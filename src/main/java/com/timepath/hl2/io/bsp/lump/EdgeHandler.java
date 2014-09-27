@@ -4,6 +4,7 @@ import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.Struct;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -17,15 +18,16 @@ class EdgeHandler implements LumpHandler<Edge[]> {
     EdgeHandler() {
     }
 
+    @NotNull
     @Override
-    public Edge[] handle(Lump l, OrderedInputStream in) throws IOException {
+    public Edge[] handle(@NotNull Lump l, @NotNull OrderedInputStream in) throws IOException {
         try {
-            Edge[] e = new Edge[l.length / Struct.sizeof(new Edge())];
+            @NotNull Edge[] e = new Edge[l.length / Struct.sizeof(new Edge())];
             for (int i = 0; i < e.length; i++) {
                 e[i] = in.readStruct(new Edge());
             }
             return e;
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (@NotNull InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return new Edge[0];

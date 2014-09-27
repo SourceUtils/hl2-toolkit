@@ -1,5 +1,8 @@
 package com.timepath.hl2.io;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -16,20 +19,22 @@ import java.util.regex.Pattern;
 public class CFG {
 
     private static final Logger LOG = Logger.getLogger(CFG.class.getName());
+    @NotNull
     List<Alias> aliases = new LinkedList<>();
 
     public CFG() {
     }
 
-    private static List<Token> lex(CharSequence input) {
-        List<Token> tokens = new LinkedList<>();
-        StringBuilder tokenPatternsBuffer = new StringBuilder();
+    @NotNull
+    private static List<Token> lex(@NotNull CharSequence input) {
+        @NotNull List<Token> tokens = new LinkedList<>();
+        @NotNull StringBuilder tokenPatternsBuffer = new StringBuilder();
         TokenType[] values = TokenType.values();
-        for (TokenType tokenType : values) {
+        for (@NotNull TokenType tokenType : values) {
             tokenPatternsBuffer.append(String.format("|%s", tokenType.pattern));
         }
         Pattern tokenPatterns = Pattern.compile(tokenPatternsBuffer.substring(1));
-        Matcher matcher = tokenPatterns.matcher(input);
+        @NotNull Matcher matcher = tokenPatterns.matcher(input);
         while (matcher.find()) {
             for (int i = 0; i < values.length; i++) {
                 TokenType type = values[i];
@@ -47,16 +52,17 @@ public class CFG {
         readFromString("alias b; alias c alias c alias d alias v \"taunt; nope\"");
     }
 
-    private static CFG readFromString(String s) {
+    @NotNull
+    private static CFG readFromString(@NotNull String s) {
         return parse(new Scanner(s));
     }
 
-    public static void readFromStream(InputStream in) {
+    public static void readFromStream(@NotNull InputStream in) {
         readFromStream(in, "UTF-8");
     }
 
-    private static void readFromStream(InputStream in, String encoding) {
-        Scanner scanner = null;
+    private static void readFromStream(@NotNull InputStream in, @NotNull String encoding) {
+        @Nullable Scanner scanner = null;
         try {
             scanner = new Scanner(in, encoding);
             parse(scanner);
@@ -69,18 +75,19 @@ public class CFG {
         }
     }
 
+    @NotNull
     @SuppressWarnings("fallthrough")
-    private static CFG parse(Scanner scanner) {
-        CFG cfg = new CFG();
+    private static CFG parse(@NotNull Scanner scanner) {
+        @NotNull CFG cfg = new CFG();
         int lineNum = 0;
         while (scanner.hasNext()) {
-            String line = scanner.nextLine().trim();
+            @NotNull String line = scanner.nextLine().trim();
             lineNum++;
-            List<Token> q = lex(line);
+            @NotNull List<Token> q = lex(line);
             LOG.info(String.valueOf(q));
-            Deque<Token> cmd = new LinkedList<>();
+            @NotNull Deque<Token> cmd = new LinkedList<>();
             boolean quoted = false;
-            for (Token t : q) {
+            for (@NotNull Token t : q) {
                 switch (t.type) {
                     case QUOTE:
                         quoted = !quoted;
@@ -105,8 +112,9 @@ public class CFG {
         return cfg;
     }
 
-    private static String eval(Deque<Token> deque) {
-        StringBuilder sb = new StringBuilder();
+    @NotNull
+    private static String eval(@NotNull Deque<Token> deque) {
+        @NotNull StringBuilder sb = new StringBuilder();
         while (!deque.isEmpty()) {
             Token t = deque.pop();
             switch (t.type) {
@@ -120,7 +128,7 @@ public class CFG {
                     break;
                 case TOKEN:
                     if ("alias".equals(t.data)) {
-                        Alias a = new Alias();
+                        @NotNull Alias a = new Alias();
                         a.name = t.data;
                         if (!deque.isEmpty() && (deque.peek().type == TokenType.SPACE)) {
                             deque.pop();
@@ -179,6 +187,7 @@ public class CFG {
         public Alias() {
         }
 
+        @NotNull
         @Override
         public String toString() {
             return "alias " + name + ' ' + cmd;

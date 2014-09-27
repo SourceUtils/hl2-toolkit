@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.image;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.logging.Logger;
@@ -14,7 +16,8 @@ class RGBALoader {
     private RGBALoader() {
     }
 
-    public static BufferedImage load(byte[] d, int width, int height, byte[] order, byte[] len) {
+    @NotNull
+    public static BufferedImage load(byte[] d, int width, int height, @NotNull byte[] order, @NotNull byte[] len) {
         int bpp = 0;
         for (int l : len) {
             if ((l % 8) != 0) {
@@ -22,7 +25,7 @@ class RGBALoader {
             }
             bpp += l;
         }
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        @NotNull BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         WritableRaster raster = bi.getRaster();
         int pos = 0;
         for (int y = 0; y < height; y++) {

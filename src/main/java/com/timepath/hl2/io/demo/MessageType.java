@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.demo;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author TimePath
  */
@@ -16,6 +18,7 @@ public enum MessageType {
     MessageType(int i) {
     }
 
+    @Nullable
     static MessageType get(int i) {
         MessageType[] vals = MessageType.values();
         if ((i < 1) || (i > vals.length)) {

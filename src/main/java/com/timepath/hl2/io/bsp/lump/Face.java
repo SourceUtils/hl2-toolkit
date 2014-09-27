@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.bsp.lump;
 
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
 
@@ -11,6 +12,7 @@ public class Face {
     /**
      * switchable lighting info
      */
+    @NotNull
     @StructField(index = 8)
     public byte[] styles = new byte[MAXLIGHTMAPS];
     /**
@@ -66,11 +68,13 @@ public class Face {
     /**
      * texture lighting info
      */
+    @NotNull
     @StructField(index = 11)
     public int[] m_LightmapTextureMinsInLuxels = new int[2];
     /**
      * texture lighting info
      */
+    @NotNull
     @StructField(index = 12)
     public int[] m_LightmapTextureSizeInLuxels = new int[2];
     /**

@@ -2,6 +2,7 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
+import org.jetbrains.annotations.NotNull;
 import org.xiph.speex.SpeexDecoder;
 
 import javax.sound.sampled.*;
@@ -30,7 +31,7 @@ class VoiceDataHandler extends PacketHandler {
             int mode = 1; // Narrow band
             speexDecoder.init(mode, 11025, 1, true);
             // Signed 16 bit LE mono
-            AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
+            @NotNull AudioFormat sourceVoiceFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
                     VOICE_OUTPUT_SAMPLE_RATE,
                     16,
                     1,
@@ -38,7 +39,7 @@ class VoiceDataHandler extends PacketHandler {
                     VOICE_OUTPUT_SAMPLE_RATE,
                     false);
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat);
-            DataLine.Info info = new DataLine.Info(SourceDataLine.class, sourceVoiceFormat);
+            @NotNull DataLine.Info info = new DataLine.Info(SourceDataLine.class, sourceVoiceFormat);
             audioOut = (SourceDataLine) AudioSystem.getLine(info);
             audioOut.open(sourceVoiceFormat);
             audioOut.start();
@@ -51,8 +52,8 @@ class VoiceDataHandler extends PacketHandler {
         return (bits + 7) / 8;
     }
 
-    static void dump(int index, byte... data) {
-        try (FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
+    static void dump(int index, @NotNull byte... data) {
+        try (@NotNull FileOutputStream fos = new FileOutputStream("target/vo_" + index + ".pcm", true)) {
             fos.write(data);
             fos.flush();
         } catch (IOException ex) {
@@ -61,7 +62,7 @@ class VoiceDataHandler extends PacketHandler {
     }
 
     @Override
-    boolean read(BitBuffer bb, List<Pair<Object, Object>> l, HL2DEM demo) {
+    boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
         int client = bb.getByte() & 0xFF;
         l.add(new Pair<Object, Object>("Client", client));
         l.add(new Pair<Object, Object>("Proximity", bb.getByte()));
@@ -73,14 +74,14 @@ class VoiceDataHandler extends PacketHandler {
         if (length == 0) {
             return true;
         }
-        byte[] data = new byte[bitsToBytes(length)];
+        @NotNull byte[] data = new byte[bitsToBytes(length)];
         bb.get(data);
 //        speex(client, data);
         return true;
     }
 
-    void speex(int index, byte... data) {
-        byte[] decoded = data;
+    void speex(int index, @NotNull byte... data) {
+        @NotNull byte[] decoded = data;
         try {
             speexDecoder.processData(data, 0, data.length);
             decoded = new byte[speexDecoder.getProcessedDataByteSize()];
@@ -92,7 +93,7 @@ class VoiceDataHandler extends PacketHandler {
         pcm(index, decoded);
     }
 
-    void pcm(int index, byte... data) {
+    void pcm(int index, @NotNull byte... data) {
         try {
             audioOut.write(data, 0, data.length);
         } catch (IllegalArgumentException ex) {

@@ -2,6 +2,7 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.Pair;
 import com.timepath.io.BitBuffer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,13 +34,14 @@ class StringTable {
         return tables.get(id);
     }
 
+    @NotNull
     static StringTable create(String tableName,
                               int maxEntries,
                               int entryBits,
                               boolean userDataFixedSize,
                               int userDataSize,
                               int userDataSizeBits) {
-        StringTable st = new StringTable();
+        @NotNull StringTable st = new StringTable();
         st.tableName = tableName;
         st.id = tables.size();
         st.maxEntries = maxEntries;
@@ -53,9 +55,9 @@ class StringTable {
     /**
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/networkstringtable.cpp#L595
      */
-    void parse(BitBuffer bb, List<Pair<Object, Object>> l) {
+    void parse(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l) {
         long lastEntry = -1;
-        List<String> history = new ArrayList<>(32); // Fixed size window
+        @NotNull List<String> history = new ArrayList<>(32); // Fixed size window
         for (int i = 0; i < numEntries; i++) {
             long entryIndex = lastEntry + 1;
             if (!bb.getBoolean()) {
@@ -65,13 +67,13 @@ class StringTable {
             if (entryIndex < 0 || entryIndex >= maxEntries) {
                 LOG.warning(String.format("Server sent bogus string index %d for table %s", entryIndex, tableName));
             }
-            String entry = "";
+            @NotNull String entry = "";
             if (bb.getBoolean()) {
                 if (bb.getBoolean()) { // Substring check
                     int index = (int) bb.getBits(5);
                     int bytestocopy = (int) bb.getBits(SUBSTRING_BITS);
                     entry = history.get(index).substring(0, bytestocopy + 1);
-                    String substr = bb.getString(bytestocopy);
+                    @NotNull String substr = bb.getString(bytestocopy);
                     entry += substr;
                 } else {
                     entry = bb.getString();
@@ -80,7 +82,7 @@ class StringTable {
             }
             // Read in the user data.
             if (bb.getBoolean()) {
-                byte[] tempbuf = new byte[MAX_USERDATA_SIZE];
+                @NotNull byte[] tempbuf = new byte[MAX_USERDATA_SIZE];
                 if (userDataFixedSize) {
                     assert userDataSize > 0;
                     // TODO: store in tempbuf

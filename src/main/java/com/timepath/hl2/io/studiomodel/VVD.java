@@ -4,6 +4,8 @@ import com.timepath.DataUtils;
 import com.timepath.io.ByteBufferInputStream;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -21,15 +23,18 @@ class VVD {
 
     private static final Logger LOG = Logger.getLogger(VVD.class.getName());
     private static final Level VERBOSITY = Level.FINE;
+    @NotNull
     final ByteBuffer vertexBuffer, normalBuffer, tangentBuffer;
+    @NotNull
     final FloatBuffer uvBuffer;
+    @NotNull
     private final OrderedInputStream is;
 
-    private VVD(InputStream in) throws IOException, InstantiationException, IllegalAccessException {
+    private VVD(@NotNull InputStream in) throws IOException, InstantiationException, IllegalAccessException {
         is = new OrderedInputStream(in);
         is.mark(Integer.MAX_VALUE);
         is.order(ByteOrder.LITTLE_ENDIAN);
-        VertexFileHeader header = is.readStruct(new VertexFileHeader());
+        @NotNull VertexFileHeader header = is.readStruct(new VertexFileHeader());
         LOG.log(VERBOSITY, "VertexFileHeader header = {0}", header.toString());
         int lod = 0;
         int vertCount = header.numLODVertexes[lod];
@@ -54,14 +59,14 @@ class VVD {
                 // Vertex table, 48 byte rows
                 position(header.vertexDataStart + ((sourceVertexID + j) * 48));
                 // TODO: Bones
-                byte[] boneWeightBuf = new byte[3 * 4];
+                @NotNull byte[] boneWeightBuf = new byte[3 * 4];
                 is.readFully(boneWeightBuf);
-                byte[] boneIdBuf = new byte[4];
+                @NotNull byte[] boneIdBuf = new byte[4];
                 is.readFully(boneIdBuf);
-                byte[] vertBuf = new byte[3 * 4];
+                @NotNull byte[] vertBuf = new byte[3 * 4];
                 is.readFully(vertBuf);
                 vertexBuffer.put(vertBuf);
-                byte[] normBuf = new byte[3 * 4];
+                @NotNull byte[] normBuf = new byte[3 * 4];
                 is.readFully(normBuf);
                 normalBuffer.put(normBuf);
                 float u = is.readFloat();
@@ -69,7 +74,7 @@ class VVD {
                 uvBuffer.put(u).put(v);
                 // Tangent table, 16 byte rows
                 position(header.tangentDataStart + ((sourceVertexID + j) * 16));
-                byte[] tanBuf = new byte[4 * 4];
+                @NotNull byte[] tanBuf = new byte[4 * 4];
                 is.readFully(tanBuf);
                 tangentBuffer.put(tanBuf);
             }
@@ -81,15 +86,17 @@ class VVD {
         LOG.log(VERBOSITY, "Underflow: {0}", new Object[]{is.available()});
     }
 
-    public static VVD load(File file) throws IOException {
+    @Nullable
+    public static VVD load(@NotNull File file) throws IOException {
         LOG.log(Level.INFO, "Loading VVD {0}", file);
         return load(new ByteBufferInputStream(DataUtils.mapFile(file)));
     }
 
-    public static VVD load(InputStream in) throws IOException {
+    @Nullable
+    public static VVD load(@NotNull InputStream in) throws IOException {
         try {
             return new VVD(new BufferedInputStream(in));
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (@NotNull InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return null;
@@ -130,6 +137,7 @@ class VVD {
         /**
          * num verts for desired root lod
          */
+        @NotNull
         @StructField(index = 4)
         int[] numLODVertexes = new int[StudioModel.MAX_NUM_LODS];
         /**
@@ -156,6 +164,7 @@ class VVD {
         VertexFileHeader() {
         }
 
+        @NotNull
         @Override
         public String toString() {
             return MessageFormat.format(

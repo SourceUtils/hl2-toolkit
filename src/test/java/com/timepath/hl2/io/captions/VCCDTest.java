@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.captions;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -27,11 +28,11 @@ public class VCCDTest {
     @Test
     public void testLoadSave() throws IOException {
         InputStream is = getClass().getResourceAsStream("/test.dat");
-        byte[] src = new byte[is.available()];
+        @NotNull byte[] src = new byte[is.available()];
         //noinspection StatementWithEmptyBody
         for (int offset = 0; (offset = is.read(src, offset, src.length - offset)) != -1; ) ;
         is.close();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(src.length);
+        @NotNull ByteArrayOutputStream baos = new ByteArrayOutputStream(src.length);
         com.timepath.hl2.io.captions.VCCD.save(com.timepath.hl2.io.captions.VCCD.load(new ByteArrayInputStream(src)), baos);
         assertTrue("content matches", Arrays.equals(src, baos.toByteArray()));
     }

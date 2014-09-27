@@ -3,6 +3,8 @@ package com.timepath.hl2.io.image;
 import com.timepath.EnumFlags;
 import com.timepath.StringUtils;
 import com.timepath.io.utils.ViewableData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,6 +39,7 @@ public class VTF implements ViewableData {
     private float bumpScale;
     private int depth;
     private int flags;
+    @Nullable
     private ImageFormat format;
     private int frameCount;
     /**
@@ -47,6 +50,7 @@ public class VTF implements ViewableData {
     private int height;
     private int mipCount;
     private float[] reflectivity;
+    @Nullable
     private ImageFormat thumbFormat;
     private int thumbHeight;
     private Image thumbImage;
@@ -57,26 +61,28 @@ public class VTF implements ViewableData {
     public VTF() {
     }
 
-    public static VTF load(String s) throws IOException {
+    @Nullable
+    public static VTF load(@NotNull String s) throws IOException {
         return load(new FileInputStream(s));
     }
 
-    public static VTF load(InputStream is) throws IOException {
-        VTF vtf = new VTF();
+    @Nullable
+    public static VTF load(@NotNull InputStream is) throws IOException {
+        @NotNull VTF vtf = new VTF();
         if (vtf.loadFromStream(is)) {
             return vtf;
         }
         return null;
     }
 
-    boolean loadFromStream(InputStream is) throws IOException {
+    boolean loadFromStream(@NotNull InputStream is) throws IOException {
         int magic = is.read() | (is.read() << 8) | (is.read() << 16);
         int type = is.read();
         if (magic != HEADER) {
             LOG.log(Level.FINE, "Invalid VTF file: {0}", magic);
             return false;
         }
-        byte[] array = new byte[4 + is.available()];
+        @NotNull byte[] array = new byte[4 + is.available()];
         is.read(array, 4, array.length - 4);
         buf = ByteBuffer.wrap(array);
         buf.order(ByteOrder.LITTLE_ENDIAN);
@@ -117,11 +123,11 @@ public class VTF implements ViewableData {
             thumbHeight = buf.get();
             depth = buf.getShort();
         } else if (type == 'X') {
-            byte[] lowResImageSample = new byte[4];
+            @NotNull byte[] lowResImageSample = new byte[4];
             buf.get(lowResImageSample);
             int compressedSize = buf.getInt();
         }
-        Object[][] debug = {
+        @NotNull Object[][] debug = {
                 {"Width = ", width},
                 {"Height = ", height},
                 {"Frames = ", frameCount},
@@ -171,6 +177,7 @@ public class VTF implements ViewableData {
     /**
      * @return the format
      */
+    @Nullable
     public ImageFormat getFormat() {
         return format;
     }
@@ -203,6 +210,7 @@ public class VTF implements ViewableData {
         return height;
     }
 
+    @NotNull
     @Override
     public Icon getIcon() {
         return new ImageIcon(getThumbImage());
@@ -211,7 +219,7 @@ public class VTF implements ViewableData {
     public Image getThumbImage() {
         if (thumbImage == null) {
             buf.position(headerSize);
-            byte[] thumbData = new byte[(Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4)) /
+            @NotNull byte[] thumbData = new byte[(Math.max(thumbWidth, 4) * Math.max(thumbHeight, 4)) /
                     2]; // DXT1. Each 'block' is 4*4 pixels. 16 pixels become 8
             // bytes
             buf.get(thumbData);
@@ -227,6 +235,7 @@ public class VTF implements ViewableData {
      * @return *
      * @throws IOException
      */
+    @Nullable
     public Image getImage(int level) throws IOException {
         return getImage(level, frameFirst);
     }
@@ -237,6 +246,7 @@ public class VTF implements ViewableData {
      * @param level From 0 to {@link #mipCount}-1
      * @param frame From 0 to {@link #frameCount}-1
      */
+    @Nullable
     public Image getImage(int level, int frame) {
         if ((level < 0) || (level >= mipCount)) {
             return null;
@@ -249,20 +259,20 @@ public class VTF implements ViewableData {
             thumbLen = 0;
         }
         buf.position(headerSize + thumbLen);
-        int[] sizesX = new int[mipCount]; // smallest -> largest {1, 2, 4, 8, 16, 32, 64, 128}
-        int[] sizesY = new int[mipCount];
+        @NotNull int[] sizesX = new int[mipCount]; // smallest -> largest {1, 2, 4, 8, 16, 32, 64, 128}
+        @NotNull int[] sizesY = new int[mipCount];
         for (int n = 0; n < mipCount; n++) {
             sizesX[mipCount - 1 - n] = Math.max(width >>> n, 1);
             sizesY[mipCount - 1 - n] = Math.max(height >>> n, 1);
         }
-        BufferedImage image = null;
+        @Nullable BufferedImage image = null;
         for (int i = 0; i < mipCount; i++) {
             int w = sizesX[i];
             int h = sizesY[i];
             LOG.log(Level.FINE, "{0}, {1}", new Object[]{w, h});
             int nBytes = format.getBytes(w, h);
             if (i == (mipCount - level - 1)) {
-                byte[] imageData = new byte[nBytes * frameCount];
+                @NotNull byte[] imageData = new byte[nBytes * frameCount];
                 try {
                     buf.get(imageData);
                 } catch (BufferUnderflowException ignored) {
@@ -271,7 +281,7 @@ public class VTF implements ViewableData {
                 System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes);
                 LOG.log(Level.INFO, "VTF format {0}", format);
                 image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = (Graphics2D) image.getGraphics();
+                @NotNull Graphics2D g = (Graphics2D) image.getGraphics();
                 g.drawImage(format.load(imageData, w, h), 0, 0, w, h, null);
             } else {
                 buf.get(new byte[nBytes * frameCount]);
@@ -297,6 +307,7 @@ public class VTF implements ViewableData {
     /**
      * @return the thumbFormat
      */
+    @Nullable
     public ImageFormat getThumbFormat() {
         return thumbFormat;
     }

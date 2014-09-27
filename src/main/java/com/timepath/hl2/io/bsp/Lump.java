@@ -2,6 +2,7 @@ package com.timepath.hl2.io.bsp;
 
 import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
 
@@ -36,6 +37,7 @@ public class Lump {
     public Lump() {
     }
 
+    @NotNull
     @Override
     public String toString() {
         return type.toString();

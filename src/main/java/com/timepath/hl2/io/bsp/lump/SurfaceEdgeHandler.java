@@ -3,6 +3,7 @@ package com.timepath.hl2.io.bsp.lump;
 import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -15,9 +16,10 @@ class SurfaceEdgeHandler implements LumpHandler<int[]> {
     SurfaceEdgeHandler() {
     }
 
+    @NotNull
     @Override
-    public int[] handle(Lump l, OrderedInputStream in) throws IOException {
-        int[] e = new int[l.length / 4];
+    public int[] handle(@NotNull Lump l, @NotNull OrderedInputStream in) throws IOException {
+        @NotNull int[] e = new int[l.length / 4];
         for (int i = 0; i < e.length; i++) {
             e[i] = in.readInt();
         }

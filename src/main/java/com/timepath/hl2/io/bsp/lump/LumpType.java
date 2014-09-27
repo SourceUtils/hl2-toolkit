@@ -3,6 +3,8 @@ package com.timepath.hl2.io.bsp.lump;
 import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -291,11 +293,13 @@ public enum LumpType {
         return id;
     }
 
+    @NotNull
     @Override
     public String toString() {
         return MessageFormat.format("{0} ({1})", name(), id);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     public <T> T handle(Lump l, OrderedInputStream in) throws IOException {
         if (handler == null) {

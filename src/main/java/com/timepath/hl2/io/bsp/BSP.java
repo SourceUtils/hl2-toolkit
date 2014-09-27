@@ -7,6 +7,8 @@ import com.timepath.steam.io.storage.Files;
 import com.timepath.steam.io.storage.Files.FileHandler;
 import com.timepath.vfs.SimpleVFile;
 import com.timepath.vfs.ZipFS;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.ByteOrder;
@@ -34,22 +36,24 @@ public abstract class BSP {
 
     static {
         Files.registerHandler(new FileHandler() {
+            @Nullable
             @Override
-            public Collection<? extends SimpleVFile> handle(final File file) throws IOException {
+            public Collection<? extends SimpleVFile> handle(@NotNull final File file) throws IOException {
                 if (!file.getName().endsWith(".bsp")) return null;
                 final String name = file.getName().replace(".bsp", "");
                 return Collections.singleton(new SimpleVFile() {
                     void checkBSP() {
                         if (z != null) return;
                         LOG.log(Level.INFO, "Loading {0}", file);
-                        try (InputStream is = new FileInputStream(file)) {
-                            BSP b = BSP.load(is);
+                        try (@NotNull InputStream is = new FileInputStream(file)) {
+                            @Nullable BSP b = BSP.load(is);
                             z = b.getLump(LumpType.LUMP_PAKFILE);
                         } catch (IOException e) {
                             LOG.log(Level.SEVERE, null, e);
                         }
                     }
 
+                    @Nullable
                     ZipFS z;
 
                     @Override
@@ -62,17 +66,20 @@ public abstract class BSP {
                         return name;
                     }
 
+                    @Nullable
                     @Override
                     public InputStream openStream() {
                         return null;
                     }
 
+                    @Nullable
                     @Override
                     public Collection<? extends SimpleVFile> list() {
                         checkBSP();
                         return z.list();
                     }
 
+                    @Nullable
                     @Override
                     public SimpleVFile get(final String name) {
                         checkBSP();
@@ -86,14 +93,15 @@ public abstract class BSP {
     BSP() {
     }
 
-    public static BSP load(InputStream is) throws IOException {
+    @Nullable
+    public static BSP load(@NotNull InputStream is) throws IOException {
         try {
-            OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
+            @NotNull OrderedInputStream in = new OrderedInputStream(new BufferedInputStream(is));
             in.order(ByteOrder.LITTLE_ENDIAN);
             in.mark(in.available());
-            BSPHeader header = in.readStruct(new BSPHeader());
+            @NotNull BSPHeader header = in.readStruct(new BSPHeader());
             // TODO: Other BSP types
-            VBSP bsp = new VBSP();
+            @NotNull VBSP bsp = new VBSP();
             bsp.in = in;
             bsp.header = header;
             // TODO: Struct parser callbacks
@@ -103,7 +111,7 @@ public abstract class BSP {
             LOG.info("Processing map...");
             bsp.process();
             return bsp;
-        } catch (InstantiationException | IllegalAccessException ex) {
+        } catch (@NotNull InstantiationException | IllegalAccessException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         return null;
@@ -127,8 +135,9 @@ public abstract class BSP {
      * @return The lump
      * @throws IOException
      */
+    @Nullable
     @SuppressWarnings("unchecked")
-    public <T> T getLump(LumpType type) throws IOException {
+    public <T> T getLump(@NotNull LumpType type) throws IOException {
         return getLump(type, (LumpHandler<T>) type.getHandler());
     }
 
@@ -141,7 +150,8 @@ public abstract class BSP {
      * @return *
      * @throws IOException
      */
-    protected <T> T getLump(LumpType type, LumpHandler<T> handler) throws IOException {
+    @Nullable
+    protected <T> T getLump(@NotNull LumpType type, @Nullable LumpHandler<T> handler) throws IOException {
         if (handler == null) {
             return null;
         }
@@ -177,6 +187,7 @@ public abstract class BSP {
         /**
          * BSP file identifier: VBSP
          */
+        @NotNull
         @StructField(index = 2)
         Lump[] lumps = new Lump[64];
         /**

@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.demo;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,9 +51,10 @@ public enum Input {
         this.mask = mask;
     }
 
+    @NotNull
     public static List<Input> get(int bits) {
-        List<Input> l = new LinkedList<>();
-        for (Input name : Input.values()) {
+        @NotNull List<Input> l = new LinkedList<>();
+        for (@NotNull Input name : Input.values()) {
             if ((name.mask & bits) != 0) {
                 l.add(name);
             }

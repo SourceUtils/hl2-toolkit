@@ -1,5 +1,8 @@
 package com.timepath.hl2.io.studiomodel;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,12 +16,16 @@ public class StudioModel {
     static final int MAX_NUM_BONES_PER_VERT = 3;
     static final int MAX_NUM_LODS = 8;
     private static final Logger LOG = Logger.getLogger(StudioModel.class.getName());
+    @Nullable
     public final MDL mdl;
+    @Nullable
     private final VTX vtx;
+    @Nullable
     private final VVD vvd;
+    @Nullable
     private final ByteBuffer indexBuffer;
 
-    public StudioModel(InputStream mdlStream, InputStream vvdStream, InputStream vtxStream) throws IOException {
+    public StudioModel(@NotNull InputStream mdlStream, @NotNull InputStream vvdStream, @NotNull InputStream vtxStream) throws IOException {
         mdl = MDL.load(mdlStream);
         vvd = VVD.load(vvdStream);
         vtx = VTX.load(vtxStream);
@@ -27,8 +34,9 @@ public class StudioModel {
         indexBuffer = buildIndices(lod);
     }
 
+    @Nullable
     private ByteBuffer buildIndices(int lodId) {
-        ByteArrayOutputStream indices = new ByteArrayOutputStream();
+        @NotNull ByteArrayOutputStream indices = new ByteArrayOutputStream();
         int indexOffset = 0;
         for (int i = 0; i < vtx.bodyParts.size(); i++) {
             VTX.BodyPart bodyPart = vtx.bodyParts.get(i);
@@ -42,10 +50,10 @@ public class StudioModel {
             for (int j = 0; j < lod.meshes.size(); j++) {
                 VTX.Mesh mesh = lod.meshes.get(j);
                 MDL.MStudioMesh mdlMesh = mdlModel.meshes.get(j);
-                for (VTX.StripGroup stripGroup : mesh.stripGroups) {
+                for (@NotNull VTX.StripGroup stripGroup : mesh.stripGroups) {
                     List<VTX.Vertex> vertTable = stripGroup.verts;
                     stripGroup.indexOffset = indexOffset++;
-                    ShortBuffer sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+                    @NotNull ShortBuffer sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
                     for (int l = 0; l < stripGroup.numIndices; l++) {
                         int vertTableIndex = sb.get();
                         int index = vertTable.get(vertTableIndex).origMeshVertID + mdlModel.vertexoffset + mdlMesh.vertexoffset;
@@ -72,14 +80,14 @@ public class StudioModel {
     }
 
     private void setRootLOD(int rootLOD) {
-        MDL.StudioHeader header = mdl.header;
-        List<MDL.MStudioBodyParts> bodyParts = mdl.mdlBodyParts;
+        @NotNull MDL.StudioHeader header = mdl.header;
+        @NotNull List<MDL.MStudioBodyParts> bodyParts = mdl.mdlBodyParts;
         if ((header.numAllowedRootLODs > 0) && (rootLOD >= header.numAllowedRootLODs)) {
             rootLOD = header.numAllowedRootLODs - 1;
         }
         int vertexoffset = 0;
-        for (MDL.MStudioBodyParts bodyPart : bodyParts) {
-            for (MDL.MStudioModel model : bodyPart.models) {
+        for (@NotNull MDL.MStudioBodyParts bodyPart : bodyParts) {
+            for (@NotNull MDL.MStudioModel model : bodyPart.models) {
                 int totalMeshVertices = 0;
                 for (int meshId = 0; meshId < model.meshes.size(); ++meshId) {
                     MDL.MStudioMesh mesh = model.meshes.get(meshId);
@@ -94,22 +102,27 @@ public class StudioModel {
         }
     }
 
+    @NotNull
     public IntBuffer getIndices() {
         return indexBuffer.asIntBuffer();
     }
 
+    @NotNull
     public FloatBuffer getNormals() {
         return vvd.normalBuffer.asFloatBuffer();
     }
 
+    @NotNull
     public FloatBuffer getTangents() {
         return vvd.tangentBuffer.asFloatBuffer();
     }
 
+    @NotNull
     public FloatBuffer getTextureCoordinates() {
         return vvd.uvBuffer;
     }
 
+    @NotNull
     public FloatBuffer getVertices() {
         return vvd.vertexBuffer.asFloatBuffer();
     }

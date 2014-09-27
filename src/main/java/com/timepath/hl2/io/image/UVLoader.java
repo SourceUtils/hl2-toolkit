@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.image;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
@@ -14,13 +16,15 @@ class UVLoader {
     private UVLoader() {
     }
 
+    @NotNull
     public static BufferedImage load(byte[] d, int width, int height, int channels) {
         return loadUV(d, width, height);
     }
 
+    @NotNull
     private static BufferedImage loadUV(byte[] b, int width, int height) {
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D) bi.getGraphics();
+        @NotNull BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        @NotNull Graphics2D g = (Graphics2D) bi.getGraphics();
         int pos = 0;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {

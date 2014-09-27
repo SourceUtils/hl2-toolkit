@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.font;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,8 +68,8 @@ public class VBF {
     public VBF() {
     }
 
-    public VBF(InputStream is) throws IOException {
-        byte[] array = new byte[is.available()]; // XXX: TODO
+    public VBF(@NotNull InputStream is) throws IOException {
+        @NotNull byte[] array = new byte[is.available()]; // XXX: TODO
         is.read(array);
         ByteBuffer buf = ByteBuffer.wrap(array);
         buf.order(ByteOrder.LITTLE_ENDIAN);
@@ -87,7 +89,7 @@ public class VBF {
         // BitmapGlyph @ offset 278
         glyphs.ensureCapacity(numGlyphs);
         for (int i = 0; i < numGlyphs; i++) {
-            BitmapGlyph g = new BitmapGlyph();
+            @NotNull BitmapGlyph g = new BitmapGlyph();
             g.setIndex((byte) i);
             g.bounds = new Rectangle(buf.getShort(), buf.getShort(), buf.getShort(), buf.getShort());
             g.a = buf.getShort();
@@ -96,7 +98,7 @@ public class VBF {
             glyphs.add(g);
         }
         // Debugging
-        Object[][] dbg = {
+        @NotNull Object[][] dbg = {
                 {"Header = ", id},
                 {"Version = ", version},
                 {"Width = ", pageWidth},
@@ -107,7 +109,7 @@ public class VBF {
                 {"Ascent = ", ascent},
                 {"Total = ", numGlyphs}
         };
-        StringBuilder sb = new StringBuilder(0);
+        @NotNull StringBuilder sb = new StringBuilder(0);
         for (int i = 0; i < dbg.length; i++) {
             for (Object item : dbg[i]) {
                 sb.append(item);
@@ -135,6 +137,7 @@ public class VBF {
         pageHeight = (short) height;
     }
 
+    @NotNull
     public byte[] getTable() {
         return table;
     }
@@ -148,7 +151,7 @@ public class VBF {
     }
 
     public boolean hasGlyph(int i) {
-        for (BitmapGlyph g : getGlyphs()) {
+        for (@NotNull BitmapGlyph g : getGlyphs()) {
             if (g.getIndex() == i) {
                 return true;
             }
@@ -156,11 +159,12 @@ public class VBF {
         return false;
     }
 
+    @NotNull
     public Collection<BitmapGlyph> getGlyphs() {
         return glyphs;
     }
 
-    public void save(OutputStream os) throws IOException {
+    public void save(@NotNull OutputStream os) throws IOException {
         ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
         buf.order(ByteOrder.LITTLE_ENDIAN);
         buf.putInt(BITMAPFONT_ID);
@@ -169,7 +173,7 @@ public class VBF {
         buf.putShort(pageHeight);
         short maxCharWidth = 0;
         short maxCharHeight = 0;
-        for (BitmapGlyph glyph : glyphs) {
+        for (@NotNull BitmapGlyph glyph : glyphs) {
             Rectangle r = glyph.getBounds();
             if ((r.width != 0) && (r.height != 0)) {
                 maxCharWidth = (short) Math.max(maxCharWidth, r.width);
@@ -182,7 +186,7 @@ public class VBF {
         buf.putShort(ascent);
         buf.putShort((short) glyphs.size());
         buf.put(table);
-        for (BitmapGlyph g : glyphs) {
+        for (@NotNull BitmapGlyph g : glyphs) {
             Rectangle b = g.getBounds();
             buf.putShort((short) b.x);
             buf.putShort((short) b.y);
@@ -234,6 +238,7 @@ public class VBF {
             this.index = index;
         }
 
+        @NotNull
         @Override
         public String toString() {
             return "#" + index;

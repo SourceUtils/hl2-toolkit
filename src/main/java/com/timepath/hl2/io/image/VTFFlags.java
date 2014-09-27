@@ -1,6 +1,8 @@
 package com.timepath.hl2.io.image;
 
 import com.timepath.EnumFlag;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/vtf/vtf.h</a>
@@ -64,9 +66,10 @@ public enum VTFFlags implements EnumFlag {
         title = name;
     }
 
+    @Nullable
     public static VTFFlags getEnumForMask(int mask) {
         VTFFlags[] values = VTFFlags.values();
-        for (VTFFlags eachValue : values) {
+        for (@NotNull VTFFlags eachValue : values) {
             if (eachValue.mask == mask) {
                 return eachValue;
             }

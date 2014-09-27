@@ -1,5 +1,8 @@
 package com.timepath.hl2.io.image;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.logging.Logger;
@@ -21,7 +24,8 @@ class DXTLoader {
     private DXTLoader() {
     }
 
-    public static BufferedImage load(ImageFormat f, byte[] b, int width, int height) {
+    @Nullable
+    public static BufferedImage load(@NotNull ImageFormat f, byte[] b, int width, int height) {
         switch (f) {
             case IMAGE_FORMAT_DXT1:
             case IMAGE_FORMAT_DXT1_ONEBITALPHA:
@@ -37,14 +41,15 @@ class DXTLoader {
     /**
      * 8 bytes per 4*4
      */
+    @NotNull
     public static BufferedImage loadDXT1(byte[] b, int width, int height) {
-        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
+        @NotNull BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
         int pos = 0;
         for (int y = 0; y < height; y += 4) {
             for (int x = 0; x < width; x += 4) {
                 int color_0 = ((b[pos++] & 0xFF) + ((b[pos++] & 0xFF) << 8)) & 0xFFFF; // 2 bytes
                 int color_1 = ((b[pos++] & 0xFF) + ((b[pos++] & 0xFF) << 8)) & 0xFFFF; // 2 bytes
-                Color[] colour = new Color[4];
+                @NotNull Color[] colour = new Color[4];
                 colour[0] = extract565(color_0);
                 colour[1] = extract565(color_1);
                 if (color_0 > color_1) {
@@ -62,11 +67,11 @@ class DXTLoader {
                 }
                 for (int y1 = 0; y1 < 4; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                     byte rowData = b[pos++];
-                    int[] rowBits = {
+                    @NotNull int[] rowBits = {
                             (rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4, (rowData & 0xC) >>> 2, rowData & 0x3
                     };
                     for (int x1 = 0; x1 < 4; x1++) { // column scan
-                        Color col = new Color(colour[rowBits[3 - x1]].getRed(),
+                        @NotNull Color col = new Color(colour[rowBits[3 - x1]].getRed(),
                                 colour[rowBits[3 - x1]].getGreen(),
                                 colour[rowBits[3 - x1]].getBlue(),
                                 colour[rowBits[3 - x1]].getAlpha());
@@ -82,9 +87,10 @@ class DXTLoader {
      * 8 bytes for alpha channel, additional 8 per 4*4 chunk
      * TODO: fully implement correct colors
      */
+    @NotNull
     private static BufferedImage loadDXT3(byte[] b, int width, int height) {
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D) bi.getGraphics();
+        @NotNull BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        @NotNull Graphics2D g = (Graphics2D) bi.getGraphics();
         //        RGB 565: WORD pixel565 = (red_value << 11) | (green_value << 5) | blue_value;
         int xBlocks = width / 4;
         if (xBlocks < 1) {
@@ -110,16 +116,16 @@ class DXTLoader {
                 int red1 = ((color_0 & RED_MASK_565) >> 11) << 3;
                 int green1 = ((color_0 & GREEN_MASK_565) >> 5) << 2;
                 int blue1 = (color_0 & BLUE_MASK_565) << 3;
-                Color c1 = new Color(red1, green1, blue1);
+                @NotNull Color c1 = new Color(red1, green1, blue1);
                 int red2 = ((color_1 & RED_MASK_565) >> 11) << 3;
                 int green2 = ((color_1 & GREEN_MASK_565) >> 5) << 2;
                 int blue2 = (color_1 & BLUE_MASK_565) << 3;
-                Color c2 = new Color(red2, green2, blue2);
+                @NotNull Color c2 = new Color(red2, green2, blue2);
                 // remaining 4 bytes
-                byte[] next4 = {b[pos], b[pos + 1], b[pos + 2], b[pos + 3]};
+                @NotNull byte[] next4 = {b[pos], b[pos + 1], b[pos + 2], b[pos + 3]};
                 pos += 4;
                 for (int y1 = 0; y1 < 4; y1++) { // 16 bits / 4 lines = 4 bits/line = 1 byte/line
-                    int[] bits = {
+                    @NotNull int[] bits = {
                             (next4[y1] & bits_12) >> 6,
                             (next4[y1] & bits_34) >> 4,
                             (next4[y1] & bits_56) >> 2,
@@ -135,13 +141,13 @@ class DXTLoader {
                             int cred = ((2 * c1.getRed()) / 3) + (c2.getRed() / 3);
                             int cgrn = ((2 * c1.getGreen()) / 3) + (c2.getGreen() / 3);
                             int cblu = ((2 * c1.getBlue()) / 3) + (c2.getBlue() / 3);
-                            Color c = new Color(cred, cgrn, cblu);
+                            @NotNull Color c = new Color(cred, cgrn, cblu);
                             g.setColor(c);
                         } else if (bit == 3) {
                             int cred = (c1.getRed() / 3) + ((2 * c2.getRed()) / 3);
                             int cgrn = (c1.getGreen() / 3) + ((2 * c2.getGreen()) / 3);
                             int cblu = (c1.getBlue() / 3) + ((2 * c2.getBlue()) / 3);
-                            Color c = new Color(cred, cgrn, cblu);
+                            @NotNull Color c = new Color(cred, cgrn, cblu);
                             g.setColor(c);
                         }
                         g.drawLine(((x * 4) + 4) - i, (y * 4) + y1, ((x * 4) + 4) - i, (y * 4) + y1);
@@ -155,13 +161,14 @@ class DXTLoader {
     /**
      * 8 bytes for alpha channel, additional 8 per 4*4 chunk
      */
+    @NotNull
     private static BufferedImage loadDXT5(byte[] b, int width, int height) {
-        BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
+        @NotNull BufferedImage bi = new BufferedImage(Math.max(width, 4), Math.max(height, 4), BufferedImage.TYPE_INT_ARGB);
         int pos = 0;
         for (int y = 0; y < height; y += 4) {
             for (int x = 0; x < width; x += 4) {
                 // Alpha
-                int[] a = new int[8];
+                @NotNull int[] a = new int[8];
                 a[0] = b[pos++] & 0xFF; // 64 bits of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table)
                 a[1] = b[pos++] & 0xFF;
                 if (a[0] > a[1]) {
@@ -179,8 +186,8 @@ class DXTLoader {
                     a[6] = 0;
                     a[7] = 255;
                 }
-                int[][] alphas = new int[4][4];
-                int[] alphaByte = {
+                @NotNull int[][] alphas = new int[4][4];
+                @NotNull int[] alphaByte = {
                         b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF, b[pos++] & 0xFF
                 };
                 int sel1 = ((alphaByte[2] << 16) | (alphaByte[1] << 8) | alphaByte[0]) & 0xFFFFFF;
@@ -200,7 +207,7 @@ class DXTLoader {
                 // DXT1 color info
                 int color_0 = ((b[pos++] & 0xFF) + ((b[pos++] & 0xFF) << 8)) & 0xFFFF; // 2 bytes
                 int color_1 = ((b[pos++] & 0xFF) + ((b[pos++] & 0xFF) << 8)) & 0xFFFF; // 2 bytes
-                Color[] colour = new Color[4];
+                @NotNull Color[] colour = new Color[4];
                 colour[0] = extract565(color_0);
                 colour[1] = extract565(color_1);
                 if (color_0 > color_1) {
@@ -218,11 +225,11 @@ class DXTLoader {
                 }
                 for (int y1 = 0; y1 < 4; y1++) { // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                     byte rowData = b[pos++];
-                    int[] rowBits = {
+                    @NotNull int[] rowBits = {
                             (rowData & 0xC0) >>> 6, (rowData & 0x30) >>> 4, (rowData & 0xC) >>> 2, rowData & 0x3
                     };
                     for (int x1 = 0; x1 < 4; x1++) { // column scan
-                        Color col = new Color(colour[rowBits[3 - x1]].getRed(),
+                        @NotNull Color col = new Color(colour[rowBits[3 - x1]].getRed(),
                                 colour[rowBits[3 - x1]].getGreen(),
                                 colour[rowBits[3 - x1]].getBlue(),
                                 alphas[y1][x1]);
@@ -234,6 +241,7 @@ class DXTLoader {
         return bi;
     }
 
+    @NotNull
     private static Color extract555(int c) {
         return createColor(((c & RED_MASK_555) >>> 10) << 3,
                 ((c & GREEN_MASK_555) >>> 5) << 3,
@@ -241,10 +249,12 @@ class DXTLoader {
                 (c & ALPHA_MASK_555) << 7);
     }
 
+    @NotNull
     private static Color createColor(float r, float g, float b, float a) {
         return new Color(Math.round(r), Math.round(g), Math.round(b), Math.round(a));
     }
 
+    @NotNull
     private static Color extract565(int c) {
         return createColor(((c & RED_MASK_565) >>> 11) << 3,
                 ((c & GREEN_MASK_565) >>> 5) << 2,

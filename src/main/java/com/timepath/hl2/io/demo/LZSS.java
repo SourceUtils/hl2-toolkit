@@ -1,22 +1,24 @@
 package com.timepath.hl2.io.demo;
 
 import org.apache.commons.io.EndianUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class LZSS {
 
     public static final String ID = "LZSS";
     private static final int LZSS_LOOKSHIFT = 4;
 
-    public static byte[] inflate(byte[] input) throws LZSSException {
+    @NotNull
+    public static byte[] inflate(@NotNull byte[] input) throws LZSSException {
         int pInput = 8, pOutput = 0; // Pointers
         // Header
-        String id = new String(input, 0, 4);
+        @NotNull String id = new String(input, 0, 4);
         int actualSize = EndianUtils.readSwappedInteger(input, 4);
         if (!ID.equals(id) || actualSize == 0) {
             throw new LZSSException("Unrecognized header");
         }
         // Payload
-        byte[] output = new byte[actualSize];
+        @NotNull byte[] output = new byte[actualSize];
         int totalBytes = 0, cmdByte = 0, getCmdByte = 0;
         for (; ; ) {
             if (getCmdByte == 0) {

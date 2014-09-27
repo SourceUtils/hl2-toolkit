@@ -2,6 +2,8 @@ package com.timepath.vgui;
 
 import com.timepath.steam.io.VDFNode;
 import com.timepath.steam.io.VDFNode.VDFProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
@@ -24,11 +26,11 @@ public class HudFont {
     private HudFont() {
     }
 
-    HudFont(String font, VDFNode node) {
+    HudFont(String font, @NotNull VDFNode node) {
         name = font;
-        for (VDFProperty p : node.getProperties()) {
-            String key = p.getKey().toLowerCase();
-            String val = String.valueOf(p.getValue()).toLowerCase();
+        for (@NotNull VDFProperty p : node.getProperties()) {
+            @NotNull String key = p.getKey().toLowerCase();
+            @NotNull String val = String.valueOf(p.getValue()).toLowerCase();
             switch (key) {
                 case "name":
                     _name = val;
@@ -43,10 +45,11 @@ public class HudFont {
         }
     }
 
-    private static Font fontFileForName(String name) throws Exception {
+    @Nullable
+    private static Font fontFileForName(@NotNull String name) throws Exception {
         File[] files = new File("").listFiles(new FilenameFilter() { // XXX: hardcoded
                                                   @Override
-                                                  public boolean accept(File file, String string) {
+                                                  public boolean accept(File file, @NotNull String string) {
                                                       return string.endsWith(".ttf");
                                                   }
                                               }
@@ -64,6 +67,7 @@ public class HudFont {
         return null;
     }
 
+    @Nullable
     public Font getFont() {
         int screenRes = Toolkit.getDefaultToolkit().getScreenResolution();
         int fontSize = (int) Math.round((tall * screenRes) / 72.0);
@@ -72,7 +76,7 @@ public class HudFont {
         if (Arrays.asList(fontFamilies).contains(_name)) { // System font
             return new Font(_name, Font.PLAIN, fontSize);
         }
-        Font f1 = null;
+        @Nullable Font f1 = null;
         try {
             LOG.log(Level.INFO, "Loading font: {0}... ({1})", new Object[]{name, _name});
             f1 = fontFileForName(_name);

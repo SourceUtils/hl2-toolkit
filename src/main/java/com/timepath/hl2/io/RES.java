@@ -1,6 +1,7 @@
 package com.timepath.hl2.io;
 
 import com.timepath.vgui.Element;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,19 +15,23 @@ import java.nio.charset.StandardCharsets;
  */
 public class RES {
 
-    public static Element load(File f) throws IOException {
+    @NotNull
+    public static Element load(@NotNull File f) throws IOException {
         return load(new FileInputStream(f));
     }
 
+    @NotNull
     public static Element load(InputStream is) throws IOException {
         return load(is, StandardCharsets.UTF_8);
     }
 
+    @NotNull
     public static Element load(InputStream is, Charset c) throws IOException {
         return new Element(is, c);
     }
 
-    public static Element load(File f, Charset c) throws IOException {
+    @NotNull
+    public static Element load(@NotNull File f, Charset c) throws IOException {
         return load(new FileInputStream(f), c);
     }
 }

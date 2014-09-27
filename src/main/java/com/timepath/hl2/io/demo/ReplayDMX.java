@@ -3,6 +3,7 @@ package com.timepath.hl2.io.demo;
 import com.timepath.hl2.io.demo.LZSS.LZSSException;
 import com.timepath.io.OrderedInputStream;
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -18,14 +19,16 @@ import java.text.MessageFormat;
  */
 public class ReplayDMX {
 
+    @NotNull
     public final SessionInfoHeader info;
+    @NotNull
     public final RecordingSessionBlockSpec[] blocks;
 
-    private ReplayDMX(InputStream is) throws IOException, IllegalAccessException, InstantiationException, LZSSException {
-        OrderedInputStream in = new OrderedInputStream(is);
+    private ReplayDMX(@NotNull InputStream is) throws IOException, IllegalAccessException, InstantiationException, LZSSException {
+        @NotNull OrderedInputStream in = new OrderedInputStream(is);
         in.order(ByteOrder.LITTLE_ENDIAN);
         info = in.readStruct(new SessionInfoHeader());
-        byte[] compressed = new byte[in.available()];
+        @NotNull byte[] compressed = new byte[in.available()];
         in.readFully(compressed);
         in = new OrderedInputStream(new ByteArrayInputStream(LZSS.inflate(compressed)));
         in.order(ByteOrder.LITTLE_ENDIAN);
@@ -35,17 +38,18 @@ public class ReplayDMX {
         }
     }
 
-    public static ReplayDMX load(InputStream is)
+    @NotNull
+    public static ReplayDMX load(@NotNull InputStream is)
             throws IOException, InstantiationException, IllegalAccessException, LZSSException {
         return new ReplayDMX(new BufferedInputStream(is));
     }
 
-    private static String md5(byte[] hash) {
-        BigInteger bi = new BigInteger(1, hash);
+    private static String md5(@NotNull byte[] hash) {
+        @NotNull BigInteger bi = new BigInteger(1, hash);
         return String.format("%0" + (hash.length * 2) + "x", bi);
     }
 
-    public void print(PrintStream out) {
+    public void print(@NotNull PrintStream out) {
         out.println("header:");
         out.println("version: " + info.version);
         out.println("session name: " + info.sessionName);
@@ -75,6 +79,7 @@ public class ReplayDMX {
         LZSS,
         BZ2;
 
+        @NotNull
         public static CompressorType get(int i) {
             return i >= 0 && i < values().length - 1 ? values()[i + 1] : INVALID;
         }
@@ -109,6 +114,7 @@ public class ReplayDMX {
         /**
          * MD5 digest on payload.
          */
+        @NotNull
         @StructField(index = 5)
         byte[] hash = new byte[16];
         /**
@@ -121,6 +127,7 @@ public class ReplayDMX {
          */
         @StructField(index = 7)
         int payloadSizeUC;
+        @NotNull
         @StructField(index = 8)
         byte[] unused = new byte[128];
 
@@ -134,6 +141,7 @@ public class ReplayDMX {
         int reconstruction;
         @StructField(index = 1)
         byte remoteStatus;
+        @NotNull
         @StructField(index = 2)
         byte[] hash = new byte[16];
         @StructField(index = 3, skip = 2)
@@ -142,6 +150,7 @@ public class ReplayDMX {
         int fileSize;
         @StructField(index = 5)
         int uncompressedSize;
+        @NotNull
         @StructField(index = 6)
         byte[] unused = new byte[8];
 

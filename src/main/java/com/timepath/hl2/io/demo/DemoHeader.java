@@ -2,6 +2,7 @@ package com.timepath.hl2.io.demo;
 
 import com.timepath.DataUtils;
 import com.timepath.io.struct.StructField;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
@@ -37,8 +38,9 @@ public class DemoHeader {
     @StructField(index = 10)
     public int signonLength;
 
-    static DemoHeader parse(ByteBuffer slice) {
-        DemoHeader h = new DemoHeader();
+    @NotNull
+    static DemoHeader parse(@NotNull ByteBuffer slice) {
+        @NotNull DemoHeader h = new DemoHeader();
         h.head = DataUtils.getText(DataUtils.getSlice(slice, 8));
         if (!HL2DEM.HEADER.equals(h.head)) {
             LOG.log(Level.WARNING, "Unexpected header");

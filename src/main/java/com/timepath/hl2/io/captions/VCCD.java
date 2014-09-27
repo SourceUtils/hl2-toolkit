@@ -4,6 +4,8 @@ import com.timepath.io.OrderedInputStream;
 import com.timepath.steam.io.VDF;
 import com.timepath.steam.io.VDFNode;
 import com.timepath.steam.io.VDFNode.VDFProperty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,17 +52,19 @@ public class VCCD {
     private VCCD() {
     }
 
-    public static int hash(String in) {
-        CRC32 crc = new CRC32();
+    public static int hash(@NotNull String in) {
+        @NotNull CRC32 crc = new CRC32();
         crc.update(in.toLowerCase().getBytes(Charset.forName("UTF-8")));
         return (int) crc.getValue();
     }
 
-    public static List<VCCDEntry> load(InputStream is) throws IOException {
+    @Nullable
+    public static List<VCCDEntry> load(@NotNull InputStream is) throws IOException {
         return load(new OrderedInputStream(is));
     }
 
-    private static List<VCCDEntry> load(OrderedInputStream ois) throws IOException {
+    @Nullable
+    private static List<VCCDEntry> load(@NotNull OrderedInputStream ois) throws IOException {
         LOG.log(Level.INFO, "Loading from {0}", ois);
         ois.order(ByteOrder.LITTLE_ENDIAN);
         int header = ois.readInt();
@@ -85,9 +89,9 @@ public class VCCD {
         LOG.log(Level.FINE,
                 "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}",
                 new Object[]{version, blocks, blockSize, totalEntries, dataOffset});
-        VCCDEntry[] entries = new VCCDEntry[totalEntries];
+        @NotNull VCCDEntry[] entries = new VCCDEntry[totalEntries];
         for (int i = 0; i < entries.length; i++) {
-            VCCDEntry e = new VCCDEntry();
+            @NotNull VCCDEntry e = new VCCDEntry();
             e.setHash(ois.readInt());
             e.setBlock(ois.readInt());
             e.setOffset(ois.readShort());
@@ -98,10 +102,10 @@ public class VCCD {
             });
         }
         ois.skipTo(dataOffset);
-        for (VCCDEntry e : entries) {
+        for (@NotNull VCCDEntry e : entries) {
             ois.skipTo(dataOffset + (e.block * blockSize) + e.offset);
             int size = e.length - 2;
-            byte[] chars = new byte[size];
+            @NotNull byte[] chars = new byte[size];
             ois.read(chars);
             e.setValue(new String(chars, encoding));
         }
@@ -116,15 +120,16 @@ public class VCCD {
      * @param is
      * @return
      */
+    @NotNull
     public static List<VCCDEntry> parse(InputStream is) throws IOException {
-        VDFNode v = VDF.load(is, StandardCharsets.UTF_16);
-        List<VCCDEntry> children = new LinkedList<>();
-        List<VDFProperty> props = v.get("lang", "Tokens").getProperties();
-        Collection<String> usedKeys = new LinkedList<>();
+        @NotNull VDFNode v = VDF.load(is, StandardCharsets.UTF_16);
+        @NotNull List<VCCDEntry> children = new LinkedList<>();
+        @NotNull List<VDFProperty> props = v.get("lang", "Tokens").getProperties();
+        @NotNull Collection<String> usedKeys = new LinkedList<>();
         for (int i = props.size() - 1; i >= 0; i--) { // do it in reverse to make overriding easier. TODO: use iterator
             VDFProperty p = props.get(i);
             LOG.log(Level.FINER, "Adding {0}", p.toString());
-            VCCDEntry e = new VCCDEntry();
+            @NotNull VCCDEntry e = new VCCDEntry();
             String key = p.getKey();
             if (usedKeys.contains(key) || "//".equals(key) || "\\n".equals(key)) {
                 LOG.log(Level.WARNING, "Discarding: {0}", key);
@@ -139,27 +144,27 @@ public class VCCD {
         return children;
     }
 
-    public static void save(List<VCCDEntry> entries, OutputStream os) throws IOException {
+    public static void save(@NotNull List<VCCDEntry> entries, @NotNull OutputStream os) throws IOException {
         save(entries, os, false, false);
     }
 
-    public static void save(List<VCCDEntry> entries, OutputStream os, boolean byteswap, boolean smallBlocks) throws IOException {
+    public static void save(@NotNull List<VCCDEntry> entries, @NotNull OutputStream os, boolean byteswap, boolean smallBlocks) throws IOException {
         ByteBuffer buf = save(entries, byteswap, smallBlocks);
-        byte[] bytes = new byte[buf.capacity()];
+        @NotNull byte[] bytes = new byte[buf.capacity()];
         buf.get(bytes);
         os.write(bytes);
         os.close();
     }
 
-    private static ByteBuffer save(List<VCCDEntry> entries, boolean byteswap, boolean smallBlocks) {
+    private static ByteBuffer save(@NotNull List<VCCDEntry> entries, boolean byteswap, boolean smallBlocks) {
         int requiredBlocks = 0;
         int blockSize = MAX_BLOCK_SIZE;
         if (smallBlocks) blockSize /= 2;
         if (!entries.isEmpty()) { // Don't waste time if empty
             Collections.sort(entries); // Ensure alphabetical order
-            VCCDEntry longest = null;
+            @Nullable VCCDEntry longest = null;
             int totalLength = 0, totalWaste = 0;
-            for (VCCDEntry e : entries) { // Pack into blocks
+            for (@NotNull VCCDEntry e : entries) { // Pack into blocks
                 int thisLength = e.getLength();
                 if (thisLength >= blockSize) {
                     LOG.log(Level.WARNING, "Token overflow: {0}", e);
@@ -204,7 +209,7 @@ public class VCCD {
                 "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}",
                 new Object[]{version, requiredBlocks, blockSize, entries.size(), dataOffset});
         int i = 0;
-        for (VCCDEntry e : entries) {
+        for (@NotNull VCCDEntry e : entries) {
             buf.putInt(e.getHash());
             buf.putInt(e.getBlock());
             buf.putShort((short) (e.getOffset() & 0xFFFF));
@@ -215,8 +220,8 @@ public class VCCD {
         }
         buf.put(new byte[dataOffset - buf.position()]);
         Charset encoding = byteswap ? StandardCharsets.UTF_16BE : StandardCharsets.UTF_16LE;
-        byte[] nul = "\0".getBytes(encoding);
-        for (VCCDEntry e : entries) {
+        @NotNull byte[] nul = "\0".getBytes(encoding);
+        for (@NotNull VCCDEntry e : entries) {
             int p = dataOffset + (e.getBlock() * blockSize) + e.getOffset();
             buf.position(p);
             buf.put(e.getValue().getBytes(encoding));
@@ -238,12 +243,12 @@ public class VCCD {
         private int offset;
         private String value;
 
-        public VCCDEntry(String key, String value) {
+        public VCCDEntry(@NotNull String key, @NotNull String value) {
             setKey(key);
             setValue(value);
         }
 
-        public VCCDEntry(int hash, String value) {
+        public VCCDEntry(int hash, @NotNull String value) {
             this.hash = hash;
             setValue(value);
         }
@@ -252,7 +257,7 @@ public class VCCD {
         }
 
         @Override
-        public int compareTo(VCCDEntry t) {
+        public int compareTo(@NotNull VCCDEntry t) {
             String e1 = key;
             if (e1 == null) {
                 e1 = "";
@@ -268,7 +273,7 @@ public class VCCD {
             return key;
         }
 
-        public void setKey(String str) {
+        public void setKey(@NotNull String str) {
             hash = hash(str);
             key = str;
         }
@@ -284,7 +289,7 @@ public class VCCD {
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof VCCDEntry) {
-                VCCDEntry o = (VCCDEntry) obj;
+                @NotNull VCCDEntry o = (VCCDEntry) obj;
                 if (hash != o.hash) {
                     return false;
                 }
@@ -299,6 +304,7 @@ public class VCCD {
             return false;
         }
 
+        @NotNull
         @Override
         public String toString() {
             return MessageFormat.format("[H: {0}, b: {1}, o: {2}, l: {3}]({4}) = '{5}'",
@@ -357,7 +363,7 @@ public class VCCD {
             return value;
         }
 
-        public void setValue(String str) {
+        public void setValue(@NotNull String str) {
             value = str;
             length = (str.length() + 1) * 2;
         }
