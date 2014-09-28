@@ -3,7 +3,7 @@ package com.timepath.hl2.io.bsp.lump;
 import com.timepath.hl2.io.bsp.Lump;
 import com.timepath.hl2.io.bsp.LumpHandler;
 import com.timepath.io.OrderedInputStream;
-import com.timepath.vfs.ZipFS;
+import com.timepath.vfs.consumer.zip.ZipFS;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

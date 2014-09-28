@@ -4,7 +4,7 @@ import com.timepath.hl2.io.bsp.lump.Edge;
 import com.timepath.hl2.io.bsp.lump.Face;
 import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.steam.io.storage.ACF;
-import com.timepath.vfs.ZipFS;
+import com.timepath.vfs.consumer.zip.ZipFS;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

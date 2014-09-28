@@ -6,7 +6,7 @@ import com.timepath.io.struct.StructField;
 import com.timepath.steam.io.storage.Files;
 import com.timepath.steam.io.storage.Files.FileHandler;
 import com.timepath.vfs.SimpleVFile;
-import com.timepath.vfs.ZipFS;
+import com.timepath.vfs.consumer.zip.ZipFS;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
