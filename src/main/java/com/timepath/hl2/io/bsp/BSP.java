@@ -6,7 +6,7 @@ import com.timepath.io.struct.StructField;
 import com.timepath.steam.io.storage.Files;
 import com.timepath.steam.io.storage.Files.FileHandler;
 import com.timepath.vfs.SimpleVFile;
-import com.timepath.vfs.consumer.zip.ZipFS;
+import com.timepath.vfs.provider.zip.ZipFileProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +56,7 @@ public abstract class BSP {
                     }
 
                     @Nullable
-                    ZipFS z;
+                    ZipFileProvider z;
 
                     @Override
                     public boolean isDirectory() {
@@ -84,7 +84,7 @@ public abstract class BSP {
 
                     @Nullable
                     @Override
-                    public SimpleVFile get(final String name) {
+                    public SimpleVFile get(@NotNull final String name) {
                         checkBSP();
                         return z != null ? z.get(name) : null;
                     }

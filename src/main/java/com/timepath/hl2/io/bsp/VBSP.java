@@ -4,7 +4,7 @@ import com.timepath.hl2.io.bsp.lump.Edge;
 import com.timepath.hl2.io.bsp.lump.Face;
 import com.timepath.hl2.io.bsp.lump.LumpType;
 import com.timepath.steam.io.storage.ACF;
-import com.timepath.vfs.consumer.zip.ZipFS;
+import com.timepath.vfs.provider.zip.ZipFileProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,12 +26,14 @@ public class VBSP extends BSP {
     }
 
     public static void main(String... args) throws Exception {
-        @Nullable BSP b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp").openStream());
+        BSP b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp").openStream());
         LOG.log(Level.INFO, "Revision: {0}", b.getRevision());
-        @Nullable String ents = b.getLump(LumpType.LUMP_ENTITIES);
+        String ents = b.getLump(LumpType.LUMP_ENTITIES);
         //        System.out.println(ents);
-        @Nullable ZipFS z = b.getLump(LumpType.LUMP_PAKFILE);
-        LOG.info(z.name);
+        ZipFileProvider z = b.getLump(LumpType.LUMP_PAKFILE);
+        if (z != null) {
+            LOG.info(z.getName());
+        }
         b.getLump(LumpType.LUMP_VERTEXES);
     }
 
