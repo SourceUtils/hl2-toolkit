@@ -33,7 +33,7 @@ public class VCCDTest {
         for (int offset = 0; (offset = is.read(src, offset, src.length - offset)) != -1; ) ;
         is.close();
         @NotNull ByteArrayOutputStream baos = new ByteArrayOutputStream(src.length);
-        com.timepath.hl2.io.captions.VCCD.save(com.timepath.hl2.io.captions.VCCD.load(new ByteArrayInputStream(src)), baos);
+        VCCD.INSTANCE$.save(VCCD.INSTANCE$.load(new ByteArrayInputStream(src)), baos);
         assertTrue("content matches", Arrays.equals(src, baos.toByteArray()));
     }
 }

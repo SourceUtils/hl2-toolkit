@@ -1,6 +1,23 @@
-description = ''
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'http://oss.sonatype.org/content/repositories/snapshots' }
+    }
+    dependencies {
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:0.10.770'
+    }
+}
+
+apply plugin: "kotlin"
+
+repositories {
+    mavenCentral()
+    maven { url 'http://oss.sonatype.org/content/repositories/snapshots' }
+}
+
 dependencies {
-    testCompile 'junit:junit:4.11'
+    compile 'org.jetbrains.kotlin:kotlin-stdlib:0.10.770'
+
     compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
     compile project(':steam-toolkit')
 }
