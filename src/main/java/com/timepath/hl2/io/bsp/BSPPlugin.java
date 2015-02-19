@@ -51,7 +51,7 @@ public class BSPPlugin implements ProviderPlugin {
                     ZipFileProvider z;
 
                     @Override
-                    public boolean isDirectory() {
+                    public boolean getIsDirectory() {
                         return true;
                     }
 
