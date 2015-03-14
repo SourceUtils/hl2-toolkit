@@ -32,7 +32,7 @@ public class ImageUtils {
             // Draw with excess off screen
             g.drawImage(image, -excess, 0, w + (2 * excess), h, null)
             g.dispose()
-            return ((scaled) as BufferedImage)
+            return scaled
         }
 
         public fun toCompatibleImage(image: BufferedImage): BufferedImage {
@@ -48,7 +48,7 @@ public class ImageUtils {
             val g2d = copy.getGraphics() as Graphics2D
             g2d.drawImage(image, 0, 0, null)
             g2d.dispose()
-            return ((copy) as BufferedImage)
+            return copy
         }
     }
 

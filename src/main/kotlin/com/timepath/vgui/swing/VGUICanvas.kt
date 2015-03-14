@@ -60,8 +60,8 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
     }
 
     private fun resize() {
-        offX = ((getWidth() - r!!.internal!!.width) / 2).toInt()
-        offY = ((getHeight() - r!!.internal!!.height) / 2).toInt()
+        offX = ((getWidth() - r!!.internal.width) / 2).toInt()
+        offY = ((getHeight() - r!!.internal.height) / 2).toInt()
         repaint()
     }
 
@@ -78,9 +78,10 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
     }
 
     private fun getOutliers(): Rectangle {
-        val rect = Rectangle(r!!.internal!!.width, r!!.internal!!.height)
-        for (elem in r!!.elements) rect.add(r!!.bounds(elem))
-        return ((rect) as Rectangle)
+        val r = r!!
+        val rect = Rectangle(r.internal.width, r.internal.height)
+        for (elem in r.elements) rect.add(r.bounds(elem))
+        return rect
     }
 
     /**
@@ -121,11 +122,11 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
         val h = r!!.screen.height
         val minGridSpacing = 10
         val i = minGridSpacing
-        if (i < 0) return ((img) as BufferedImage)
+        if (i < 0) return img
         if (i < 2) {
             // Optimize for small numbers, stop division by zero
             g.fillRect(0, 0, r!!.screen.width, r!!.screen.height)
-            return ((img) as BufferedImage)
+            return img
         }
 
         val cross = 0
@@ -144,7 +145,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
         }
 
         g.dispose()
-        return ((img) as BufferedImage)
+        return img
     }
 
     override fun setPreferredSize(preferredSize: Dimension) {

@@ -127,12 +127,12 @@ public class Element(private val info: String?) : ViewableData {
             } else if ("visible" == switchArg) {
                 if (vbool) enabled = vbool
             } else if ("xpos" == switchArg) {
-                if (v!!.startsWith("c")) {
+                if (v.startsWith("c")) {
                     XAlignment = Alignment.Center
-                    v = v!!.substring(1)
-                } else if (v!!.startsWith("r")) {
+                    v = v.substring(1)
+                } else if (v.startsWith("r")) {
                     XAlignment = Alignment.Right
-                    v = v!!.substring(1)
+                    v = v.substring(1)
                 } else {
                     XAlignment = Alignment.Left
                 }
@@ -141,12 +141,12 @@ public class Element(private val info: String?) : ViewableData {
                 if (vint != null)
                     localX = vint!!.toDouble()
             } else if ("ypos" == switchArg) {
-                if (v!!.startsWith("c")) {
+                if (v.startsWith("c")) {
                     YAlignment = VAlignment.Center
-                    v = v!!.substring(1)
-                } else if (v!!.startsWith("r")) {
+                    v = v.substring(1)
+                } else if (v.startsWith("r")) {
                     YAlignment = VAlignment.Bottom
-                    v = v!!.substring(1)
+                    v = v.substring(1)
                 } else {
                     YAlignment = VAlignment.Top
                 }
@@ -156,16 +156,16 @@ public class Element(private val info: String?) : ViewableData {
             } else if ("zpos" == switchArg) {
                 if (vint != null) layer = vint!!
             } else if ("wide" == switchArg) {
-                if (v!!.startsWith("f")) {
-                    v = v!!.substring(1)
+                if (v.startsWith("f")) {
+                    v = v.substring(1)
                     wideMode = DimensionMode.Mode2
                 }
                 vint = parseInt(v)
                 if (vint != null)
                     wide = vint!!
             } else if ("tall" == switchArg) {
-                if (v!!.startsWith("f")) {
-                    v = v!!.substring(1)
+                if (v.startsWith("f")) {
+                    v = v.substring(1)
                     tallMode = DimensionMode.Mode2
                 }
                 vint = parseInt(v)
@@ -183,7 +183,7 @@ public class Element(private val info: String?) : ViewableData {
             } else if ("controlname" == switchArg) {
                 controlName = v
             } else if ("fgcolor" == switchArg) {
-                val c = v!!.split(" ")
+                val c = v.split(" ")
                 try {
                     fgColor = Color(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]), Integer.parseInt(c[3]))
                 } catch (ignored: NumberFormatException) {

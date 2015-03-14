@@ -275,12 +275,12 @@ public object VCCD {
                 $length = (str.length() + 1) * 2
             }
 
-        override fun compareTo(t: VCCDEntry): Int {
+        override fun compareTo(other: VCCDEntry): Int {
             var e1 = key
             if (e1 == null) {
                 e1 = ""
             }
-            var e2 = t.key
+            var e2 = other.key
             if (e2 == null) {
                 e2 = ""
             }
@@ -294,19 +294,18 @@ public object VCCD {
             return hash
         }
 
-        override fun equals(obj: Any?): Boolean {
-            if (obj is VCCDEntry) {
-                val o = obj as VCCDEntry
-                if (hash != o.hash) {
+        override fun equals(other: Any?): Boolean {
+            if (other is VCCDEntry) {
+                if (hash != other.hash) {
                     return false
                 }
-                if (((value != null) && (o.value == null)) || ((o.value != null) && (value == null))) {
+                if (((value != null) && (other.value == null)) || ((other.value != null) && (value == null))) {
                     return false
                 }
-                if ((value == null) && (o.value == null)) {
+                if ((value == null) && (other.value == null)) {
                     return true
                 }
-                return value == o.value
+                return value == other.value
             }
             return false
         }

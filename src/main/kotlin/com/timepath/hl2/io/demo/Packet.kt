@@ -386,9 +386,8 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 l.add(timepath.Pair<Any, Any>("Max entries", maxEntries))
                 val isDelta = bb.getBoolean()
                 l.add(timepath.Pair<Any, Any>("Is delta", isDelta))
-                var deltaFrom = -1
                 if (isDelta) {
-                    deltaFrom = bb.getBits(32).toInt()
+                    val deltaFrom = bb.getBits(32).toInt()
                     l.add(timepath.Pair<Any, Any>("Delta from", deltaFrom))
                 }
                 val baseline = bb.getBoolean()

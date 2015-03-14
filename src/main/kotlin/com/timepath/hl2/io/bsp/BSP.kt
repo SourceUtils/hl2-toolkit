@@ -23,7 +23,7 @@ import kotlin.properties.Delegates
  */
 public abstract class BSP {
     var header: BSPHeader by Delegates.notNull()
-    var `in`: OrderedInputStream by Delegates.notNull()
+    var input: OrderedInputStream by Delegates.notNull()
     public var indices: IntBuffer by Delegates.notNull()
     public var vertices: FloatBuffer by Delegates.notNull()
 
@@ -43,7 +43,7 @@ public abstract class BSP {
      */
     SuppressWarnings("unchecked")
     throws(javaClass<IOException>())
-    public fun <T> getLump(type: LumpType): T? {
+    public fun <T : Any> getLump(type: LumpType): T? {
         return getLump(type, type.handler as LumpHandler<T>)
     }
 
@@ -57,7 +57,7 @@ public abstract class BSP {
      * @throws IOException
      */
     throws(javaClass<IOException>())
-    protected fun <T> getLump(type: LumpType, handler: LumpHandler<T>?): T? {
+    protected fun <T : Any> getLump(type: LumpType, handler: LumpHandler<T>?): T? {
         if (handler == null) {
             return null
         }
@@ -65,9 +65,9 @@ public abstract class BSP {
         if (lump.isEmpty()) {
             return null
         }
-        `in`.reset()
-        `in`.skipBytes(lump.offset)
-        return handler.handle(lump, `in`)
+        input.reset()
+        input.skipBytes(lump.offset)
+        return handler.handle(lump, input)
     }
 
     /**
@@ -111,13 +111,13 @@ public abstract class BSP {
         throws(javaClass<IOException>())
         public fun load(`is`: InputStream): BSP? {
             try {
-                val `in` = OrderedInputStream(BufferedInputStream(`is`))
-                `in`.order(ByteOrder.LITTLE_ENDIAN)
-                `in`.mark(`in`.available())
-                val header = `in`.readStruct<BSPHeader>(BSPHeader())
+                val input = OrderedInputStream(BufferedInputStream(`is`))
+                input.order(ByteOrder.LITTLE_ENDIAN)
+                input.mark(input.available())
+                val header = input.readStruct<BSPHeader>(BSPHeader())
                 // TODO: Other BSP types
                 val bsp = VBSP()
-                bsp.`in` = `in`
+                bsp.input = input
                 bsp.header = header
                 // TODO: Struct parser callbacks
                 for (i in header.lumps.size().indices) {

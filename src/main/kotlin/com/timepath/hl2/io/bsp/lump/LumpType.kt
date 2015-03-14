@@ -279,7 +279,7 @@ public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*
 
 //    SuppressWarnings("unchecked")
 //    throws(javaClass<IOException>())
-    public fun <T> handle(l: Lump, `in`: OrderedInputStream): T? {
+    public fun <T : Any> handle(l: Lump, `in`: OrderedInputStream): T? {
         if (handler == null) {
             LOG.log(Level.WARNING, "No handler for {0}", this)
             return null

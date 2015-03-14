@@ -10,7 +10,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.util.Collections
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -23,7 +22,7 @@ public class BSPPlugin : ProviderPlugin {
     override fun register(): SimpleVFile.FileHandler {
         return object : SimpleVFile.FileHandler {
             throws(javaClass<IOException>())
-            override fun handle(file: File): Collection<out SimpleVFile>? {
+            override fun handle(file: File): Collection<SimpleVFile>? {
                 if (!file.getName().endsWith(".bsp")) return null
                 val name = file.getName().replace(".bsp", "")
                 return setOf(object : SimpleVFile() {
@@ -52,14 +51,14 @@ public class BSPPlugin : ProviderPlugin {
                         return null
                     }
 
-                    override fun list(): Collection<out SimpleVFile> {
+                    override fun list(): Collection<SimpleVFile> {
                         checkBSP()
-                        return if ((z != null)) z!!.list() else listOf<SimpleVFile>()
+                        return z?.let { it.list() } ?: emptyList()
                     }
 
                     override fun get(name: String): SimpleVFile? {
                         checkBSP()
-                        return if ((z != null)) z!!.get(name) else null
+                        return z?.let { it[name] }
                     }
                 })
             }

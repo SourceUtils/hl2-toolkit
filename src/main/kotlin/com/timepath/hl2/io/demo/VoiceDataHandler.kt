@@ -38,10 +38,10 @@ class VoiceDataHandler : PacketHandler {
     }
 
     override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-        val client = bb.getByte().toInt() and 255
+        val client = bb.getByte().toInt() and 0xFF
         l.add(Pair<Any, Any>("Client", client))
         l.add(Pair<Any, Any>("Proximity", bb.getByte()))
-        val length = bb.getShort().toInt() and 65535
+        val length = bb.getShort().toInt() and 0xFFFF
         l.add(Pair<Any, Any>("Length in bits", length))
         if (length < 0) {
             return false
@@ -58,7 +58,7 @@ class VoiceDataHandler : PacketHandler {
     fun speex(index: Int, vararg data: Byte) {
         var decoded = data
         try {
-            speexDecoder!!.processData(data, 0, data.size)
+            speexDecoder!!.processData(data, 0, data.size())
             decoded = ByteArray(speexDecoder!!.getProcessedDataByteSize())
             speexDecoder!!.getProcessedData(decoded, 0)
         } catch (ex: StreamCorruptedException) {
@@ -71,7 +71,7 @@ class VoiceDataHandler : PacketHandler {
 
     fun pcm(index: Int, vararg data: Byte) {
         try {
-            audioOut!!.write(data, 0, data.size)
+            audioOut!!.write(data, 0, data.size())
         } catch (ex: IllegalArgumentException) {
             LOG.log(Level.SEVERE, null, ex.getMessage())
         }

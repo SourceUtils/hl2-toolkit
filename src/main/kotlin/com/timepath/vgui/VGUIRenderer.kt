@@ -28,7 +28,7 @@ import kotlin.properties.Delegates
 public abstract class VGUIRenderer {
     public fun getElementImage(): BufferedImage {
         if (elementImage != null) return elementImage!!
-        val img = BufferedImage(screen!!.getWidth().toInt(), screen!!.getHeight().toInt(), BufferedImage.TYPE_INT_ARGB)
+        val img = BufferedImage(screen.getWidth().toInt(), screen.getHeight().toInt(), BufferedImage.TYPE_INT_ARGB)
         val g = img.createGraphics()
         Collections.sort<Element>(elements, LAYER_SORT)
         for (element in elements) {
@@ -45,10 +45,10 @@ public abstract class VGUIRenderer {
         val r = this
         if (width(e) != 0 && height(e) != 0) {
             // invisible? don't waste time
-            var elementX = Math.round(x(e).toDouble() * (r.screen!!.getWidth() / r.internal!!.getWidth()) * r.scale).toInt()
-            var elementY = Math.round(y(e).toDouble() * (r.screen!!.getHeight() / r.internal!!.getHeight()) * r.scale).toInt()
-            val elementW = Math.round(width(e).toDouble() * (r.screen!!.getWidth() / r.internal!!.getWidth()) * r.scale).toInt()
-            val elementH = Math.round(height(e).toDouble() * (r.screen!!.getHeight() / r.internal!!.getHeight()) * r.scale).toInt()
+            var elementX = Math.round(x(e).toDouble() * (r.screen.getWidth() / r.internal.getWidth()) * r.scale).toInt()
+            var elementY = Math.round(y(e).toDouble() * (r.screen.getHeight() / r.internal.getHeight()) * r.scale).toInt()
+            val elementW = Math.round(width(e).toDouble() * (r.screen.getWidth() / r.internal.getWidth()) * r.scale).toInt()
+            val elementH = Math.round(height(e).toDouble() * (r.screen.getHeight() / r.internal.getHeight()) * r.scale).toInt()
             if (r.selectedElements.contains(e)) {
                 elementX += r.dragX
                 elementY += r.dragY
@@ -251,14 +251,14 @@ public abstract class VGUIRenderer {
             dx *= (-1).toDouble()
         }
 
-        val scaleX = screen!!.getWidth() / internal!!.getWidth()
+        val scaleX = screen.getWidth() / internal.getWidth()
         dx = Math.round(dx / scaleX).toDouble()
         e.localX = e.localX + dx
         if (e.YAlignment == Element.VAlignment.Bottom) {
             dy *= (-1).toDouble()
         }
 
-        val scaleY = screen!!.getHeight() / internal!!.getHeight()
+        val scaleY = screen.getHeight() / internal.getHeight()
         dy = Math.round(dy / scaleY).toDouble()
         e.localY = e.localY + dy
         //        this.doRepaint(originalBounds)
@@ -298,19 +298,19 @@ public abstract class VGUIRenderer {
 
     public fun width(e: Element?): Int {
         if (e == null)
-            return internal!!.getWidth().toInt()
+            return internal.getWidth().toInt()
         return if ((e.wideMode == Element.DimensionMode.Mode1)) (e.wide) else (width(e.parent) - e.wide)
     }
 
     public fun height(e: Element?): Int {
         if (e == null)
-            return internal!!.getHeight().toInt()
+            return internal.getHeight().toInt()
         return if ((e.tallMode == Element.DimensionMode.Mode1)) (e.tall) else (height(e.parent) - e.tall)
     }
 
     public fun bounds(e: Element): Rectangle {
-        val scaleX = (screen!!.getWidth() / internal!!.getWidth()) * scale
-        val scaleY = (screen!!.getHeight() / internal!!.getHeight()) * scale
+        val scaleX = (screen.getWidth() / internal.getWidth()) * scale
+        val scaleY = (screen.getHeight() / internal.getHeight()) * scale
         return Rectangle(Math.round(scaleX * e.localX).toInt(), Math.round(scaleY * e.localY).toInt(), Math.round(scaleX * e.wide.toDouble()).toInt() + 1, Math.round(scaleY * e.tall.toDouble()).toInt() + 1)
     }
 
