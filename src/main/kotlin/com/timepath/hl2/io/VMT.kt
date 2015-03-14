@@ -18,10 +18,11 @@ import java.util.logging.Logger
 public class VMT {
 
     public class VMTNode [throws(javaClass<IOException>())]
-    (`is`: InputStream, c: Charset) : VDFNode(`is`, c) {
+    (`is`: InputStream, c: Charset) : VDFNode() {
         public val root: VDFNode
 
         {
+            VDFNode(`is`, c, this)
             root = getNodes().get(0)
             LOG.log(Level.INFO, "Shader: {0}", root.getCustom())
         }
