@@ -20,7 +20,7 @@ class GameEvent(bb: BitBuffer) {
                 break
             }
             val entryName = bb.getString()
-            decl.put(entryName, GameEventMessageType.get(entryType))
+            decl.put(entryName, GameEventMessageType[entryType])
         }
         declarations = Collections.unmodifiableMap<String, GameEventMessageType>(decl)
     }

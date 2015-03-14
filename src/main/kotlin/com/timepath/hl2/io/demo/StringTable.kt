@@ -41,7 +41,7 @@ class StringTable {
                     // Substring check
                     val index = bb.getBits(5).toInt()
                     val bytestocopy = bb.getBits(SUBSTRING_BITS).toInt()
-                    entry = history.get(index).substring(0, bytestocopy + 1)
+                    entry = history[index].substring(0, bytestocopy + 1)
                     val substr = bb.getString(bytestocopy)
                     entry += substr
                 } else {
@@ -83,9 +83,7 @@ class StringTable {
         public val tables: Map<Int, StringTable> = HashMap()
         private val LOG = Logger.getLogger(javaClass<StringTable>().getName())
 
-        fun get(id: Int): StringTable {
-            return tables.get(id)!!
-        }
+        fun get(id: Int) = tables[id]!!
 
         fun create(tableName: String, maxEntries: Int, entryBits: Int, userDataFixedSize: Boolean, userDataSize: Int, userDataSizeBits: Int): StringTable {
             val st = StringTable()

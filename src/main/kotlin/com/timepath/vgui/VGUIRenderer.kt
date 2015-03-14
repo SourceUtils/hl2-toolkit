@@ -170,17 +170,17 @@ public abstract class VGUIRenderer {
         if (element.file == null) return
 
         if (Element.areas.containsKey(element.file)) {
-            val p = Element.areas.get(element.file)!!
+            val p = Element.areas[element.file]!!
             p.addNode(element)
             addElement(p)
         } else if ("HudPlayerHealth".equalsIgnoreCase(element.file!!)) {
             // Better, but still not perfect
             // Move by "CHealthAccountPanel" delta_item_x" and "delta_item_start_y"
-            val p = Element.areas.get("CHealthAccountPanel")!!
+            val p = Element.areas["CHealthAccountPanel"]!!
             p.addNode(element)
             addElement(p)
         } else if ("HudAmmoWeapons".equalsIgnoreCase(element.file!!)) {
-            val p = Element.areas.get("HudWeaponAmmo")!!
+            val p = Element.areas["HudWeaponAmmo"]!!
             p.addNode(element)
             addElement(p)
         }

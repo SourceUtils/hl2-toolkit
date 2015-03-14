@@ -202,7 +202,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 l.add(timepath.Pair<Any, Any>("Changed entries", changedEntries))
                 val length = bb.getBits(20)
                 l.add(timepath.Pair<Any, Any>("Length in bits", length))
-                StringTable.get(tableID.toInt())
+                StringTable[tableID.toInt()]
                 //                .parse(bb, l)
 
                 bb.getBits(length.toInt()) // Skip

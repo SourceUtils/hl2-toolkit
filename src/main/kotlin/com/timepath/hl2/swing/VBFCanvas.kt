@@ -32,12 +32,7 @@ public class VBFCanvas
         addMouseMotionListener(this)
     }
 
-    public fun getSelected(): VBF.BitmapGlyph? {
-        if (selected.isEmpty()) {
-            return null
-        }
-        return selected.get(0)
-    }
+    public fun getSelected(): VBF.BitmapGlyph? = selected.firstOrNull()
 
     public fun setVBF(vbf: VBF) {
         this.vbf = vbf

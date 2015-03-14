@@ -60,7 +60,7 @@ public class VBSP : BSP() {
                     }
                     val pointA: Int
                     if (vertLookupTable.containsKey(vertId)) {
-                        pointA = vertLookupTable.get(vertId)
+                        pointA = vertLookupTable[vertId]
                     } else {
                         pointA = compileGpuVertex(bspVertices, vertId, vertices)
                         vertLookupTable.put(vertId, pointA)
@@ -70,7 +70,7 @@ public class VBSP : BSP() {
                         continue
                     }
                     if (vertLookupTable.containsKey(vertId)) {
-                        pointB = vertLookupTable.get(vertId)
+                        pointB = vertLookupTable[vertId]
                     } else {
                         pointB = compileGpuVertex(bspVertices, vertId, vertices)
                         vertLookupTable.put(vertId, pointB)

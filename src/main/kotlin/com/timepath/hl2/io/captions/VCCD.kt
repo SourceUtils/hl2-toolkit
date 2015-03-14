@@ -114,7 +114,7 @@ public object VCCD {
     public fun parse(`is`: InputStream): List<VCCDEntry> {
         val v = VDF.load(`is`, StandardCharsets.UTF_16)
         val children = LinkedList<VCCDEntry>()
-        val vdfNode = v.get("lang", "Tokens")
+        val vdfNode = v["lang", "Tokens"]
         if (vdfNode == null) return listOf()
         val props = vdfNode.getProperties()
         val usedKeys = LinkedList<String>()
@@ -122,7 +122,7 @@ public object VCCD {
             var i = props.size() - 1
             while (i >= 0) {
                 // do it in reverse to make overriding easier. TODO: use iterator
-                val p = props.get(i)
+                val p = props[i]
                 LOG.log(Level.FINER, "Adding {0}", p.toString())
                 val e = VCCDEntry()
                 val key = p.getKey()

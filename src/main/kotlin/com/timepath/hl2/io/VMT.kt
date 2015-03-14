@@ -23,7 +23,7 @@ public class VMT {
 
         {
             VDFNode(`is`, c, this)
-            root = getNodes().get(0)
+            root = getNodes()[0]
             LOG.log(Level.INFO, "Shader: {0}", root.getCustom())
         }
 

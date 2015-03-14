@@ -28,24 +28,24 @@ public class StudioModel [throws(javaClass<IOException>())]
         val indices = ByteArrayOutputStream()
         var indexOffset = 0
         for (i in vtx!!.bodyParts.indices) {
-            val bodyPart = vtx.bodyParts.get(i)
-            val mdlBodyPart = mdl!!.mdlBodyParts.get(i)
+            val bodyPart = vtx.bodyParts[i]
+            val mdlBodyPart = mdl!!.mdlBodyParts[i]
             if (bodyPart.models.isEmpty()) {
                 continue
             }
-            val model = bodyPart.models.get(0)
-            val mdlModel = mdlBodyPart.models.get(0)
-            val lod = model.lods.get(lodId)
+            val model = bodyPart.models[0]
+            val mdlModel = mdlBodyPart.models[0]
+            val lod = model.lods[lodId]
             for (j in lod.meshes.indices) {
-                val mesh = lod.meshes.get(j)
-                val mdlMesh = mdlModel.meshes.get(j)
+                val mesh = lod.meshes[j]
+                val mdlMesh = mdlModel.meshes[j]
                 for (stripGroup in mesh.stripGroups) {
                     val vertTable = stripGroup.verts
                     stripGroup.indexOffset = indexOffset++
                     val sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
                     for (l in 0..stripGroup.numIndices - 1) {
                         val vertTableIndex = sb.get().toInt()
-                        val index = vertTable.get(vertTableIndex).origMeshVertID.toInt() + mdlModel.vertexoffset + mdlMesh.vertexoffset
+                        val index = vertTable[vertTableIndex].origMeshVertID.toInt() + mdlModel.vertexoffset + mdlMesh.vertexoffset
                         val s = index.toShort()
                         try {
                             indices.write(byteArray((s.toInt() and 0xFF).toByte(), ((s.toInt() and 0xFF00) shr 8).toByte(), ((s.toInt() and 0xFF0000) shr 16).toByte(), ((s.toInt() and -16777216) shr 24).toByte()))
@@ -76,7 +76,7 @@ public class StudioModel [throws(javaClass<IOException>())]
             for (model in bodyPart.models) {
                 var totalMeshVertices = 0
                 for (meshId in model.meshes.indices) {
-                    val mesh = model.meshes.get(meshId)
+                    val mesh = model.meshes[meshId]
                     mesh.numvertices = mesh.vertexdata.numLODVertexes[rootLOD]
                     mesh.vertexoffset = totalMeshVertices
                     totalMeshVertices += mesh.numvertices

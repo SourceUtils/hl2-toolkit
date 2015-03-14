@@ -42,7 +42,7 @@ private(`is`: InputStream) {
         out.println("session name: " + info.sessionName)
         out.println("currently recording?: " + info.recording)
         out.println("# blocks: " + info.numBlocks)
-        out.println("compressor: " + CompressorType.get(info.compressorType))
+        out.println("compressor: " + CompressorType[info.compressorType])
         out.println("md5 digest: " + md5(info.hash))
         out.println("payload size (compressed): " + info.payloadSize)
         out.println("payload size (uncompressed): " + info.payloadSizeUC)
@@ -53,7 +53,7 @@ private(`is`: InputStream) {
             val blocksLength = blocks.size
             while (i < blocksLength) {
                 val block = blocks[i]
-                out.println(MessageFormat.format("{0}\t\t{1}\t{2}\t{3}\t{4}\t\t{5}\t\t\t\t\t{6}", i, block.reconstruction, block.remoteStatus, md5(block.hash), CompressorType.get(block.compressorType.toInt()), block.fileSize, block.uncompressedSize))
+                out.println(MessageFormat.format("{0}\t\t{1}\t{2}\t{3}\t{4}\t\t{5}\t\t\t\t\t{6}", i, block.reconstruction, block.remoteStatus, md5(block.hash), CompressorType[block.compressorType.toInt()], block.fileSize, block.uncompressedSize))
                 i++
             }
         }

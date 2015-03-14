@@ -193,7 +193,7 @@ public class Element(private val info: String?) : ViewableData {
 
             } else if ("font" == switchArg) {
                 if (!fonts.containsKey(v)) continue
-                val f = fonts.get(v)?.getFont()
+                val f = fonts[v]?.getFont()
                 if (f != null) font = f
             } else if ("image" == switchArg || "icon" == switchArg) {
                 image = VGUIRenderer.locateImage(v)
@@ -203,7 +203,7 @@ public class Element(private val info: String?) : ViewableData {
         }
 
         if (controlName != null) {
-            val control = Controls.defaults.get(controlName)
+            val control = Controls.defaults[controlName]
             if (control == null)
                 LOG.log(Level.WARNING, "Unknown control: {0}", controlName)
         } else {
@@ -375,7 +375,7 @@ public class Element(private val info: String?) : ViewableData {
          * TODO
          */
         fun parseScheme(props: VDFNode) {
-            val root = props.get("Scheme", "Fonts")
+            val root = props["Scheme", "Fonts"]
             if (root == null) return
 
             LOG.info("Found scheme")

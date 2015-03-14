@@ -73,7 +73,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                 while (bb.remainingBits() > opSize) {
                     try {
                         val op = bb.getBits(opSize).toInt()
-                        val type = Packet.Type.get(op)
+                        val type = Packet.Type[op]
                         if (type == null) {
                             error = MessageFormat.format("Unknown message type {0} in {1}", op, this)
                             thrown = Exception("Unknown message")
@@ -137,7 +137,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                     meta.add(Pair<Any, Any>("Up move", bb.getFloat()))
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Buttons", Input.get(bb.getInt())))
+                    meta.add(Pair<Any, Any>("Buttons", Input[bb.getInt()]))
                 }
                 if (bb.getBoolean()) {
                     meta.add(Pair<Any, Any>("Impulse", bb.getByte()))
@@ -176,7 +176,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
 
         fun parse(outer: HL2DEM, buffer: ByteBuffer): Message {
             val op = buffer.get().toInt()
-            val type = MessageType.get(op)
+            val type = MessageType[op]
             if (type == null) {
                 LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", op)
             }
