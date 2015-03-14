@@ -185,7 +185,7 @@ public enum UserMessage {
         this.handler = handler;
     }
 
-    static boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, HL2DEM demo) {
+    static boolean read(@NotNull BitBuffer bb, @NotNull List<Pair<Object, Object>> l, @NotNull HL2DEM demo) {
         int msgType = (int) bb.getByte();
         @Nullable UserMessage m = get(msgType);
         l.add(new Pair<Object, Object>("Message type", (m != null) ? m.name() : ("Unknown: " + msgType)));

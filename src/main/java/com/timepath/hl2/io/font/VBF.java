@@ -71,7 +71,7 @@ public class VBF {
     public VBF(@NotNull InputStream is) throws IOException {
         @NotNull byte[] array = new byte[is.available()]; // XXX: TODO
         is.read(array);
-        ByteBuffer buf = ByteBuffer.wrap(array);
+        @NotNull ByteBuffer buf = ByteBuffer.wrap(array);
         buf.order(ByteOrder.LITTLE_ENDIAN);
         int id = buf.getInt();
         int version = buf.getInt();
@@ -124,7 +124,7 @@ public class VBF {
             if (glyphIndex == 0) { // don't care about the default glyph
                 continue;
             }
-            BitmapGlyph g = glyphs.get(glyphIndex);
+            @NotNull BitmapGlyph g = glyphs.get(glyphIndex);
             LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", new Object[]{i, g.bounds, g.a, g.b, g.c});
         }
     }
@@ -165,7 +165,7 @@ public class VBF {
     }
 
     public void save(@NotNull OutputStream os) throws IOException {
-        ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
+        @NotNull ByteBuffer buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14));
         buf.order(ByteOrder.LITTLE_ENDIAN);
         buf.putInt(BITMAPFONT_ID);
         buf.putInt(BITMAPFONT_VERSION);
