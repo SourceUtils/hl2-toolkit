@@ -24,8 +24,8 @@ import kotlin.properties.Delegates
 public abstract class BSP {
     var header: BSPHeader by Delegates.notNull()
     var input: OrderedInputStream by Delegates.notNull()
-    public var indices: IntBuffer by Delegates.notNull()
-    public var vertices: FloatBuffer by Delegates.notNull()
+    public var indices: IntBuffer? = null
+    public var vertices: FloatBuffer? = null
 
     /**
      * Examples:

@@ -34,11 +34,11 @@ public class StudioModel [throws(javaClass<IOException>())]
                 continue
             }
             val model = bodyPart.models[0]
-            val mdlModel = mdlBodyPart.models[0]
+            val mdlModel = mdlBodyPart.models!![0]
             val lod = model.lods[lodId]
             for (j in lod.meshes.indices) {
                 val mesh = lod.meshes[j]
-                val mdlMesh = mdlModel.meshes[j]
+                val mdlMesh = mdlModel.meshes!![j]
                 for (stripGroup in mesh.stripGroups) {
                     val vertTable = stripGroup.verts
                     stripGroup.indexOffset = indexOffset++
@@ -73,10 +73,10 @@ public class StudioModel [throws(javaClass<IOException>())]
         }
         var vertexoffset = 0
         for (bodyPart in bodyParts) {
-            for (model in bodyPart.models) {
+            for (model in bodyPart.models!!) {
                 var totalMeshVertices = 0
-                for (meshId in model.meshes.indices) {
-                    val mesh = model.meshes[meshId]
+                for (meshId in model.meshes!!.indices) {
+                    val mesh = model.meshes!![meshId]
                     mesh.numvertices = mesh.vertexdata.numLODVertexes[rootLOD]
                     mesh.vertexoffset = totalMeshVertices
                     totalMeshVertices += mesh.numvertices

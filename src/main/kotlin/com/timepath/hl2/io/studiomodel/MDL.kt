@@ -43,7 +43,7 @@ private(`in`: InputStream) {
             position(offset + tex.sznameindex)
             tex.textureName = `is`.readString()
             position(offset + Struct.sizeof(tex))
-            LOG.log(verbosity, "textures[{0}] = \"{1}\";", array<Any>(i, tex.textureName))
+            LOG.log(verbosity, "textures[{0}] = \"{1}\";", array<Any>(i, tex.textureName!!))
         }
         LOG.log(verbosity, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures)
         position(header.cdtextureindex)
@@ -55,7 +55,7 @@ private(`in`: InputStream) {
             position(texDir.diroffset)
             texDir.textureDir = `is`.readString()
             position(offset + Struct.sizeof(texDir))
-            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", array<Any>(i, texDir.textureDir))
+            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", array<Any>(i, texDir.textureDir!!))
         }
         LOG.log(verbosity, "int[] skinTable = new int[{0}];", header.numskinref * header.numskinfamilies)
         position(header.skinindex)
@@ -75,14 +75,14 @@ private(`in`: InputStream) {
             bodyPart.models = ArrayList<MStudioModel>(bodyPart.nummodels)
             for (j in 0..bodyPart.nummodels - 1) {
                 val model = `is`.readStruct<MStudioModel>(MStudioModel())
-                bodyPart.models.add(model)
+                bodyPart.models!!.add(model)
                 LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels))
                 position(model.offset + model.meshindex)
                 model.meshes = ArrayList<MStudioMesh>(model.nummeshes)
                 for (k in 0..model.nummeshes - 1) {
                     LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels, 1 + k, model.nummeshes))
                     val mesh = `is`.readStruct<MStudioMesh>(MStudioMesh())
-                    model.meshes.add(mesh)
+                    model.meshes!!.add(mesh)
                 }
                 position(model.offset + Struct.sizeof(model))
             }
@@ -113,7 +113,7 @@ private(`in`: InputStream) {
     public class StudioHeader {
 
         StructField(index = 3, limit = 64)
-        public var name: String by Delegates.notNull()
+        public var name: String? = null
         StructField(index = 0)
         var id: Int = 0
         StructField(index = 1)
@@ -123,17 +123,17 @@ private(`in`: InputStream) {
         StructField(index = 4)
         var length: Int = 0
         StructField(index = 5)
-        var eyePosition: Vector3f by Delegates.notNull()
+        var eyePosition: Vector3f? = null
         StructField(index = 6)
-        var illumPosition: Vector3f by Delegates.notNull()
+        var illumPosition: Vector3f? = null
         StructField(index = 7)
-        var hullMin: Vector3f by Delegates.notNull()
+        var hullMin: Vector3f? = null
         StructField(index = 7)
-        var hullMax: Vector3f by Delegates.notNull()
+        var hullMax: Vector3f? = null
         StructField(index = 8)
-        var view_bbmin: Vector3f by Delegates.notNull()
+        var view_bbmin: Vector3f? = null
         StructField(index = 8)
-        var view_bbmax: Vector3f by Delegates.notNull()
+        var view_bbmax: Vector3f? = null
         StructField(index = 9)
         var flags: Int = 0
         StructField(index = 10)
@@ -253,21 +253,19 @@ private(`in`: InputStream) {
         StructField(index = 43)
         var numAllowedRootLODs: Byte = 0
         StructField(index = 44, skip = 5)
-        var dummy1: Any by Delegates.notNull()
+        var dummy1: Any? = null
         StructField(index = 45)
         var numflexcontrollerui: Int = 0
         StructField(index = 45)
         var flexcontrolleruiindex: Int = 0
         StructField(index = 46, skip = 8)
-        var dummy2: Any by Delegates.notNull()
+        var dummy2: Any? = null
         StructField(index = 47)
         var studiohdr2index: Int = 0
         StructField(index = 48, skip = 4)
-        var dummy3: Any by Delegates.notNull()
+        var dummy3: Any? = null
 
-        override fun toString(): String {
-            return name
-        }
+        override fun toString() = name!!
     }
 
     class MStudioTexture {
@@ -279,21 +277,21 @@ private(`in`: InputStream) {
         StructField(index = 0)
         var used: Int = 0
         StructField(index = 1, skip = 52)
-        var dummy: Any by Delegates.notNull()
-        var textureName: String by Delegates.notNull()
+        var dummy: Any? = null
+        var textureName: String? = null
     }
 
     class MStudioTextureDir {
 
         StructField(index = 0)
         var diroffset: Int = 0
-        var textureDir: String by Delegates.notNull()
+        var textureDir: String? = null
     }
 
     class MStudioMeshVertexData {
 
         StructField(index = 0, skip = 4)
-        var dummy: Any by Delegates.notNull()
+        var dummy: Any? = null
         StructField(index = 1)
         var numLODVertexes = IntArray(StudioModel.MAX_NUM_LODS)
     }
@@ -319,11 +317,11 @@ private(`in`: InputStream) {
         StructField(index = 6)
         var meshid: Int = 0
         StructField(index = 7)
-        var center: Vector3f by Delegates.notNull()
+        var center: Vector3f? = null
         StructField(index = 8)
         var vertexdata = MStudioMeshVertexData()
         StructField(index = 9, skip = 32)
-        var dummy: Any by Delegates.notNull()
+        var dummy: Any? = null
     }
 
     inner class MStudioBodyParts {
@@ -336,14 +334,14 @@ private(`in`: InputStream) {
         var base: Int = 0
         StructField(index = 0)
         var modelindex: Int = 0
-        var models: MutableList<MStudioModel> by Delegates.notNull()
+        var models: MutableList<MStudioModel>? = null
         var offset = position()
     }
 
     inner class MStudioModel {
 
         StructField(index = 0, limit = 64)
-        var name: String by Delegates.notNull()
+        var name: String? = null
         StructField(index = 1)
         var type: Int = 0
         StructField(index = 2)
@@ -367,8 +365,8 @@ private(`in`: InputStream) {
         StructField(index = 6)
         var eyeballindex: Int = 0
         StructField(index = 7, skip = 40)
-        var dummy: Any by Delegates.notNull()
-        var meshes: MutableList<MStudioMesh> by Delegates.notNull()
+        var dummy: Any? = null
+        var meshes: MutableList<MStudioMesh>? = null
         var vertexoffset: Int = 0
         var offset = position()
     }

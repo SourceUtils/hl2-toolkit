@@ -86,19 +86,21 @@ public class VBSP : BSP() {
 
     private fun done(vertices: List<Float>?, indices: List<Int>?) {
         if ((indices != null) && !indices.isEmpty()) {
-            this.indices = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer()
+            val new = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer()
             for (i in indices) {
-                this.indices.put(i)
+                new.put(i)
             }
-            this.indices.flip()
+            new.flip()
+            this.indices = new
             LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", array<Any>(indices.size(), indices.size() / 3))
         }
         if ((vertices != null) && !vertices.isEmpty()) {
-            this.vertices = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
+            val new = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
             for (v in vertices) {
-                this.vertices.put(v)
+                new.put(v)
             }
-            this.vertices.flip()
+            new.flip()
+            this.vertices = new
             LOG.log(Level.INFO, "Map: vertices {0}", array<Any>(vertices.size()))
         }
     }
