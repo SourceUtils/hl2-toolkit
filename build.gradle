@@ -1,22 +1,18 @@
 buildscript {
+    ext.kotlin_version = '0.10.770'
     repositories {
         mavenCentral()
-        maven { url 'http://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
     dependencies {
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:0.10.770'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-apply plugin: "kotlin"
-
-repositories {
-    mavenCentral()
-    maven { url 'http://oss.sonatype.org/content/repositories/snapshots' }
-}
+apply plugin: 'kotlin'
 
 dependencies {
-    compile 'org.jetbrains.kotlin:kotlin-stdlib:0.10.770'
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
     compile project(':steam-toolkit')
