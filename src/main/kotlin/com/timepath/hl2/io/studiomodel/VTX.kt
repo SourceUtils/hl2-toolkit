@@ -271,7 +271,7 @@ private(`in`: InputStream) {
         StructField(index = 1)
         var meshOffset: Int = 0
         StructField(index = 2)
-        var switchPoint: Float = 0.toFloat()
+        var switchPoint: Float = 0f
     }
 
     inner class StripGroup {

@@ -16,7 +16,7 @@ public class Plane {
      * Distance from origin
      */
     StructField(index = 1)
-    public var dist: Float = 0.toFloat()
+    public var dist: Float = 0f
     /**
      * Plane axis identifier
      */

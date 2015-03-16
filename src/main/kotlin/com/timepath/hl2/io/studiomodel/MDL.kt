@@ -223,7 +223,7 @@ private(`in`: InputStream) {
         StructField(index = 32)
         var localikautoplaylockindex: Int = 0
         StructField(index = 33)
-        var mass: Float = 0.toFloat()
+        var mass: Float = 0f
         StructField(index = 34)
         var contents: Int = 0
         StructField(index = 35)
@@ -345,7 +345,7 @@ private(`in`: InputStream) {
         StructField(index = 1)
         var type: Int = 0
         StructField(index = 2)
-        var boundingradius: Float = 0.toFloat()
+        var boundingradius: Float = 0f
         StructField(index = 3)
         var nummeshes: Int = 0
         StructField(index = 3)

@@ -183,7 +183,7 @@ public class VBFCanvas
         private val LOG = Logger.getLogger(javaClass<VBFCanvas>().getName())
         private val serialVersionUID = 1
         private val acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
-        private val acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5.toFloat())
+        private val acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)
         private val acText = AlphaComposite.getInstance(AlphaComposite.SRC_OVER)
     }
 }

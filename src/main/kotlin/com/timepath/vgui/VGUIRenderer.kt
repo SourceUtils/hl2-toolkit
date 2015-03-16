@@ -45,7 +45,7 @@ public abstract class VGUIRenderer {
             g.setClip(bounds)
             if (e.fgColor != null) {
                 g.setColor(e.fgColor)
-                val elementBgAlpha = 0.25.toFloat()
+                val elementBgAlpha = 0.25f
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, elementBgAlpha))
                 g.fillRect(elementX, elementY, elementW - 1, elementH - 1)
             }

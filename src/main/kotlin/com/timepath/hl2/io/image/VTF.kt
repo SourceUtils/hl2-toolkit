@@ -24,7 +24,7 @@ import java.util.logging.Logger
  */
 public class VTF : ViewableData {
     private var buf: ByteBuffer? = null
-    public var bumpScale: Float = 0.toFloat()
+    public var bumpScale: Float = 0f
         private set
     public var depth: Int = 0
         private set

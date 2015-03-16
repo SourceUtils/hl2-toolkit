@@ -59,7 +59,7 @@ public class Face {
      * face area in units^2
      */
     StructField(index = 10)
-    public var area: Float = 0.toFloat()
+    public var area: Float = 0f
     /**
      * texture lighting info
      */

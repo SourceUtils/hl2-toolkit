@@ -27,7 +27,7 @@ public class DemoHeader {
     StructField(index = 6, limit = MAX_OSPATH)
     public var gameDirectory: String by Delegates.notNull()
     StructField(index = 7)
-    public var playbackTime: Float = 0.toFloat()
+    public var playbackTime: Float = 0f
     StructField(index = 8)
     public var ticks: Int = 0
     StructField(index = 9)
