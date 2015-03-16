@@ -21,8 +21,8 @@ class UVLoader private() {
             val bi = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
             val g = bi.getGraphics() as Graphics2D
             var pos = 0
-            for (y in 0..height - 1) {
-                for (x in 0..width - 1) {
+            for (y in height.indices) {
+                for (x in width.indices) {
                     g.setColor(Color((b[pos].toInt() and 255) + ((b[pos + 1].toInt() and 255) shl 16) + ((255 and 255) shl 24)))
                     pos += 2
                     g.drawLine(x, y, x, y)

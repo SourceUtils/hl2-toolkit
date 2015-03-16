@@ -36,7 +36,7 @@ private(`in`: InputStream) {
         //                "\t\t\tparts[] = {2}: {0} vs {1}",
         //                new Object[] {is.position(), offset, header.numBodyParts});
         position(header.bodyPartOffset)
-        for (partIdx in 0..header.numBodyParts - 1) {
+        for (partIdx in header.numBodyParts.indices) {
             val part = `is`.readStruct<BodyPart>(BodyPart())
             bodyParts.add(part)
             // Models
@@ -45,7 +45,7 @@ private(`in`: InputStream) {
             //                    "\t\t\tparts[{3}].models[] = {2}: {0} vs {1}",
             //                    new Object[] {is.position(),  offset + part.modelOffset, part.numModels, partIdx});
             position(part.offset + part.modelOffset)
-            for (modelIdx in 0..part.numModels - 1) {
+            for (modelIdx in part.numModels.indices) {
                 val model = `is`.readStruct<Model>(Model())
                 part.models.add(model)
                 // LODs
@@ -55,7 +55,7 @@ private(`in`: InputStream) {
                 //                        new Object[] {is.position(), offset + model.lodOffset, model.numLODs,
                 //                                      partIdx, modelIdx});
                 position(model.offset + model.lodOffset)
-                for (lodIdx in 0..model.numLODs - 1) {
+                for (lodIdx in model.numLODs.indices) {
                     val lod = `is`.readStruct<ModelLOD>(ModelLOD())
                     model.lods.add(lod)
                     // Meshes
@@ -65,7 +65,7 @@ private(`in`: InputStream) {
                     //                            new Object[] {is.position(), offset + lod.meshOffset, lod.numMeshes,
                     //                                          partIdx, modelIdx, lodIdx});
                     position(lod.offset + lod.meshOffset)
-                    for (meshIdx in 0..lod.numMeshes - 1) {
+                    for (meshIdx in lod.numMeshes.indices) {
                         val mesh = `is`.readStruct<Mesh>(Mesh())
                         lod.meshes.add(mesh)
                         // Strip groups
@@ -77,7 +77,7 @@ private(`in`: InputStream) {
                         // mesh.numStripGroups,
                         //                                              partIdx, modelIdx, lodIdx, meshIdx});
                         position(mesh.offset + mesh.stripGroupHeaderOffset)
-                        for (groupIdx in 0..mesh.numStripGroups - 1) {
+                        for (groupIdx in mesh.numStripGroups.indices) {
                             val stripGroup = `is`.readStruct<StripGroup>(StripGroup())
                             mesh.stripGroups.add(stripGroup)
                             LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", array<Any>(stripGroup.offset, stripGroup.offset + stripGroup.vertOffset, stripGroup.offset + stripGroup.stripOffset, stripGroup.offset + stripGroup.indexOffset))
@@ -90,7 +90,7 @@ private(`in`: InputStream) {
                             // stripGroup.numStrips,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.stripOffset)
-                            for (stripIdx in 0..stripGroup.numStrips - 1) {
+                            for (stripIdx in stripGroup.numStrips.indices) {
                                 val strip = `is`.readStruct<Strip>(Strip())
                                 stripGroup.strips.add(strip)
                             }
@@ -103,7 +103,7 @@ private(`in`: InputStream) {
                             // stripGroup.numVerts,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.vertOffset)
-                            for (vertIdx in 0..stripGroup.numVerts - 1) {
+                            for (vertIdx in stripGroup.numVerts.indices) {
                                 val vert = `is`.readStruct<Vertex>(Vertex())
                                 stripGroup.verts.add(vert)
                             }

@@ -43,7 +43,7 @@ public class StudioModel [throws(javaClass<IOException>())]
                     val vertTable = stripGroup.verts
                     stripGroup.indexOffset = indexOffset++
                     val sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-                    for (l in 0..stripGroup.numIndices - 1) {
+                    for (l in stripGroup.numIndices.indices) {
                         val vertTableIndex = sb.get().toInt()
                         val index = vertTable[vertTableIndex].origMeshVertID.toInt() + mdlModel.vertexoffset + mdlMesh.vertexoffset
                         val s = index.toShort()

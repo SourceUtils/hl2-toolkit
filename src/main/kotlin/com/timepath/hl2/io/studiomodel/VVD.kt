@@ -38,7 +38,7 @@ private(`in`: InputStream) {
         normalBuffer = ByteBuffer.allocateDirect(vertCount * 4 * 4).order(ByteOrder.LITTLE_ENDIAN)
         uvBuffer = ByteBuffer.allocateDirect(vertCount * 2 * 4).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
         tangentBuffer = ByteBuffer.allocateDirect(vertCount * 4 * 4).order(ByteOrder.LITTLE_ENDIAN)
-        for (i in 0..Math.max(header.numFixups, 1) - 1) {
+        for (i in Math.max(header.numFixups, 1).indices) {
             // at least once
             var sourceVertexID = 0
             var numVertexes = vertCount
@@ -52,7 +52,7 @@ private(`in`: InputStream) {
                     continue
                 }
             }
-            for (j in 0..numVertexes - 1) {
+            for (j in numVertexes.indices) {
                 // Vertex table, 48 byte rows
                 position(header.vertexDataStart + ((sourceVertexID + j) * 48))
                 // TODO: Bones

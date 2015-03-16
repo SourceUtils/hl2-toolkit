@@ -40,7 +40,7 @@ public class VBSP : BSP() {
         for (face in bspFaces) {
             val edgeId = face.firstedge
             val vertLookupTable = HashMap<Int, Int>(0)
-            for (i in 0..face.numedges - 1) {
+            for (i in face.numedges.toInt().indices) {
                 val surfEdge = bspSurfEdges[edgeId + 1]
                 val edge = bspEdges[Math.abs(surfEdge)]
                 val reverse = surfEdge >= 0
@@ -130,7 +130,7 @@ public class VBSP : BSP() {
             val edgeId = face.firstedge
             // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L347
             val index_shift = vertices.size()
-            for (i in 0..face.numedges - 1) {
+            for (i in face.numedges.toInt().indices) {
                 bspVertices.position(bspSurfEdges[edgeId + i] * 3)
                 run {
                     var j = 0

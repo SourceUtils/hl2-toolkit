@@ -36,7 +36,7 @@ private(`in`: InputStream) {
         LOG.log(verbosity, "MStudioTexture[] textures = new MStudioTexture[{0}];", header.numtextures)
         position(header.textureindex)
         textures = ArrayList<MStudioTexture>(header.numtextures)
-        for (i in 0..header.numtextures - 1) {
+        for (i in header.numtextures.indices) {
             val offset = `is`.position()
             val tex = `is`.readStruct<MStudioTexture>(MStudioTexture())
             textures.add(tex)
@@ -48,7 +48,7 @@ private(`in`: InputStream) {
         LOG.log(verbosity, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures)
         position(header.cdtextureindex)
         textureDirs = ArrayList<MStudioTextureDir>(header.numcdtextures)
-        for (i in 0..header.numcdtextures - 1) {
+        for (i in header.numcdtextures.indices) {
             val offset = `is`.position()
             val texDir = `is`.readStruct<MStudioTextureDir>(MStudioTextureDir())
             textureDirs.add(texDir)
@@ -67,19 +67,19 @@ private(`in`: InputStream) {
         LOG.log(verbosity, "MStudioBodyParts[]")
         position(header.bodypartindex)
         mdlBodyParts = ArrayList<MStudioBodyParts>(header.numbodyparts)
-        for (i in 0..header.numbodyparts - 1) {
+        for (i in header.numbodyparts.indices) {
             val bodyPart = `is`.readStruct<MStudioBodyParts>(MStudioBodyParts())
             mdlBodyParts.add(bodyPart)
             LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[]", array<Any>(1 + i, header.numbodyparts))
             position(bodyPart.offset + bodyPart.modelindex)
             bodyPart.models = ArrayList<MStudioModel>(bodyPart.nummodels)
-            for (j in 0..bodyPart.nummodels - 1) {
+            for (j in bodyPart.nummodels.indices) {
                 val model = `is`.readStruct<MStudioModel>(MStudioModel())
                 bodyPart.models!!.add(model)
                 LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels))
                 position(model.offset + model.meshindex)
                 model.meshes = ArrayList<MStudioMesh>(model.nummeshes)
-                for (k in 0..model.nummeshes - 1) {
+                for (k in model.nummeshes.indices) {
                     LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels, 1 + k, model.nummeshes))
                     val mesh = `is`.readStruct<MStudioMesh>(MStudioMesh())
                     model.meshes!!.add(mesh)

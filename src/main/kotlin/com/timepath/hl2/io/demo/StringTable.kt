@@ -26,7 +26,7 @@ class StringTable {
     fun parse(bb: BitBuffer, l: MutableList<Pair<Any, Any>>) {
         var lastEntry = (-1).toLong()
         val history = ArrayList<String>(32) // Fixed size window
-        for (i in 0..numEntries - 1) {
+        for (i in numEntries.indices) {
             var entryIndex = lastEntry + 1
             if (!bb.getBoolean()) {
                 entryIndex = bb.getBits(entryBits)

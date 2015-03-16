@@ -42,7 +42,7 @@ public class LZSS {
                         break
                     }
                     var pSource = pOutput - position - 1
-                    for (i in 0..count - 1) {
+                    for (i in count.indices) {
                         output[pOutput++] = output[pSource++]
                     }
                     totalBytes += count

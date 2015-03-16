@@ -24,8 +24,8 @@ class RGBALoader private() {
             val bi = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
             val raster = bi.getRaster()
             var pos = 0
-            for (y in 0..height - 1) {
-                for (x in 0..width - 1) {
+            for (y in height.indices) {
+                for (x in width.indices) {
                     raster.setSample(x, y, 3, 255)
                     for (b in order) {
                         raster.setSample(x, y, b.toInt(), d[pos].toInt())

@@ -178,12 +178,12 @@ public class VTF : ViewableData {
         buf!!.position(headerSize + thumbLen)
         val sizesX = IntArray(mipCount) // smallest -> largest {1, 2, 4, 8, 16, 32, 64, 128}
         val sizesY = IntArray(mipCount)
-        for (n in 0..mipCount - 1) {
+        for (n in mipCount.indices) {
             sizesX[mipCount - 1 - n] = Math.max(width.ushr(n), 1)
             sizesY[mipCount - 1 - n] = Math.max(height.ushr(n), 1)
         }
         var image: BufferedImage? = null
-        for (i in 0..mipCount - 1) {
+        for (i in mipCount.indices) {
             val w = sizesX[i]
             val h = sizesY[i]
             LOG.log(Level.FINE, "{0}, {1}", array<Any>(w, h))
