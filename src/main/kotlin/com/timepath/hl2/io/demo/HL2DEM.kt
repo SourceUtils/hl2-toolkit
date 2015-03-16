@@ -40,7 +40,7 @@ import kotlin.properties.Delegates
  * @see <a>http://demos.geit.co.uk/</a>
  */
 public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
-    private val frames = LinkedList<Message>()
+    val frames = LinkedList<Message>()
     var gameEvents: Array<GameEvent?> by Delegates.notNull()
     public var header: DemoHeader
     var serverClassBits: Int = 0
@@ -71,13 +71,6 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
             frame.data!!.order(ByteOrder.LITTLE_ENDIAN)
             if (eager) frame.parse()
         }
-    }
-
-    /**
-     * @return the frames
-     */
-    public fun getFrames(): MutableList<Message> {
-        return frames
     }
 
     class object {

@@ -28,12 +28,12 @@ fun HudFont(font: String, node: VDFNode): HudFont {
     return __
 }
 
-public class HudFont(private val font: String? = null) {
+public class HudFont(private val fontname: String? = null) {
     var name: String? = null
     var tall: Int = 0
     var aa: Boolean = false
 
-    public fun getFont(): Font? {
+    public val font: Font? get() {
         val screenRes = Toolkit.getDefaultToolkit().getScreenResolution()
         val fontSize = Math.round((tall * screenRes).toDouble() / 72.0).toInt()
         val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
@@ -44,13 +44,13 @@ public class HudFont(private val font: String? = null) {
         }
         var f1: Font? = null
         try {
-            LOG.log(Level.INFO, "Loading font: {0}... ({1})", array<Any>(font!!, name!!))
+            LOG.log(Level.INFO, "Loading font: {0}... ({1})", array<Any>(fontname!!, name!!))
             f1 = fontFileForName(name!!)
             if (f1 == null) {
                 return null
             }
             ge.registerFont(f1) // For some reason, this works but the bottom return does not
-            return Font(font, Font.PLAIN, fontSize)
+            return Font(fontname, Font.PLAIN, fontSize)
         } catch (ex: Exception) {
             LOG.log(Level.SEVERE, null, ex)
         }
@@ -58,7 +58,7 @@ public class HudFont(private val font: String? = null) {
         if (f1 == null) {
             return null
         }
-        LOG.log(Level.INFO, "Loaded {0}", font)
+        LOG.log(Level.INFO, "Loaded {0}", fontname)
         return f1!!.deriveFont(fontSize.toFloat())
     }
 

@@ -88,25 +88,20 @@ public class StudioModel [throws(javaClass<IOException>())]
         }
     }
 
-    public fun getIndices(): IntBuffer {
-        return indexBuffer!!.asIntBuffer()
-    }
+    public val indices: IntBuffer
+        get() = indexBuffer!!.asIntBuffer()
 
-    public fun getNormals(): FloatBuffer {
-        return vvd!!.normalBuffer.asFloatBuffer()
-    }
+    public val normals: FloatBuffer
+        get() = vvd!!.normalBuffer.asFloatBuffer()
 
-    public fun getTangents(): FloatBuffer {
-        return vvd!!.tangentBuffer.asFloatBuffer()
-    }
+    public val tangents: FloatBuffer
+        get() = vvd!!.tangentBuffer.asFloatBuffer()
 
-    public fun getTextureCoordinates(): FloatBuffer {
-        return vvd!!.uvBuffer
-    }
+    public val textureCoordinates: FloatBuffer
+        get() = vvd!!.uvBuffer
 
-    public fun getVertices(): FloatBuffer {
-        return vvd!!.vertexBuffer.asFloatBuffer()
-    }
+    public val vertices: FloatBuffer
+        get() = vvd!!.vertexBuffer.asFloatBuffer()
 
     class object {
 

@@ -43,9 +43,7 @@ import javax.swing.JComponent
 SuppressWarnings("serial")
 public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
 
-    public fun getElements(): LinkedList<Element> {
-        return r!!.elements
-    }
+    public val elements: LinkedList<Element> get() = r!!.elements
 
     {
         addMouseListener(this)
@@ -88,12 +86,12 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
      * Convenience method for repainting the bare minimum
      */
     private fun doRepaint(bounds: Rectangle) {
-        r!!.setElementImage(null)
+        r!!.elementImage = null
         repaint(offX + bounds.x, offY + bounds.y, bounds.width.toInt() - 1, bounds.height.toInt() - 1)
     }
 
     private fun doRepaint1(bounds: Rectangle) {
-        r!!.setElementImage(null)
+        r!!.elementImage = null
         repaint(offX + bounds.x, offY + bounds.y, bounds.width, bounds.height)
     }
 
@@ -180,7 +178,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
         if (gridbg == null)
             gridbg = ImageUtils.toCompatibleImage(drawGrid())
         g.drawImage(gridbg, offX, offY, this)
-        g.drawImage(r!!.getElementImage(), offX, offY, this)
+        g.drawImage(r!!.elementImage, offX, offY, this)
         if (dragSelecting) {
             g.setComposite(SELECT_AC)
             g.setColor(Color.CYAN.darker())
@@ -201,7 +199,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
                 setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR))
                 r!!.dragX = r!!.dragX.toInt() + p.x - dragStart!!.x
                 r!!.dragY = r!!.dragY.toInt() + p.y - dragStart!!.y
-                r!!.setElementImage(null)
+                r!!.elementImage = null
                 repaint()
                 dragStart = p
             }
@@ -358,7 +356,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
                 } else if (elem.layer > smallest!!.layer) {
                     // Sort by layer, then by size
                     smallest = elem
-                } else if (elem.layer == smallest!!.layer && elem.getSize() < smallest!!.getSize()) {
+                } else if (elem.layer == smallest!!.layer && elem.size < smallest!!.size) {
                     smallest = elem
                 }
 
@@ -367,8 +365,8 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
             return smallest
         }
 
-        private val GRID_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25.toFloat())
-        private val SELECT_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25.toFloat())
+        private val GRID_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f)
+        private val SELECT_AC = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.25f)
     }
 }
 

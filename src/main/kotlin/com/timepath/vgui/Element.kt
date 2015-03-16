@@ -193,7 +193,7 @@ public class Element(private val info: String?) : ViewableData {
 
             } else if ("font" == switchArg) {
                 if (!fonts.containsKey(v)) continue
-                val f = fonts[v]?.getFont()
+                val f = fonts[v]?.font
                 if (f != null) font = f
             } else if ("image" == switchArg || "icon" == switchArg) {
                 image = VGUIRenderer.locateImage(v)
@@ -225,7 +225,7 @@ public class Element(private val info: String?) : ViewableData {
                 }
 
                 if ("//" == p.getKey()) {
-                    sb.append("//").append(p.getInfo()).append("\n")
+                    sb.append("//").append(p.info).append("\n")
                 }
 
             }
@@ -239,7 +239,7 @@ public class Element(private val info: String?) : ViewableData {
                 sb.append(if ("\\n" == p.getKey())
                     "\t    \n"
                 else
-                    "\t    " + p.getKey() + "\t    " + p.getValue() + ((' ' + p.getInfo())) + "\n")
+                    "\t    " + p.getKey() + "\t    " + p.getValue() + ((' ' + p.info)) + "\n")
             }
 
         }
@@ -248,9 +248,7 @@ public class Element(private val info: String?) : ViewableData {
         return sb.toString()
     }
 
-    public fun getSize(): Int {
-        return wide * tall
-    }
+    public val size: Int get() = wide * tall
 
     override fun toString(): String {
         return name + (if ((info != null)) (" ~ " + info) else "") // elements cannot have a value, only info
@@ -295,13 +293,9 @@ public class Element(private val info: String?) : ViewableData {
 
     }
 
-    public fun getLocalXi(): Int {
-        return Math.round(localX).toInt()
-    }
+    public val localXi: Int get() = Math.round(localX).toInt()
 
-    public fun getLocalYi(): Int {
-        return Math.round(localY).toInt()
-    }
+    public val localYi: Int get() = Math.round(localY).toInt()
 
     override fun getIcon(): Icon? {
         return UIManager.getIcon("FileChooser.listViewIcon")
@@ -315,9 +309,7 @@ public class Element(private val info: String?) : ViewableData {
         return enabled
     }
 
-    public fun getProperties(): List<VDFNode.VDFProperty> {
-        return props
-    }
+    public val properties: List<VDFNode.VDFProperty> get() = props
 
     public fun setProperties(properties: List<VDFNode.VDFProperty>) {
         this.props = properties

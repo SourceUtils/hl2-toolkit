@@ -26,20 +26,6 @@ import kotlin.properties.Delegates
  * @see <a href="http://i.imgur.com/VqABM.jpg">WIN</a>
  */
 public abstract class VGUIRenderer {
-    public fun getElementImage(): BufferedImage {
-        if (elementImage != null) return elementImage!!
-        val img = BufferedImage(screen.getWidth().toInt(), screen.getHeight().toInt(), BufferedImage.TYPE_INT_ARGB)
-        val g = img.createGraphics()
-        Collections.sort<Element>(elements, LAYER_SORT)
-        for (element in elements) {
-            g.setComposite(SRC_OVER)
-            paintElement(element, g)
-        }
-
-        g.dispose()
-        elementImage = ImageUtils.toCompatibleImage(img)
-        return elementImage!!
-    }
 
     public fun paintElement(e: Element, g: Graphics2D) {
         val r = this
@@ -218,9 +204,8 @@ public abstract class VGUIRenderer {
         return selectedElements.contains(e)
     }
 
-    public fun getSelected(): List<Element> {
-        return Collections.unmodifiableList<Element>(selectedElements)
-    }
+    public val selected: List<Element>
+        get() = Collections.unmodifiableList<Element>(selectedElements)
 
     public fun deselect(e: Element?) {
         if (e == null) return
@@ -269,7 +254,7 @@ public abstract class VGUIRenderer {
     public fun x(e: Element?): Int {
         if (e != null) {
             val parent = e.parent
-            val lx = e.getLocalXi()
+            val lx = e.localXi
             val _x = x(parent)
             when (e.XAlignment) {
                 Element.Alignment.Left -> return (_x + (lx))
@@ -284,7 +269,7 @@ public abstract class VGUIRenderer {
     public fun y(e: Element?): Int {
         if (e != null) {
             val parent = e.parent
-            val ly = e.getLocalYi()
+            val ly = e.localYi
             val _y = y(parent)
             when (e.YAlignment) {
                 Element.VAlignment.Top -> return (_y + (ly))
@@ -314,10 +299,6 @@ public abstract class VGUIRenderer {
         return Rectangle(Math.round(scaleX * e.localX).toInt(), Math.round(scaleY * e.localY).toInt(), Math.round(scaleX * e.wide.toDouble()).toInt() + 1, Math.round(scaleY * e.tall.toDouble()).toInt() + 1)
     }
 
-    public fun setElementImage(elementImage: BufferedImage?) {
-        this.elementImage = elementImage
-    }
-
     public fun getSelectedElements(): List<Element> {
         return selectedElements
     }
@@ -326,7 +307,20 @@ public abstract class VGUIRenderer {
         this.selectedElements = selectedElements
     }
 
-    private var elementImage: BufferedImage? = null
+    var elementImage: BufferedImage? = null
+        get() {
+            val img = BufferedImage(screen.getWidth().toInt(), screen.getHeight().toInt(), BufferedImage.TYPE_INT_ARGB)
+            val g = img.createGraphics()
+            Collections.sort<Element>(elements, LAYER_SORT)
+            for (element in elements) {
+                g.setComposite(SRC_OVER)
+                paintElement(element, g)
+            }
+
+            g.dispose()
+            elementImage = ImageUtils.toCompatibleImage(img)
+            return elementImage!!
+        }
     /**
      * List of elements
      */

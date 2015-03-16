@@ -73,9 +73,8 @@ public abstract class BSP {
     /**
      * @return The map revision
      */
-    fun getRevision(): Int {
-        return header.mapRevision
-    }
+    val revision: Int
+        get() = header.mapRevision
 
     throws(javaClass<IOException>())
     abstract fun process()

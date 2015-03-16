@@ -131,9 +131,7 @@ public class VTF : ViewableData {
         }
     }
 
-    override fun getIcon(): Icon {
-        return ImageIcon(getThumbImage())
-    }
+    override fun getIcon() = ImageIcon(getThumbImage())
 
     public fun getThumbImage(): Image {
         if (thumbImage == null) {
@@ -154,9 +152,7 @@ public class VTF : ViewableData {
      * @throws IOException
      */
     throws(javaClass<IOException>())
-    public fun getImage(level: Int): Image? {
-        return getImage(level, frameFirst)
-    }
+    public fun getImage(level: Int): Image? = getImage(level, frameFirst)
 
     /**
      * Return the image for the given level of detail and frame
@@ -191,7 +187,7 @@ public class VTF : ViewableData {
             if (i == (mipCount - level - 1)) {
                 val imageData = ByteArray(nBytes * frameCount)
                 try {
-                    buf!!.get(imageData)
+                    buf!![imageData]
                 } catch (ignored: BufferUnderflowException) {
                     LOG.log(Level.SEVERE, "Underflow; {0}", nBytes)
                 }
@@ -202,7 +198,7 @@ public class VTF : ViewableData {
                 val g = image!!.getGraphics() as Graphics2D
                 g.drawImage(format!!.load(imageData, w, h), 0, 0, w, h, null)
             } else {
-                buf!!.get(ByteArray(nBytes * frameCount))
+                buf!![ByteArray(nBytes * frameCount)]
             }
         }
         return image
@@ -235,48 +231,3 @@ public class VTF : ViewableData {
         }
     }
 }
-/**
- * @return the bumpScale
- */
-/**
- * @return the depth
- */
-/**
- * @return the flags
- */
-/**
- * @return the format
- */
-/**
- * @return the frameCount
- */
-/**
- * @return the frameFirst
- */
-/**
- * @return the headerSize
- */
-/**
- * @return the height
- */
-/**
- * @return the mipCount
- */
-/**
- * @return the reflectivity
- */
-/**
- * @return the thumbFormat
- */
-/**
- * @return the thumbHeight
- */
-/**
- * @return the thumbWidth
- */
-/**
- * @return the version
- */
-/**
- * @return the width
- */

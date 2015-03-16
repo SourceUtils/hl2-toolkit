@@ -23,7 +23,7 @@ public class VBFCanvas
 : JPanel(), MouseListener, MouseMotionListener {
     private var img: Image? = null
     private var last: Point? = null
-    private var selected: MutableList<VBF.BitmapGlyph> = LinkedList()
+    var selected: MutableList<VBF.BitmapGlyph> = LinkedList()
     private var vbf: VBF? = null
     private var vtf: VTF? = null
 
@@ -31,8 +31,6 @@ public class VBFCanvas
         addMouseListener(this)
         addMouseMotionListener(this)
     }
-
-    public fun getSelected(): VBF.BitmapGlyph? = selected.firstOrNull()
 
     public fun setVBF(vbf: VBF) {
         this.vbf = vbf
@@ -176,12 +174,9 @@ public class VBFCanvas
         }
     }
 
-    override fun getPreferredSize(): Dimension {
-        if (vbf == null) {
-            return Dimension(128, 128)
-        }
-        return Dimension(vbf!!.getWidth().toInt(), vbf!!.getHeight().toInt())
-    }
+    override fun getPreferredSize() = vbf?.let {
+        Dimension(it.getWidth().toInt(), it.getHeight().toInt())
+    } ?: Dimension(128, 128)
 
     class object {
 

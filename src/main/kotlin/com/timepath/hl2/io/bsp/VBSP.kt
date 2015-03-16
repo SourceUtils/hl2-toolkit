@@ -171,7 +171,7 @@ public class VBSP : BSP() {
         throws(javaClass<Exception>())
         public fun main(args: Array<String>) {
             val b = BSP.load(ACF.fromManifest(440)!!.query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
-            LOG.log(Level.INFO, "Revision: {0}", b!!.getRevision())
+            LOG.log(Level.INFO, "Revision: {0}", b!!.revision)
             val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
             //        System.out.println(ents);
             val z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)

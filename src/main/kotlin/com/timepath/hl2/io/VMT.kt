@@ -28,9 +28,8 @@ public class VMT {
         }
 
         throws(javaClass<IOException>())
-        public fun getTexture(): VTF? {
-            return VTF.load(root.getValue("\$basetexture") as String)
-        }
+        public val texture: VTF?
+            get() = VTF.load(root.getValue("\$basetexture") as String)
 
         class object {
 
