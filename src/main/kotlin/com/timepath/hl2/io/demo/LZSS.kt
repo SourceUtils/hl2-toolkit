@@ -1,12 +1,16 @@
 package com.timepath.hl2.io.demo
 
-import org.apache.commons.io.EndianUtils
-
 public class LZSS {
 
     class LZSSException(message: String) : Exception(message)
 
     class object {
+
+        fun readSwappedInteger(data: ByteArray, offset: Int) = (0
+                + ( ( data[offset + 0].toInt() and 0xff ) shl 0 )
+                + ( ( data[offset + 1].toInt() and 0xff ) shl 8 )
+                + ( ( data[offset + 2].toInt() and 0xff ) shl 16 )
+                + ( ( data[offset + 3].toInt() and 0xff ) shl 24 ))
 
         public val ID: String = "LZSS"
         private val LZSS_LOOKSHIFT = 4
@@ -17,7 +21,7 @@ public class LZSS {
             var pOutput = 0 // Pointers
             // Header
             val id = String(input, 0, 4)
-            val actualSize = EndianUtils.readSwappedInteger(input, 4)
+            val actualSize = readSwappedInteger(input, 4)
             if (ID != id || actualSize == 0) {
                 throw LZSSException("Unrecognized header")
             }
