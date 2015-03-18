@@ -226,7 +226,7 @@ private(`in`: InputStream) {
         var bodyPartOffset: Int = 0
 
         override fun toString(): String {
-            return MessageFormat.format("\t\t\tver:{0}, vertCache:{1}, bones/strip:{2}, bones/tri:{3}, bones/vert:{4}, check:{5}, lods:{6}, " + "replOff:{7}, parts:{8}, partOff:{9}", version, vertCacheSize, maxBonesPerStrip, maxBonesPerTri, maxBonesPerVert, checkSum, numLODs, materialReplacementListOffset, numBodyParts, bodyPartOffset)
+            return MessageFormat.format("\t\t\tver:{0}, vertCache:{1}, bones/strip:{2}, bones/tri:{3}, bones/vert:{4}, check:{5}, lods:{6}, replOff:{7}, parts:{8}, partOff:{9}", version, vertCacheSize, maxBonesPerStrip, maxBonesPerTri, maxBonesPerVert, checkSum, numLODs, materialReplacementListOffset, numBodyParts, bodyPartOffset)
         }
     }
 

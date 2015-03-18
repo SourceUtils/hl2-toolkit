@@ -66,7 +66,7 @@ public class CTX private() {
                         read = is2.read(in2, 0, bs)
                     }
                 }
-                LOG.info("Equal = " + Arrays.equals(buf.array(), buf2.array()))
+                LOG.info("Equal = ${Arrays.equals(buf.array(), buf2.array())}")
             } catch (ex: Exception) {
                 LOG.log(Level.SEVERE, null, ex)
             }

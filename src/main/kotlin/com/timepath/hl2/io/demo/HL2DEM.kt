@@ -77,7 +77,7 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
 
         public val DEMO_PROTOCOL: Int = 3
         public val EVENT_INDEX_BITS: Int = 8
-        public val HEADER: String = "HL2DEMO" + 0.toChar()
+        public val HEADER: String = "HL2DEMO${0.toChar()}"
         public val MAX_DECAL_INDEX_BITS: Int = 9
         public val MAX_EDICT_BITS: Int = 11
         public val MAX_GAME_EVENTS: Int = 1 shl 9

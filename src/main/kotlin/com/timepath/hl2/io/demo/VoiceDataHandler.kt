@@ -88,7 +88,7 @@ class VoiceDataHandler : PacketHandler {
 
         fun dump(index: Int, vararg data: Byte) {
             try {
-                FileOutputStream("target/vo_" + index + ".pcm", true).use { fos ->
+                FileOutputStream("target/vo_$index.pcm", true).use { fos ->
                     fos.write(data)
                     fos.flush()
                 }

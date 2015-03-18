@@ -38,7 +38,7 @@ public class CFG {
             var cmd: String
     ) {
         override fun toString(): String {
-            return "alias " + name + ' ' + cmd
+            return "alias $name $cmd"
         }
     }
 

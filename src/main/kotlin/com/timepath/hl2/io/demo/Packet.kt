@@ -102,16 +102,16 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 l.add(Pair<Any, Any>("Server count", bb.getBits(32)))
                 l.add(Pair<Any, Any>("SourceTV", bb.getBoolean()))
                 l.add(Pair<Any, Any>("Dedicated", bb.getBoolean()))
-                l.add(Pair<Any, Any>("Server client CRC", "0x" + Integer.toHexString(bb.getInt())))
+                l.add(Pair<Any, Any>("Server client CRC", "0x${Integer.toHexString(bb.getInt())}"))
                 l.add(Pair<Any, Any>("Max classes", bb.getBits(16)))
                 if (version >= 18) {
                     val md5 = ByteArray(16)
                     bb.get(md5)
                     l.add(Pair<Any, Any>("Server map MD5",
-                            java.lang.String.format("%0" + (md5.size() * 2) + "x",
+                            java.lang.String.format("%0${md5.size() * 2}x",
                                     BigInteger(1, md5))))
                 } else {
-                    l.add(Pair<Any, Any>("Server map CRC", "0x" + Integer.toHexString(bb.getInt())))
+                    l.add(Pair<Any, Any>("Server map CRC", "0x${Integer.toHexString(bb.getInt())}"))
                 }
                 l.add(Pair<Any, Any>("Current player count", bb.getBits(8)))
                 l.add(Pair<Any, Any>("Max player count", bb.getBits(8)))
@@ -471,7 +471,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                     val id = bb.getBits(9).toInt()
                     val gameEvent = GameEvent(bb)
                     demo.gameEvents[id] = gameEvent
-                    l.add(Pair<Any, Any>("gameEvents[" + id + "] = " + gameEvent.name,
+                    l.add(Pair<Any, Any>("gameEvents[$id] = ${gameEvent.name}",
                             gameEvent.declarations.entrySet()))
                 }
                 return true
@@ -480,7 +480,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_GetCvarValue : Type(31) {
             override
             fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Cookie", "0x" + Integer.toHexString(bb.getInt())))
+                l.add(Pair<Any, Any>("Cookie", "0x${Integer.toHexString(bb.getInt())}"))
                 l.add(Pair<Any, Any>("value", bb.getString()))
                 return true
             }

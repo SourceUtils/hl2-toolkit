@@ -34,7 +34,7 @@ class GameEvent(bb: BitBuffer) {
     }
 
     override fun toString(): String {
-        return name + ": " + declarations
+        return "$name: $declarations"
     }
 
     class object {

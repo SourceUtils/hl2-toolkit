@@ -238,8 +238,9 @@ public class Element(private val info: String?) : ViewableData {
             if (!java.lang.String.valueOf(p.getValue()).isEmpty()) {
                 sb.append(if ("\\n" == p.getKey())
                     "\t    \n"
-                else
-                    "\t    " + p.getKey() + "\t    " + p.getValue() + ((' ' + p.info)) + "\n")
+                else {
+                    "\t    ${p.getKey()}\t    ${p.getValue()}${' ' + p.info}\n"
+                })
             }
 
         }
@@ -251,7 +252,10 @@ public class Element(private val info: String?) : ViewableData {
     public val size: Int get() = wide * tall
 
     override fun toString(): String {
-        return name + (if ((info != null)) (" ~ " + info) else "") // elements cannot have a value, only info
+        return name + (when {
+            info != null -> " ~ $info"
+            else -> ""
+        }) // elements cannot have a value, only info
     }
 
     public fun validateDisplay() {
@@ -265,16 +269,16 @@ public class Element(private val info: String?) : ViewableData {
                     entry.setValue(if (visible) 1 else 0)
                 } else if ("xpos".equalsIgnoreCase(k)) {
                     val e = XAlignment
-                    entry.setValue(e.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + localX)
+                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirst("l", "")}$localX")
                 } else if ("ypos".equalsIgnoreCase(k)) {
                     val e = Alignment.values()[YAlignment.ordinal()]
-                    entry.setValue(e.name().substring(0, 1).toLowerCase().replaceFirst("l", "") + localY)
+                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirst("l", "")}$localY")
                 } else if ("zpos".equalsIgnoreCase(k)) {
                     entry.setValue(layer)
                 } else if ("wide".equalsIgnoreCase(k)) {
-                    entry.setValue((if ((wideMode == DimensionMode.Mode2)) "f" else "") + wide)
+                    entry.setValue("${if ((wideMode == DimensionMode.Mode2)) "f" else ""}$wide")
                 } else if ("tall".equalsIgnoreCase(k)) {
-                    entry.setValue((if ((tallMode == DimensionMode.Mode2)) "f" else "") + tall)
+                    entry.setValue("${if ((tallMode == DimensionMode.Mode2)) "f" else ""}$tall")
                 } else if ("labelText".equalsIgnoreCase(k)) {
                     entry.setValue(labelText)
                 } else if ("ControlName".equalsIgnoreCase(k)) {

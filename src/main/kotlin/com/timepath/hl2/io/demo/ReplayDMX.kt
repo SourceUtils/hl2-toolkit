@@ -38,14 +38,14 @@ private(`is`: InputStream) {
 
     public fun print(out: PrintStream) {
         out.println("header:")
-        out.println("version: " + info.version)
-        out.println("session name: " + info.sessionName)
-        out.println("currently recording?: " + info.recording)
-        out.println("# blocks: " + info.numBlocks)
-        out.println("compressor: " + CompressorType[info.compressorType])
-        out.println("md5 digest: " + md5(info.hash))
-        out.println("payload size (compressed): " + info.payloadSize)
-        out.println("payload size (uncompressed): " + info.payloadSizeUC)
+        out.println("version: ${info.version}")
+        out.println("session name: ${info.sessionName}")
+        out.println("currently recording?: ${info.recording}")
+        out.println("# blocks: ${info.numBlocks}")
+        out.println("compressor: ${CompressorType[info.compressorType]}")
+        out.println("md5 digest: ${md5(info.hash)}")
+        out.println("payload size (compressed): ${info.payloadSize}")
+        out.println("payload size (uncompressed): ${info.payloadSizeUC}")
         out.println("blocks:")
         out.println("index\tstatus\tMD5\t\t\t\t\t\t\t\t\tcompressor\tsize (uncompressed)\tsize (compressed)")
         run {
@@ -146,7 +146,7 @@ private(`is`: InputStream) {
 
         private fun md5(hash: ByteArray): String {
             val bi = BigInteger(1, hash)
-            return java.lang.String.format("%0" + (hash.size() * 2) + "x", bi)
+            return java.lang.String.format("%0${hash.size() * 2}x", bi)
         }
     }
 }
