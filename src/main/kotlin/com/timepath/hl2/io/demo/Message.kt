@@ -1,7 +1,6 @@
 package com.timepath.hl2.io.demo
 
 import com.timepath.DataUtils
-import com.timepath.Pair
 import com.timepath.io.BitBuffer
 import com.timepath.io.OrderedOutputStream
 import com.timepath.io.struct.StructField
@@ -24,7 +23,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                      StructField(index = 1)
                      public val tick: Int) {
     public var data: ByteBuffer? = null
-    public var meta: MutableList<Pair<Any, Any>> = LinkedList()
+    public var meta: MutableList<Pair<Any, Any?>> = LinkedList()
     public var incomplete: Boolean = false
     /**
      * Command / sequence info. TODO: use
@@ -90,16 +89,16 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                                 thrown = e
                             }
 
-                            meta.add(Pair<Any, Any>(p, p.list))
+                            meta.add(p to p.list)
                         }
                     } catch (e: BufferUnderflowException) {
                         error = MessageFormat.format("Out of data in {0}", this)
                     }
 
-                    meta.add(Pair<Any, Any>("remaining bits", bb.remainingBits()))
+                    meta.add("remaining bits" to bb.remainingBits())
                     if (error != null) {
                         incomplete = true
-                        meta.add(Pair<Any, Any>("error", error))
+                        meta.add("error" to error)
                         if (thrown != null) LOG.log(Level.WARNING, error, thrown)
                         break
                     }
@@ -107,55 +106,55 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
             }
             MessageType.ConsoleCmd -> {
                 val cmd = DataUtils.getText(data, true)
-                meta.add(Pair<Any, Any>("cmd", cmd))
+                meta.add("cmd" to cmd)
             }
             MessageType.UserCmd -> {
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
                 val bb = BitBuffer(data)
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Command number", bb.getInt()))
+                    meta.add("Command number" to bb.getInt())
                 } // else assume steady increment
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Tick count", bb.getInt()))
+                    meta.add("Tick count" to bb.getInt())
                 } // else assume steady increment
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Viewangle pitch", bb.getFloat()))
+                    meta.add("Viewangle pitch" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Viewangle yaw", bb.getFloat()))
+                    meta.add("Viewangle yaw" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Viewangle roll", bb.getFloat()))
+                    meta.add("Viewangle roll" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Foward move", bb.getFloat()))
+                    meta.add("Foward move" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Side move", bb.getFloat()))
+                    meta.add("Side move" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Up move", bb.getFloat()))
+                    meta.add("Up move" to bb.getFloat())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Buttons", Input[bb.getInt()]))
+                    meta.add("Buttons" to Input[bb.getInt()])
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Impulse", bb.getByte()))
+                    meta.add("Impulse" to bb.getByte())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Weapon select", bb.getBits(HL2DEM.MAX_EDICT_BITS)))
+                    meta.add("Weapon select" to bb.getBits(HL2DEM.MAX_EDICT_BITS))
                     if (bb.getBoolean()) {
-                        meta.add(Pair<Any, Any>("Weapon subtype", bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)))
+                        meta.add("Weapon subtype" to bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS))
                     }
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Mouse Dx", bb.getShort()))
+                    meta.add("Mouse Dx" to bb.getShort())
                 }
                 if (bb.getBoolean()) {
-                    meta.add(Pair<Any, Any>("Mouse Dy", bb.getShort()))
+                    meta.add("Mouse Dy" to bb.getShort())
                 }
                 if (bb.remaining() > 0) {
-                    meta.add(Pair<Any, Any>("Underflow", bb.remaining()))
+                    meta.add("Underflow" to bb.remaining())
                 }
             }
         // TODO

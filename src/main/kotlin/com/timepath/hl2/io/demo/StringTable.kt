@@ -1,6 +1,5 @@
 package com.timepath.hl2.io.demo
 
-import com.timepath.Pair
 import com.timepath.io.BitBuffer
 
 import java.util.ArrayList
@@ -47,7 +46,7 @@ class StringTable {
                 } else {
                     entry = bb.getString()
                 }
-                l.add(Pair<Any, Any>("entry", entry))
+                l.add("entry" to entry)
             }
             // Read in the user data.
             if (bb.getBoolean()) {
@@ -55,7 +54,7 @@ class StringTable {
                 if (userDataFixedSize) {
                     assert(userDataSize > 0)
                     // TODO: store in tempbuf
-                    l.add(Pair<Any, Any>("Userdata", bb.getBits(userDataSizeBits)))
+                    l.add("Userdata" to bb.getBits(userDataSizeBits))
                 } else {
                     val nBytes = bb.getBits(MAX_USERDATA_BITS).toInt()
                     assert(nBytes <= MAX_USERDATA_SIZE) { (java.lang.String.format("message too large (%d bytes).", nBytes)) }

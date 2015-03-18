@@ -19,7 +19,7 @@ public enum class MessageType(i: Int) {
     class object {
         fun get(i: Int): MessageType? {
             val x = object : PacketHandler {
-                override fun read(bb: BitBuffer, l: MutableList<timepath.Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
+                override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                     return super.read(bb, l, demo, lengthBits)
                 }
             }
