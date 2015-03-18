@@ -65,7 +65,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
         if (parsed) return
         when (type) {
             MessageType.Signon, MessageType.Packet -> {
-                val bb = BitBuffer(data)
+                val bb = BitBuffer(data!!)
                 var error: String? = null
                 var thrown: Throwable? = null
                 val opSize = if ((outer.header.networkProtocol >= 16)) 6 else 5
@@ -110,7 +110,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
             }
             MessageType.UserCmd -> {
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
-                val bb = BitBuffer(data)
+                val bb = BitBuffer(data!!)
                 if (bb.getBoolean()) {
                     meta.add("Command number" to bb.getInt())
                 } // else assume steady increment
