@@ -1,7 +1,6 @@
 package com.timepath.vgui
 
 import com.timepath.steam.io.VDFNode
-import com.timepath.steam.io.VDFNode.VDFProperty
 
 import java.awt.*
 import java.io.File
@@ -68,11 +67,7 @@ public class HudFont(private val fontname: String? = null) {
 
         throws(javaClass<Exception>())
         private fun fontFileForName(name: String): Font? {
-            val files = File("").listFiles(object : FilenameFilter { // XXX: hardcoded
-                override fun accept(file: File, string: String): Boolean {
-                    return string.endsWith(".ttf")
-                }
-            })
+            val files = File("").listFiles {(dir, name) -> name.endsWith(".ttf") } // XXX: hardcoded
             if (files != null) {
                 for (file in files) {
                     val f = Font.createFont(Font.TRUETYPE_FONT, file)

@@ -10,7 +10,6 @@ import java.awt.Image
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.RenderingHints
-import java.awt.Shape
 import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.InputStream
