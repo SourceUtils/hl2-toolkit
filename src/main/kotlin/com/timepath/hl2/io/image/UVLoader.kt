@@ -9,7 +9,7 @@ import java.util.logging.Logger
  * @author TimePath
  */
 class UVLoader private() {
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<UVLoader>().getName())
 

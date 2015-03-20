@@ -10,7 +10,7 @@ class GameEvent(bb: BitBuffer) {
     public val declarations: Map<String, GameEventMessageType>
     public val name: String
 
-    {
+    init {
         name = bb.getString()
         val decl = LinkedHashMap<String, GameEventMessageType>(0)
         while (true) {
@@ -37,7 +37,7 @@ class GameEvent(bb: BitBuffer) {
         return "$name: $declarations"
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<GameEvent>().getName())
     }

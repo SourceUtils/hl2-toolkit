@@ -21,7 +21,7 @@ public class VMT {
     (`is`: InputStream, c: Charset) : VDFNode() {
         public val root: VDFNode
 
-        {
+        init {
             VDFNode(`is`, c, this)
             root = getNodes()[0]
             LOG.log(Level.INFO, "Shader: {0}", root.getCustom())
@@ -31,13 +31,13 @@ public class VMT {
         public val texture: VTF?
             get() = VTF.load(root.getValue("\$basetexture") as String)
 
-        class object {
+        companion object {
 
             private val LOG = Logger.getLogger(javaClass<VMTNode>().getName())
         }
     }
 
-    class object {
+    companion object {
 
         throws(javaClass<IOException>())
         public fun load(f: File): VMTNode {

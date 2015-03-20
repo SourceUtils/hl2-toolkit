@@ -45,7 +45,7 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
     public var header: DemoHeader
     var serverClassBits: Int = 0
 
-    {
+    init {
         header = DemoHeader.parse(DataUtils.getSlice(buffer, 32 + 260 * 4))
         while (true) {
             val frame: Message
@@ -73,7 +73,7 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
         }
     }
 
-    class object {
+    companion object {
 
         public val DEMO_PROTOCOL: Int = 3
         public val EVENT_INDEX_BITS: Int = 8

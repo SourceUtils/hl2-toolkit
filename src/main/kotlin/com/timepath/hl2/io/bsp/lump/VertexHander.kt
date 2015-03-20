@@ -24,7 +24,7 @@ class VertexHander : LumpHandler<FloatBuffer> {
         return verts.asFloatBuffer()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VertexHander>().getName())
         private val MAX_MAP_VERTS = 65536

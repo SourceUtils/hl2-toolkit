@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
  * @author TimePath
  */
 public class RES {
-    class object {
+    companion object {
 
         throws(javaClass<IOException>())
         public fun load(f: File): Element {

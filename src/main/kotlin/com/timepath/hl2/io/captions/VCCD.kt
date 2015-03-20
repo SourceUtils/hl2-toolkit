@@ -314,7 +314,7 @@ public object VCCD {
             return MessageFormat.format("[H: {0}, b: {1}, o: {2}, l: {3}]({4}) = '{5}'", hash, block, offset, length, if ((key != null)) ("\'$key\'") else '?', value)
         }
 
-        class object {
+        companion object {
 
             private val LOG = Logger.getLogger(javaClass<VCCDEntry>().getName())
         }

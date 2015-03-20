@@ -22,7 +22,7 @@ class PakfileHandler : LumpHandler<ZipFileProvider> {
         return ZipFileProvider(data)
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<PakfileHandler>().getName())
     }

@@ -54,7 +54,7 @@ public class Lump {
         return (offset == 0) && (length == 0) && (version == 0) && (ident == 0)
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Lump>().getName())
     }

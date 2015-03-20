@@ -65,7 +65,7 @@ public class BSPPlugin : ProviderPlugin {
         }
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<BSPPlugin>().getName())
     }

@@ -11,7 +11,7 @@ public class Edge {
     StructField
     public var v: ShortArray = ShortArray(2)
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Edge>().getName())
     }

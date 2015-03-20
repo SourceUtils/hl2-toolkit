@@ -18,7 +18,7 @@ import kotlin.platform.platformStatic
  * @author TimePath
  */
 public class CTX private() {
-    class object {
+    companion object {
 
         public val TF2: String = "E2NcUkG2"
         public val TF2_ITEMS: String = "A5fSXbf7"

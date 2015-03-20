@@ -103,7 +103,7 @@ public abstract class BSP {
         var version: Int = 0
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<BSP>().getName())
 

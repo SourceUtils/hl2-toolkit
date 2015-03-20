@@ -25,7 +25,7 @@ class EdgeHandler : LumpHandler<List<Edge>> {
         return emptyList()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<EdgeHandler>().getName())
         private val MAX_MAP_EDGES = 256000

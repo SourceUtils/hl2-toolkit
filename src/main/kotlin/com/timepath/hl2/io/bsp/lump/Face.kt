@@ -91,7 +91,7 @@ public class Face {
     StructField(index = 16)
     public var smoothingGroups: Int = 0
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Face>().getName())
         private val MAXLIGHTMAPS = 4

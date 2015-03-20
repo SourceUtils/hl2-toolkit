@@ -23,7 +23,7 @@ private(`is`: InputStream) {
     public val info: SessionInfoHeader
     public val blocks: List<RecordingSessionBlockSpec>
 
-    {
+    init {
         var `in` = OrderedInputStream(`is`)
         `in`.order(ByteOrder.LITTLE_ENDIAN)
         info = `in`.readStruct<SessionInfoHeader>(SessionInfoHeader())
@@ -64,7 +64,7 @@ private(`is`: InputStream) {
         LZSS
         BZ2
 
-        class object {
+        companion object {
             public fun get(i: Int): CompressorType {
                 return if (i >= 0 && i < values().size() - 1) values()[i + 1] else INVALID
             }
@@ -113,7 +113,7 @@ private(`is`: InputStream) {
         StructField(index = 8)
         var unused = ByteArray(128)
 
-        class object {
+        companion object {
 
             val MAX_SESSIONNAME_LENGTH = 260
         }
@@ -137,7 +137,7 @@ private(`is`: InputStream) {
         var unused = ByteArray(8)
     }
 
-    class object {
+    companion object {
 
         throws(javaClass<IOException>(), javaClass<InstantiationException>(), javaClass<IllegalAccessException>(), javaClass<LZSSException>())
         public fun load(`is`: InputStream): ReplayDMX {

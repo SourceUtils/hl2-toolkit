@@ -16,7 +16,7 @@ public enum class MessageType(i: Int) {
     Stop : MessageType(7)
     StringTables : MessageType(8)
 
-    class object {
+    companion object {
         fun get(i: Int): MessageType? {
             val x = object : PacketHandler {
                 override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {

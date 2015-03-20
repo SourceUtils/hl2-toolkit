@@ -368,7 +368,7 @@ public abstract class VGUIRenderer {
         public abstract fun locateImage(path: String): Image?
     }
 
-    class object {
+    companion object {
 
         public fun registerLocator(locator: ResourceLocator) {
             locators.add(locator)

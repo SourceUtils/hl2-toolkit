@@ -363,7 +363,7 @@ public class Element(private val info: String?) : ViewableData {
         Mode2
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Element>().getName())
 

@@ -15,7 +15,7 @@ public class StudioModel [throws(javaClass<IOException>())]
     private val vvd: VVD?
     private val indexBuffer: ByteBuffer?
 
-    {
+    init {
         mdl = MDL.load(mdlStream)
         vvd = VVD.load(vvdStream)
         vtx = VTX.load(vtxStream)
@@ -103,7 +103,7 @@ public class StudioModel [throws(javaClass<IOException>())]
     public val vertices: FloatBuffer
         get() = vvd!!.vertexBuffer.asFloatBuffer()
 
-    class object {
+    companion object {
 
         val MAX_NUM_BONES_PER_VERT = 3
         val MAX_NUM_LODS = 8

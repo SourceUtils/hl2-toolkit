@@ -17,7 +17,7 @@ class EntitiesHandler : LumpHandler<String> {
         return `in`.readString()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<EntitiesHandler>().getName())
     }

@@ -26,7 +26,7 @@ class FaceHandler : LumpHandler<List<Face>> {
         return emptyList()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<FaceHandler>().getName())
         private val MAX_MAP_FACES = 65536

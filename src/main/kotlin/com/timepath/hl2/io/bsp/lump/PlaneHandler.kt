@@ -26,7 +26,7 @@ class PlaneHandler : LumpHandler<List<Plane>> {
         return emptyList()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<PlaneHandler>().getName())
         private val MAX_MAP_PLANES = 65536

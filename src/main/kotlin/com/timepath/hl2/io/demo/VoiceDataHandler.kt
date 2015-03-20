@@ -19,7 +19,7 @@ class VoiceDataHandler : PacketHandler {
     private var audioOut: SourceDataLine? = null
     private var speexDecoder: SpeexDecoder? = null
 
-    {
+    init {
         try {
             speexDecoder = SpeexDecoder()
             val mode = 1 // Narrow band
@@ -77,7 +77,7 @@ class VoiceDataHandler : PacketHandler {
 
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VoiceDataHandler>().getName())
         private val VOICE_OUTPUT_SAMPLE_RATE = 11025

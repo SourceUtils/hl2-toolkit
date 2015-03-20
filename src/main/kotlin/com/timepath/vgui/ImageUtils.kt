@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage
  * @author TimePath
  */
 public class ImageUtils {
-    class object {
+    companion object {
         /**
          * Scales an image to be the desired height, cutting off the sides.
          */

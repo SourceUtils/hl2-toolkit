@@ -279,7 +279,7 @@ public enum class ImageFormat(val index: Int, private val bpp: Int) {
         }
     }
 
-    class object {
+    companion object {
         public fun getEnumForIndex(index: Int): ImageFormat? {
             val values = ImageFormat.values()
             for (eachValue in values) {

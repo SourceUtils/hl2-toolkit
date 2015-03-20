@@ -9,7 +9,7 @@ import java.util.logging.Logger
  * @author TimePath
  */
 class DXTLoader private() {
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<DXTLoader>().getName())
         private val ALPHA_MASK_555 = 1

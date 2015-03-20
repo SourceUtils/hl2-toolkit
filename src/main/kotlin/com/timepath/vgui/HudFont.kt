@@ -61,13 +61,13 @@ public class HudFont(private val fontname: String? = null) {
         return f1!!.deriveFont(fontSize.toFloat())
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<HudFont>().getName())
 
         throws(javaClass<Exception>())
         private fun fontFileForName(name: String): Font? {
-            val files = File("").listFiles {(dir, name) -> name.endsWith(".ttf") } // XXX: hardcoded
+            val files = File("").listFiles { dir, name -> name.endsWith(".ttf") } // XXX: hardcoded
             if (files != null) {
                 for (file in files) {
                     val f = Font.createFont(Font.TRUETYPE_FONT, file)

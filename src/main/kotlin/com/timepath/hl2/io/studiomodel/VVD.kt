@@ -25,7 +25,7 @@ private(`in`: InputStream) {
     val uvBuffer: FloatBuffer
     private val `is`: OrderedInputStream
 
-    {
+    init {
         `is` = OrderedInputStream(`in`)
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
@@ -147,7 +147,7 @@ private(`in`: InputStream) {
         }
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VVD>().getName())
         private val VERBOSITY = Level.FINE

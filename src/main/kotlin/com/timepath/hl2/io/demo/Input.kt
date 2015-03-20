@@ -44,7 +44,7 @@ public enum class Input(private val mask: Int) {
     GRENADE2 : Input(1 shl 24)
     ATTACK3 : Input(1 shl 25)
 
-    class  object {
+    companion object {
         public fun get(bits: Int): List<Input> {
             val l = LinkedList<Input>()
             for (name in Input.values()) {

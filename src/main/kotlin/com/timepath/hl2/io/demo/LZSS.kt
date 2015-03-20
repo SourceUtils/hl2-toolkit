@@ -4,7 +4,7 @@ public class LZSS {
 
     class LZSSException(message: String) : Exception(message)
 
-    class object {
+    companion object {
 
         fun readSwappedInteger(data: ByteArray, offset: Int) = (0
                 + ( ( data[offset + 0].toInt() and 0xff ) shl 0 )

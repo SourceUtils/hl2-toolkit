@@ -164,13 +164,13 @@ public class VBSP : BSP() {
         done(vertices, null)
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VBSP>().getName())
 
         throws(javaClass<Exception>())
         public fun main(args: Array<String>) {
-            val b = BSP.load(ACF.fromManifest(440)!!.query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
+            val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
             LOG.log(Level.INFO, "Revision: {0}", b!!.revision)
             val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
             //        System.out.println(ents);

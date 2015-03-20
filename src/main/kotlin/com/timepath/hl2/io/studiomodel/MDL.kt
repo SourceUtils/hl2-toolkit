@@ -27,7 +27,7 @@ private(`in`: InputStream) {
     private val `is`: OrderedInputStream
     private val verbosity = Level.FINE
 
-    {
+    init {
         `is` = OrderedInputStream(`in`)
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
@@ -371,7 +371,7 @@ private(`in`: InputStream) {
         var offset = position()
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<MDL>().getName())
 

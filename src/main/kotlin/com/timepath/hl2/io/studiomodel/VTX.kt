@@ -24,7 +24,7 @@ private(`in`: InputStream) {
     private val header: VtxHeader
     private val `is`: OrderedInputStream
 
-    {
+    init {
         `is` = OrderedInputStream(`in`)
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
@@ -296,7 +296,7 @@ private(`in`: InputStream) {
         var flags: Byte = 0
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VTX>().getName())
         private val verbosity = Level.FINE

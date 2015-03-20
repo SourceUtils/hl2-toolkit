@@ -18,7 +18,7 @@ class SurfaceEdgeHandler : LumpHandler<IntArray> {
         return e
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<SurfaceEdgeHandler>().getName())
         private val MAX_MAP_SURFEDGES = 512000

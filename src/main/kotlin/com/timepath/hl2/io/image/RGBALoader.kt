@@ -9,7 +9,7 @@ import java.util.logging.Logger
  * @author TimePath
  */
 class RGBALoader private() {
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<RGBALoader>().getName())
 

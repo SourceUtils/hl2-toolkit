@@ -73,7 +73,7 @@ class StringTable {
         }
     }
 
-    class object {
+    companion object {
 
         public val SUBSTRING_BITS: Int = 5
         public val MAX_USERDATA_BITS: Int = 14

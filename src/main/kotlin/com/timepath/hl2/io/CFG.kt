@@ -42,7 +42,7 @@ public class CFG {
         }
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<CFG>().getName())
 

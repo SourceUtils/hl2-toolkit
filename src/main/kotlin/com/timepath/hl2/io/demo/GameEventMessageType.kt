@@ -35,7 +35,7 @@ public enum class GameEventMessageType(i: Int) {
      */
     LOCAL : GameEventMessageType(7)
 
-    class object {
+    companion object {
         fun get(i: Int): GameEventMessageType? {
             val vals = values()
             if ((i < 1) || (i > vals.size())) {

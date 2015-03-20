@@ -35,7 +35,7 @@ public class DemoHeader {
     StructField(index = 10)
     public var signonLength: Int = 0
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<DemoHeader>().getName())
         private val MAX_OSPATH = 260

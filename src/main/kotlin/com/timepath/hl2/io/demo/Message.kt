@@ -169,7 +169,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
         this.size = data.size
     }
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Message>().getName())
 

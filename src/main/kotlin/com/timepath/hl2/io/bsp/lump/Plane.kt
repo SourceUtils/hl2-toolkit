@@ -23,7 +23,7 @@ public class Plane {
     StructField(index = 2)
     public var type: Int = 0
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<Plane>().getName())
     }

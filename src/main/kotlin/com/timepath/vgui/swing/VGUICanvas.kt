@@ -45,7 +45,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
 
     public val elements: LinkedList<Element> get() = r!!.elements
 
-    {
+    init {
         addMouseListener(this)
         addMouseMotionListener(this)
         setPreferredSize(Dimension(640, 480))
@@ -321,7 +321,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
 
     }
 
-    class object {
+    companion object {
 
         throws(javaClass<IOException>())
         public fun main(args: Array<String>) {

@@ -503,11 +503,11 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          */
         val handler: PacketHandler
 
-        {
+        init {
             this.handler = this
         }
 
-        class object {
+        companion object {
 
             public fun get(i: Int): Type? {
                 for (t in Type.values()) {

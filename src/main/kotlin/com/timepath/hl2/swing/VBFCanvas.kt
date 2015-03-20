@@ -27,7 +27,7 @@ public class VBFCanvas
     private var vbf: VBF? = null
     private var vtf: VTF? = null
 
-    {
+    init {
         addMouseListener(this)
         addMouseMotionListener(this)
     }
@@ -178,7 +178,7 @@ public class VBFCanvas
         Dimension(it.getWidth().toInt(), it.getHeight().toInt())
     } ?: Dimension(128, 128)
 
-    class object {
+    companion object {
 
         private val LOG = Logger.getLogger(javaClass<VBFCanvas>().getName())
         private val serialVersionUID = 1

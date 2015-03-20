@@ -204,7 +204,7 @@ public class VTF : ViewableData {
         return image
     }
 
-    class object {
+    companion object {
 
         /**
          * 'VTF\0' as little endian
