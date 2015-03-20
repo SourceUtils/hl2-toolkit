@@ -126,7 +126,7 @@ public object VCCD {
                 LOG.log(Level.FINER, "Adding {0}", p.toString())
                 val e = VCCDEntry()
                 val key = p.getKey()
-                if (usedKeys.contains(key) || "//" == key || "\\n" == key) {
+                if (key in usedKeys || "//" == key || "\\n" == key) {
                     LOG.log(Level.WARNING, "Discarding: {0}", key)
                     continue
                 }

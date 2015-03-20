@@ -55,7 +55,7 @@ public class VBFCanvas
         val old = LinkedList(selected)
         val clicked = get(e.getPoint())
         for (g in clicked) {
-            if (selected.contains(g)) {
+            if (g in selected) {
                 return
             }
         }
@@ -76,7 +76,7 @@ public class VBFCanvas
         val intersected = LinkedList<VBF.BitmapGlyph>()
         vbf?.let {
             for (g in it.getGlyphs()) {
-                if (g.getBounds().contains(p)) {
+                if (p in g.getBounds()) {
                     intersected.add(g)
                 }
             }
@@ -154,7 +154,7 @@ public class VBFCanvas
                 g2.setComposite(acNormal)
                 g2.setColor(Color.GREEN)
                 g2.drawRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1)
-                if (selected.contains(glyph)) {
+                if (glyph in selected) {
                     g2.setComposite(acSelected)
                     g2.fillRect(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1)
                 }

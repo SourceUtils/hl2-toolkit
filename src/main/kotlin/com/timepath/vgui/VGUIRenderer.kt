@@ -34,7 +34,7 @@ public abstract class VGUIRenderer {
             var elementY = Math.round(y(e).toDouble() * (r.screen.getHeight() / r.internal.getHeight()) * r.scale).toInt()
             val elementW = Math.round(width(e).toDouble() * (r.screen.getWidth() / r.internal.getWidth()) * r.scale).toInt()
             val elementH = Math.round(height(e).toDouble() * (r.screen.getHeight() / r.internal.getHeight()) * r.scale).toInt()
-            if (r.selectedElements.contains(e)) {
+            if (e in r.selectedElements) {
                 elementX += r.dragX
                 elementY += r.dragY
             }
@@ -57,7 +57,7 @@ public abstract class VGUIRenderer {
                 g.drawImage(e.image, elementX, elementY, elementW, elementH, null)
             }
 
-            if (r.selectedElements.contains(e)) {
+            if (e in r.selectedElements) {
                 g.setColor(Color.CYAN)
             } else {
                 g.setColor(Color.GREEN)
@@ -123,7 +123,7 @@ public abstract class VGUIRenderer {
     public fun pick(p: Point): List<Element> {
         val potential = LinkedList<Element>()
         for (e in elements) {
-            if (bounds(e).contains(p)) {
+            if (p in bounds(e)) {
                 potential.add(e)
             }
 
@@ -175,7 +175,7 @@ public abstract class VGUIRenderer {
     }
 
     public fun addElement(e: Element) {
-        if (elements.contains(e)) return
+        if (e in elements) return
 
         //            e.setCanvas(this)
         elements.add(e)
@@ -189,7 +189,7 @@ public abstract class VGUIRenderer {
     public fun select(e: Element?) {
         if (e == null) return
 
-        if (selectedElements.contains(e)) return
+        if (e in selectedElements) return
 
         selectedElements.add(e)
         //            if(e.children != null) {
@@ -201,7 +201,7 @@ public abstract class VGUIRenderer {
     }
 
     public fun isSelected(e: Element): Boolean {
-        return selectedElements.contains(e)
+        return e in selectedElements
     }
 
     public val selected: List<Element>
@@ -210,7 +210,7 @@ public abstract class VGUIRenderer {
     public fun deselect(e: Element?) {
         if (e == null) return
 
-        if (!selectedElements.contains(e)) return
+        if (!(e in selectedElements)) return
 
         selectedElements.remove(e)
         //            if(e.children != null) {

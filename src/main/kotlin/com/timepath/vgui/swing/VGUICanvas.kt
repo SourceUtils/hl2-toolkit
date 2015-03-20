@@ -248,7 +248,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
             r!!.selectRect.setSize(0, 0)
             for (elem in r!!.getSelectedElements()) {
                 // ???
-                if (r!!.getSelectedElements().contains(elem.parent) && !elem.parent!!.name!!.replaceAll("\"", "").endsWith(".res")) {
+                if (elem.parent in r!!.getSelectedElements() && !elem.parent!!.name!!.replaceAll("\"", "").endsWith(".res")) {
                     // XXX: hacky
                     continue
                 }

@@ -37,7 +37,7 @@ public class HudFont(private val fontname: String? = null) {
         val fontSize = Math.round((tall * screenRes).toDouble() / 72.0).toInt()
         val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
         val fontFamilies = ge.getAvailableFontFamilyNames()
-        if (Arrays.asList<String>(*fontFamilies).contains(name)) {
+        if (name in fontFamilies) {
             // System font
             return Font(name, Font.PLAIN, fontSize)
         }
