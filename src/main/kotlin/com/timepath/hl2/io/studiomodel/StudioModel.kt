@@ -65,6 +65,7 @@ public class StudioModel [throws(javaClass<IOException>())]
     }
 
     private fun setRootLOD(rootLOD: Int) {
+        [suppress("NAME_SHADOWING")]
         var rootLOD = rootLOD
         val header = mdl!!.header
         val bodyParts = mdl!!.mdlBodyParts

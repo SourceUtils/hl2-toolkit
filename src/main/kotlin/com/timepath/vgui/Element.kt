@@ -86,15 +86,15 @@ public class Element(private val info: String?) : ViewableData {
         vdf!!.addNode(e.vdf)
     }
 
-    private fun trim(s: String?): String? {
-        var s = s
-        if (s != null && s!!.contains("\"")) {
+    private fun trim(s: String?) = when {
+        s != null && "\"" in s -> {
+            var tmp: String = s
             // assumes one set of quotes
-            s = s!!.substring(1, s!!.length().toInt() - 1)
-            s = s!!.replaceAll("\"", "").trim()
+            tmp = tmp.substring(1, tmp.length() - 1)
+            tmp = tmp.replaceAll("\"", "")
+            tmp.trim()
         }
-
-        return s
+        else -> s
     }
 
     private fun parseInt(v: String): Int? {
@@ -377,8 +377,8 @@ public class Element(private val info: String?) : ViewableData {
             LOG.info("Found scheme")
             for (fontNode in root.getNodes()) {
                 for (detailNode in fontNode.getNodes()) {
-                    val fontKey = java.lang.String.valueOf(fontNode.getCustom())
-                    val fontName = java.lang.String.valueOf(detailNode.getValue("name"))
+                    // val fontKey = fontNode.getCustom().toString()
+                    val fontName = detailNode.getValue("name").toString()
                     fonts.put(fontName, HudFont(fontName, detailNode))
                     LOG.log(Level.INFO, "TODO: Load font {0}", fontName)
                     break// XXX: hardcoded detail level (the first one)

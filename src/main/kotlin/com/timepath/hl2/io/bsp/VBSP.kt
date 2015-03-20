@@ -5,13 +5,14 @@ import com.timepath.hl2.io.bsp.lump.Face
 import com.timepath.hl2.io.bsp.lump.LumpType
 import com.timepath.steam.io.storage.ACF
 import com.timepath.vfs.provider.zip.ZipFileProvider
-
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
-import java.util.*
+import java.util.HashMap
+import java.util.LinkedList
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.platform.platformStatic
 
 /**
  * @author TimePath
@@ -169,11 +170,11 @@ public class VBSP : BSP() {
         private val LOG = Logger.getLogger(javaClass<VBSP>().getName())
 
         throws(javaClass<Exception>())
-        public fun main(args: Array<String>) {
+        public platformStatic fun main(args: Array<String>) {
             val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
             LOG.log(Level.INFO, "Revision: {0}", b!!.revision)
-            val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
-            //        System.out.println(ents);
+            // val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
+            // System.out.println(ents);
             val z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
             if (z != null) {
                 LOG.info(z.name)
@@ -195,5 +196,3 @@ public class VBSP : BSP() {
         }
     }
 }
-
-fun main(args: Array<String>) = VBSP.main(args)

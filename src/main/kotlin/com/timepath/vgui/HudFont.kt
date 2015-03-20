@@ -48,7 +48,7 @@ public class HudFont(private val fontname: String? = null) {
             if (f1 == null) {
                 return null
             }
-            ge.registerFont(f1) // For some reason, this works but the bottom return does not
+            ge.registerFont(f1!!) // For some reason, this works but the bottom return does not
             return Font(fontname, Font.PLAIN, fontSize)
         } catch (ex: Exception) {
             LOG.log(Level.SEVERE, null, ex)

@@ -2,26 +2,12 @@ package com.timepath.vgui.swing
 
 import com.timepath.steam.SteamUtils
 import com.timepath.steam.io.VDFNode
+import com.timepath.steam.io.VDFNode.VDFProperty
 import com.timepath.vgui.Element
 import com.timepath.vgui.ImageUtils
 import com.timepath.vgui.VGUIRenderer
-import java.awt.AlphaComposite
-import java.awt.Color
-import java.awt.Cursor
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.FontMetrics
-import java.awt.Graphics
-import java.awt.Graphics2D
-import java.awt.Image
-import java.awt.Point
-import java.awt.Rectangle
-import java.awt.RenderingHints
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
-import java.awt.event.MouseMotionListener
+import java.awt.*
+import java.awt.event.*
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileInputStream
@@ -34,8 +20,7 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
-import com.timepath.steam.io.VDFNode.VDFProperty
-import javax.swing.JComponent
+import kotlin.platform.platformStatic
 
 /**
  * @author TimePath
@@ -324,7 +309,7 @@ public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
     companion object {
 
         throws(javaClass<IOException>())
-        public fun main(args: Array<String>) {
+        public platformStatic fun main(args: Array<String>) {
             val canvas = VGUICanvas()
             val root = VDFNode("Root")
             var node = VDFNode("Test")

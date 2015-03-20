@@ -45,8 +45,8 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
     public fun write(out: OrderedOutputStream) {
         out.writeByte(type!!.ordinal() + 1)
         out.writeInt(tick) // TODO: technically MessageType.Stop is 1 byte less
-        if (cseq != null) out.write(cseq)
-        if (oseq != null) out.write(oseq)
+        cseq?.let { out.write(it) }
+        oseq?.let { out.write(it) }
         if (!(type == MessageType.Synctick || type == MessageType.Stop)) out.writeInt(size)
         if (data == null) return
         data!!.position(0)
@@ -105,7 +105,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                 }
             }
             MessageType.ConsoleCmd -> {
-                val cmd = DataUtils.getText(data, true)
+                val cmd = DataUtils.getText(data!!, true)
                 meta.add("cmd" to cmd)
             }
             MessageType.UserCmd -> {

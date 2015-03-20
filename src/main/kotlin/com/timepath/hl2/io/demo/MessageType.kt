@@ -18,11 +18,6 @@ public enum class MessageType(i: Int) {
 
     companion object {
         fun get(i: Int): MessageType? {
-            val x = object : PacketHandler {
-                override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                    return super.read(bb, l, demo, lengthBits)
-                }
-            }
             val vals = MessageType.values()
             if ((i < 1) || (i > vals.size())) {
                 return null

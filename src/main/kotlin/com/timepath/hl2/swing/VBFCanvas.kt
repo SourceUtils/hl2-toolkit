@@ -74,12 +74,11 @@ public class VBFCanvas
 
     fun get(p: Point): MutableList<VBF.BitmapGlyph> {
         val intersected = LinkedList<VBF.BitmapGlyph>()
-        if ((vbf == null) || (vbf!!.getGlyphs() == null)) {
-            return intersected
-        }
-        for (g in vbf!!.getGlyphs()) {
-            if (g.getBounds().contains(p)) {
-                intersected.add(g)
+        vbf?.let {
+            for (g in it.getGlyphs()) {
+                if (g.getBounds().contains(p)) {
+                    intersected.add(g)
+                }
             }
         }
         return intersected

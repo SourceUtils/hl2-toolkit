@@ -8,6 +8,7 @@ import java.util.Scanner
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.regex.Pattern
+import kotlin.platform.platformStatic
 
 /**
  * @author TimePath
@@ -68,7 +69,7 @@ public class CFG {
             return tokens
         }
 
-        public fun main(args: Array<String>) {
+        public platformStatic fun main(args: Array<String>) {
             readFromString("alias b; alias c alias c alias d alias v \"taunt; nope\"")
         }
 
@@ -167,5 +168,3 @@ public class CFG {
         }
     }
 }
-
-fun main(args: Array<String>) = CFG.main(args)

@@ -73,7 +73,8 @@ public abstract class VGUIRenderer {
                 // e.getHeight() + 1) // outer
             }
 
-            if ((e.labelText != null) && !e.labelText!!.isEmpty()) {
+            val labelText = e.labelText
+            if ((labelText != null) && !labelText.isEmpty()) {
                 if (e.fgColor != null) {
                     g.setColor(e.fgColor)
                 } else {
@@ -88,15 +89,15 @@ public abstract class VGUIRenderer {
                 }
 
                 val fm = getFontMetrics(e.font!!)
-                val width = fm.stringWidth(e.labelText)
+                val width = fm.stringWidth(labelText)
                 g.setFont(e.font)
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
                 if (e.textAlignment == Element.Alignment.Left) {
-                    g.drawString(e.labelText, elementX, elementY + fontSize)
+                    g.drawString(labelText, elementX, elementY + fontSize)
                 } else if (e.textAlignment == Element.Alignment.Right) {
-                    g.drawString(e.labelText, elementX + elementW - width, elementY + fontSize)
+                    g.drawString(labelText, elementX + elementW - width, elementY + fontSize)
                 } else if (e.textAlignment == Element.Alignment.Center) {
-                    g.drawString(e.labelText, elementX + ((elementW - width) / 2), elementY + fontSize)
+                    g.drawString(labelText, elementX + ((elementW - width) / 2), elementY + fontSize)
                 }
 
             }
@@ -228,20 +229,21 @@ public abstract class VGUIRenderer {
 
     public fun translate(e: Element, dx: Double, dy: Double) {
         // TODO: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
+        [suppress("NAME_SHADOWING")]
         var dx = dx
-        var dy = dy
         //        Rectangle originalBounds = new Rectangle(e.getBounds())
         if (e.XAlignment == Element.Alignment.Right) {
             dx *= (-1).toDouble()
         }
-
         val scaleX = screen.getWidth() / internal.getWidth()
         dx = Math.round(dx / scaleX).toDouble()
         e.localX = e.localX + dx
+
+        [suppress("NAME_SHADOWING")]
+        var dy = dy
         if (e.YAlignment == Element.VAlignment.Bottom) {
             dy *= (-1).toDouble()
         }
-
         val scaleY = screen.getHeight() / internal.getHeight()
         dy = Math.round(dy / scaleY).toDouble()
         e.localY = e.localY + dy

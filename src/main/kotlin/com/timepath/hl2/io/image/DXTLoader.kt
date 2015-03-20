@@ -119,8 +119,7 @@ class DXTLoader private() {
                         // 16 bits / 4 lines = 4 bits/line = 1 byte/line
                         val i = next4[y1].toInt()
                         val bits = intArray((i and bits_12) shr 6, (i and bits_34) shr 4, (i and bits_56) shr 2, i and bits_78)
-                        for (i in 4.indices) {
-                            // horizontal scan
+                        4.indices.forEach { i ->
                             val bit = bits[i]
                             if (bit == 0) {
                                 g.setColor(c1)
