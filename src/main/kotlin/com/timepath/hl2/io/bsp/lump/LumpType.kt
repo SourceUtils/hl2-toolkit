@@ -3,8 +3,6 @@ package com.timepath.hl2.io.bsp.lump
 import com.timepath.hl2.io.bsp.Lump
 import com.timepath.hl2.io.bsp.LumpHandler
 import com.timepath.io.OrderedInputStream
-
-import java.io.IOException
 import java.text.MessageFormat
 import java.util.logging.Level
 import java.util.logging.Logger

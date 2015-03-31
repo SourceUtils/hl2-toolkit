@@ -1,13 +1,13 @@
 package com.timepath.hl2.io.demo;
 
 import com.timepath.io.BitBuffer;
-import java.awt.Color;
-import java.awt.Point;
-import java.util.LinkedList;
-import java.util.List;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author TimePath

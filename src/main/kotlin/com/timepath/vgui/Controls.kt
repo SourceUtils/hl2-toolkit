@@ -1,7 +1,6 @@
 package com.timepath.vgui
 
 import com.timepath.vgui.controls.CExLabel
-import java.util.HashMap
 
 /**
  * @author TimePath

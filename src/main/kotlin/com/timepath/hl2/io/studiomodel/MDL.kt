@@ -6,7 +6,6 @@ import com.timepath.io.ByteBufferInputStream
 import com.timepath.io.OrderedInputStream
 import com.timepath.io.struct.Struct
 import com.timepath.io.struct.StructField
-
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -15,8 +14,6 @@ import java.nio.ByteOrder
 import java.util.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
-
-import kotlin.properties.Delegates
 
 public class MDL [throws(javaClass<IOException>(), javaClass<InstantiationException>(), javaClass<IllegalAccessException>())]
 private(`in`: InputStream) {

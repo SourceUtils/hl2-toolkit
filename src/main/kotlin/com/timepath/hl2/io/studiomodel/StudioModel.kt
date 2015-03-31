@@ -4,7 +4,10 @@ package com.timepath.hl2.io.studiomodel
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.nio.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
+import java.nio.IntBuffer
 import java.util.logging.Level
 import java.util.logging.Logger
 

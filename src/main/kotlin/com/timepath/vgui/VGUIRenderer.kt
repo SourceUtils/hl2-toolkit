@@ -1,16 +1,6 @@
 package com.timepath.vgui
 
-import java.awt.AlphaComposite
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Font
-import java.awt.FontMetrics
-import java.awt.Graphics2D
-import java.awt.Image
-import java.awt.Point
-import java.awt.Rectangle
-import java.awt.RenderingHints
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.image.BufferedImage
 import java.io.InputStream
 import java.util.ArrayList

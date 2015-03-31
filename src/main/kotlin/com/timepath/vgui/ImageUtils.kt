@@ -1,11 +1,6 @@
 package com.timepath.vgui
 
-import java.awt.AlphaComposite
-import java.awt.Graphics2D
-import java.awt.GraphicsConfiguration
-import java.awt.GraphicsEnvironment
-import java.awt.Image
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.image.BufferedImage
 
 /**

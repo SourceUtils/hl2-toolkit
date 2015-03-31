@@ -2,13 +2,12 @@ package com.timepath.hl2.io.demo
 
 import com.timepath.io.BitBuffer
 import org.xiph.speex.SpeexDecoder
-
-import javax.sound.sampled.*
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.StreamCorruptedException
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.sound.sampled.*
 
 /**
  * @author TimePath

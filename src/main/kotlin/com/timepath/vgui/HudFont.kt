@@ -1,11 +1,10 @@
 package com.timepath.vgui
 
 import com.timepath.steam.io.VDFNode
-
-import java.awt.*
+import java.awt.Font
+import java.awt.GraphicsEnvironment
+import java.awt.Toolkit
 import java.io.File
-import java.io.FilenameFilter
-import java.util.Arrays
 import java.util.logging.Level
 import java.util.logging.Logger
 

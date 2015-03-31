@@ -1,11 +1,10 @@
 package com.timepath.hl2.io.demo
 
-import com.timepath.io.BitBuffer
 import com.timepath.hl2.io.util.Vector3f
-import java.util.LinkedList
-import com.timepath
-import java.text.MessageFormat
+import com.timepath.io.BitBuffer
 import java.math.BigInteger
+import java.text.MessageFormat
+import java.util.LinkedList
 
 /**
  * @author TimePath

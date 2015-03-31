@@ -3,9 +3,8 @@ package com.timepath.hl2.io.image
 import com.timepath.EnumFlags
 import com.timepath.StringUtils
 import com.timepath.io.utils.ViewableData
-
-import javax.swing.*
-import java.awt.*
+import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.FileInputStream
 import java.io.IOException
@@ -13,9 +12,9 @@ import java.io.InputStream
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.EnumSet
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.swing.ImageIcon
 
 /**
  * TODO: .360.vtf files seem to be a slightly different format... and LZMA compressed.

@@ -2,8 +2,6 @@ package com.timepath.hl2.swing
 
 import com.timepath.hl2.io.font.VBF
 import com.timepath.hl2.io.image.VTF
-
-import javax.swing.*
 import java.awt.*
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
@@ -12,6 +10,8 @@ import java.io.IOException
 import java.util.LinkedList
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 /**
  * @author TimePath

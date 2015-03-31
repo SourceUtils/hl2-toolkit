@@ -2,7 +2,6 @@ package com.timepath.hl2.io.image
 
 
 import java.awt.image.BufferedImage
-import java.awt.image.WritableRaster
 import java.util.logging.Logger
 
 /**

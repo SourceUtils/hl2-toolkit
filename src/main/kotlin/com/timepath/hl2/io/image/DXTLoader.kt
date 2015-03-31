@@ -1,7 +1,8 @@
 package com.timepath.hl2.io.image
 
 
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.util.logging.Logger
 

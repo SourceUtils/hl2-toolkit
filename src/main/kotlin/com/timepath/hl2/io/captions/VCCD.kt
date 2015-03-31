@@ -2,7 +2,6 @@ package com.timepath.hl2.io.captions
 
 import com.timepath.io.OrderedInputStream
 import com.timepath.steam.io.VDF
-
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -11,7 +10,9 @@ import java.nio.ByteOrder
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.text.MessageFormat
-import java.util.*
+import java.util.Arrays
+import java.util.Collections
+import java.util.LinkedList
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.CRC32
