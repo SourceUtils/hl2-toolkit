@@ -39,8 +39,8 @@ public class VBFCanvas
 
     public fun setVTF(t: VTF) {
         vtf = t
-        vbf!!.setWidth(vtf!!.width)
-        vbf!!.setHeight(vtf!!.height)
+        vbf!!.width = vtf!!.width.toShort()
+        vbf!!.height = vtf!!.height.toShort()
         repaint()
     }
 
@@ -65,18 +65,18 @@ public class VBFCanvas
             selected = clicked
         }
         for (g in old) {
-            repaint(g.getBounds())
+            repaint(g.bounds)
         }
         for (g in selected) {
-            repaint(g.getBounds())
+            repaint(g.bounds)
         }
     }
 
     fun get(p: Point): MutableList<VBF.BitmapGlyph> {
         val intersected = LinkedList<VBF.BitmapGlyph>()
         vbf?.let {
-            for (g in it.getGlyphs()) {
-                if (p in g.getBounds()) {
+            for (g in it.glyphs) {
+                if (p in g.bounds) {
                     intersected.add(g)
                 }
             }
@@ -100,11 +100,11 @@ public class VBFCanvas
         }
         for (sel in selected) {
             if (SwingUtilities.isRightMouseButton(e)) {
-                sel.getBounds().width += e.getPoint().x
-                sel.getBounds().height += e.getPoint().y
+                sel.bounds.width += e.getPoint().x
+                sel.bounds.height += e.getPoint().y
             } else {
-                sel.getBounds().x += e.getPoint().x
-                sel.getBounds().y += e.getPoint().y
+                sel.bounds.x += e.getPoint().x
+                sel.bounds.y += e.getPoint().y
             }
         }
         last = p
@@ -118,7 +118,7 @@ public class VBFCanvas
         selected.clear()
         g?.let { g ->
             selected.add(g)
-            repaint(g.getBounds())
+            repaint(g.bounds)
         }
     }
 
@@ -137,17 +137,17 @@ public class VBFCanvas
         }
         vbf?.let {
             g2.setColor(Color.GRAY)
-            g2.fillRect(0, 0, it.getWidth().toInt(), it.getHeight().toInt())
+            g2.fillRect(0, 0, it.width.toInt(), it.height.toInt())
         }
         img?.let {
             g2.drawImage(it, 0, 0, this)
         }
         vbf?.let {
-            for (glyph in it.getGlyphs()) {
+            for (glyph in it.glyphs) {
                 if (glyph == null) {
                     continue
                 }
-                val bounds = glyph.getBounds()
+                val bounds = glyph.bounds
                 if ((bounds == null) || bounds.isEmpty()) {
                     continue
                 }
@@ -168,13 +168,13 @@ public class VBFCanvas
                 //                g.setXORMode(Color.WHITE);
                 g2.setComposite(acText)
                 g2.setColor(Color.GREEN)
-                g2.drawString(Integer.toString(glyph.getIndex().toInt()), bounds.x + 1, (bounds.y + bounds.height) - 1)
+                g2.drawString(Integer.toString(glyph.index.toInt()), bounds.x + 1, (bounds.y + bounds.height) - 1)
             }
         }
     }
 
     override fun getPreferredSize() = vbf?.let {
-        Dimension(it.getWidth().toInt(), it.getHeight().toInt())
+        Dimension(it.width.toInt(), it.height.toInt())
     } ?: Dimension(128, 128)
 
     companion object {
