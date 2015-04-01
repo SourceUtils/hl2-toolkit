@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.demo
 
+import com.timepath.Pair
 import com.timepath.io.BitBuffer
 import org.xiph.speex.SpeexDecoder
 import java.io.FileOutputStream
@@ -28,19 +29,24 @@ class VoiceDataHandler : PacketHandler {
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat)
             val info = DataLine.Info(javaClass<SourceDataLine>(), sourceVoiceFormat)
             audioOut = AudioSystem.getLine(info) as SourceDataLine
-            audioOut!!.open(sourceVoiceFormat)
-            audioOut!!.start()
-        } catch (ex: LineUnavailableException) {
-            LOG.log(Level.SEVERE, null, ex)
+            audioOut?.open(sourceVoiceFormat)
+            audioOut?.start()
+        } catch (ex: Exception) {
+            when (ex) {
+                is LineUnavailableException, is IllegalArgumentException -> {
+                    LOG.log(Level.SEVERE, null, ex)
+                }
+                else -> throw ex
+            }
         }
     }
 
     override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
         val client = bb.getByte().toInt() and 0xFF
-        l.add("Client" to client)
-        l.add("Proximity" to bb.getByte())
+        l.add(Pair<Any, Any>("Client", client))
+        l.add(Pair<Any, Any>("Proximity", bb.getByte()))
         val length = bb.getShort().toInt() and 0xFFFF
-        l.add("Length in bits" to length)
+        l.add(Pair<Any, Any>("Length in bits", length))
         if (length < 0) {
             return false
         }
@@ -69,7 +75,7 @@ class VoiceDataHandler : PacketHandler {
 
     fun pcm(index: Int, vararg data: Byte) {
         try {
-            audioOut!!.write(data, 0, data.size())
+            audioOut?.write(data, 0, data.size())
         } catch (ex: IllegalArgumentException) {
             LOG.log(Level.SEVERE, null, ex.getMessage())
         }
@@ -81,20 +87,15 @@ class VoiceDataHandler : PacketHandler {
         private val LOG = Logger.getLogger(javaClass<VoiceDataHandler>().getName())
         private val VOICE_OUTPUT_SAMPLE_RATE = 11025
 
-        fun bitsToBytes(bits: Int): Int {
-            return (bits + 7) / 8
-        }
+        fun bitsToBytes(bits: Int) = (bits + 7) / 8
 
-        fun dump(index: Int, vararg data: Byte) {
-            try {
-                FileOutputStream("target/vo_$index.pcm", true).use { fos ->
-                    fos.write(data)
-                    fos.flush()
-                }
-            } catch (ex: IOException) {
-                LOG.log(Level.SEVERE, null, ex)
+        fun dump(index: Int, vararg data: Byte) = try {
+            FileOutputStream("target/vo_$index.pcm", true).use {
+                it.write(data)
+                it.flush()
             }
-
+        } catch (ex: IOException) {
+            LOG.log(Level.SEVERE, null, ex)
         }
     }
 }
