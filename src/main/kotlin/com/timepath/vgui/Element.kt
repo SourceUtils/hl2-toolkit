@@ -203,16 +203,12 @@ public class Element(private val info: String?) : ViewableData {
         }
 
         if (controlName != null) {
-            val control = Controls.defaults[controlName]
-            if (control == null)
-                LOG.log(Level.WARNING, "Unknown control: {0}", controlName)
+            val control = Controls[controlName!!]
         } else {
             if ("hudlayout".equalsIgnoreCase(file ?: "")) {
                 areas.put(name!!, this)
             }
-
         }
-
     }
 
     public fun save(): String {
@@ -365,7 +361,7 @@ public class Element(private val info: String?) : ViewableData {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<Element>().getName())
+        private val LOG = Logger.getLogger(Element.javaClass.getName())
 
         /**
          * TODO

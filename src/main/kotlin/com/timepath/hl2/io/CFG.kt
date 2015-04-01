@@ -2,6 +2,7 @@ package com.timepath.hl2.io
 
 
 import java.io.InputStream
+import java.nio.charset.Charset
 import java.util.Deque
 import java.util.LinkedList
 import java.util.Scanner
@@ -74,25 +75,11 @@ public class CFG {
         }
 
         private fun readFromString(s: String): CFG {
-            return parse(Scanner(s))
+            return Scanner(s).use { parse(it) }
         }
 
-        public fun readFromStream(`in`: InputStream) {
-            readFromStream(`in`, "UTF-8")
-        }
-
-        private fun readFromStream(`in`: InputStream, encoding: String) {
-            var scanner: Scanner? = null
-            try {
-                scanner = Scanner(`in`, encoding)
-                parse(scanner!!)
-            } catch (ex: Exception) {
-                LOG.log(Level.SEVERE, null, ex)
-            } finally {
-                if (scanner != null) {
-                    scanner!!.close()
-                }
-            }
+        private fun readFromStream(`in`: InputStream, encoding: Charset = Charsets.UTF_8): CFG {
+            return Scanner(`in`, encoding.name()).use { parse(it) }
         }
 
         SuppressWarnings("fallthrough")

@@ -31,9 +31,8 @@ public class BSPPlugin : ProviderPlugin {
                         LOG.log(Level.INFO, "Loading {0}", file)
                         try {
                             FileInputStream(file).use { `is` ->
-                                val b = BSP.load(`is`)
-                                if (b != null) {
-                                    z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
+                                BSP.load(`is`)?.let {
+                                    z = it.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
                                 }
                             }
                         } catch (e: IOException) {

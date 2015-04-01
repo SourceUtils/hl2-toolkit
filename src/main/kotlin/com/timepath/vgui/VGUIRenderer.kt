@@ -309,8 +309,8 @@ public abstract class VGUIRenderer {
             }
 
             g.dispose()
-            elementImage = ImageUtils.toCompatibleImage(img)
-            return elementImage!!
+            $elementImage = ImageUtils.toCompatibleImage(img)
+            return $elementImage!!
         }
     /**
      * List of elements

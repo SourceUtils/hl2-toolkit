@@ -99,7 +99,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                     if (error != null) {
                         incomplete = true
                         meta.add("error" to error)
-                        if (thrown != null) LOG.log(Level.WARNING, error, thrown)
+                        thrown?.let { LOG.log(Level.WARNING, error, it) }
                         break
                     }
                 }

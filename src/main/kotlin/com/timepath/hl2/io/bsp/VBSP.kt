@@ -176,8 +176,8 @@ public class VBSP : BSP() {
             // val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
             // System.out.println(ents);
             val z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
-            if (z != null) {
-                LOG.info(z.name)
+            z?.let {
+                LOG.info(it.name)
             }
             b.getLump<Any>(LumpType.LUMP_VERTEXES)
         }

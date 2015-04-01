@@ -95,8 +95,8 @@ public class VBFCanvas
 
     override fun mouseDragged(e: MouseEvent) {
         val p = e.getPoint()
-        if (last != null) {
-            e.translatePoint(-last!!.x, -last!!.y)
+        last?.let {
+            e.translatePoint(-it.x, -it.y)
         }
         for (sel in selected) {
             if (SwingUtilities.isRightMouseButton(e)) {
@@ -116,7 +116,7 @@ public class VBFCanvas
 
     public fun select(g: VBF.BitmapGlyph?) {
         selected.clear()
-        if (g != null) {
+        g?.let { g ->
             selected.add(g)
             repaint(g.getBounds())
         }
@@ -135,15 +135,15 @@ public class VBFCanvas
             }
 
         }
-        if (vbf != null) {
+        vbf?.let {
             g2.setColor(Color.GRAY)
-            g2.fillRect(0, 0, vbf!!.getWidth().toInt(), vbf!!.getHeight().toInt())
+            g2.fillRect(0, 0, it.getWidth().toInt(), it.getHeight().toInt())
         }
-        if (img != null) {
-            g2.drawImage(img, 0, 0, this)
+        img?.let {
+            g2.drawImage(it, 0, 0, this)
         }
-        if (vbf != null) {
-            for (glyph in vbf!!.getGlyphs()) {
+        vbf?.let {
+            for (glyph in it.getGlyphs()) {
                 if (glyph == null) {
                     continue
                 }

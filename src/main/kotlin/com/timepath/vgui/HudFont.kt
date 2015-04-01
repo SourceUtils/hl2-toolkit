@@ -11,25 +11,22 @@ import java.util.logging.Logger
 /**
  * @author TimePath
  */
-
-fun HudFont(font: String, node: VDFNode): HudFont {
-    val __ = HudFont(font)
-    for (p in node.getProperties()) {
-        val key = p.getKey().toLowerCase()
-        val value = java.lang.String.valueOf(p.getValue()).toLowerCase()
-        when (key) {
-            "name" -> __.name = value
-            "tall" -> __.tall = Integer.parseInt(value)
-            "antialias" -> __.aa = Integer.parseInt(value) == 1
-        }
-    }
-    return __
-}
-
-public class HudFont(private val fontname: String? = null) {
+public class HudFont(private val fontname: String, node: VDFNode) {
     var name: String? = null
     var tall: Int = 0
     var aa: Boolean = false
+
+    init {
+        for (p in node.getProperties()) {
+            val key = p.getKey().toLowerCase()
+            val value = p.getValue().toString().toLowerCase()
+            when (key) {
+                "name" -> name = value
+                "tall" -> tall = value.toInt()
+                "antialias" -> aa = value.toInt() == 1
+            }
+        }
+    }
 
     public val font: Font? get() {
         val screenRes = Toolkit.getDefaultToolkit().getScreenResolution()
@@ -40,41 +37,31 @@ public class HudFont(private val fontname: String? = null) {
             // System font
             return Font(name, Font.PLAIN, fontSize)
         }
-        var f1: Font? = null
         try {
-            LOG.log(Level.INFO, "Loading font: {0}... ({1})", array<Any>(fontname!!, name!!))
-            f1 = fontFileForName(name!!)
-            if (f1 == null) {
-                return null
+            LOG.log(Level.INFO, "Loading font: {0}... ({1})", array(fontname, name!!))
+            fontFileForName(name!!)?.let {
+                ge.registerFont(it)
+                return Font(fontname, Font.PLAIN, fontSize)
             }
-            ge.registerFont(f1!!) // For some reason, this works but the bottom return does not
-            return Font(fontname, Font.PLAIN, fontSize)
         } catch (ex: Exception) {
             LOG.log(Level.SEVERE, null, ex)
         }
-
-        if (f1 == null) {
-            return null
-        }
-        LOG.log(Level.INFO, "Loaded {0}", fontname)
-        return f1!!.deriveFont(fontSize.toFloat())
+        return null
     }
 
     companion object {
 
         private val LOG = Logger.getLogger(javaClass<HudFont>().getName())
 
-        throws(javaClass<Exception>())
         private fun fontFileForName(name: String): Font? {
-            val files = File("").listFiles { dir, name -> name.endsWith(".ttf") } // XXX: hardcoded
-            if (files != null) {
-                for (file in files) {
-                    val f = Font.createFont(Font.TRUETYPE_FONT, file)
-                    //            System.out.println(f.getFamily().toLowerCase());
-                    if (f.getFamily().toLowerCase() == name.toLowerCase()) {
-                        LOG.log(Level.INFO, "Found font for {0}", name)
-                        return f
-                    }
+            File("").listFiles { dir, name ->
+                name.endsWith(".ttf") // XXX: hardcoded
+            }?.forEach {
+                val f = Font.createFont(Font.TRUETYPE_FONT, it)
+                //            System.out.println(f.getFamily().toLowerCase());
+                if (f.getFamily() equalsIgnoreCase  name) {
+                    LOG.log(Level.INFO, "Found font for {0}", name)
+                    return f
                 }
             }
             return null
