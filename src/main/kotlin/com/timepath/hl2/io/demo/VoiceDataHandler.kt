@@ -1,6 +1,5 @@
 package com.timepath.hl2.io.demo
 
-import com.timepath.Pair
 import com.timepath.io.BitBuffer
 import org.xiph.speex.SpeexDecoder
 import java.io.FileOutputStream
@@ -43,10 +42,10 @@ class VoiceDataHandler : PacketHandler {
 
     override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
         val client = bb.getByte().toInt() and 0xFF
-        l.add(Pair<Any, Any>("Client", client))
-        l.add(Pair<Any, Any>("Proximity", bb.getByte()))
+        l.add(("Client" to client))
+        l.add(("Proximity" to bb.getByte()))
         val length = bb.getShort().toInt() and 0xFFFF
-        l.add(Pair<Any, Any>("Length in bits", length))
+        l.add(("Length in bits" to length))
         if (length < 0) {
             return false
         }

@@ -1,13 +1,9 @@
 package com.timepath.hl2.io.demo
 
-import com.timepath.Pair
 import com.timepath.io.BitBuffer
 import java.awt.Color
 import java.awt.Point
 import java.util.LinkedList
-
-//import java.awt.*
-//import java.util.LinkedList
 
 /**
  * @author TimePath
@@ -23,19 +19,19 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
 
     Geiger : UserMessage(0, 1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(Pair<Any, Any>("Range", (bb.getByte().toInt() and 255) * 2))
+            l.add(("Range" to (bb.getByte().toInt() and 255) * 2))
             return true
         }
     })
     Train : UserMessage(1, 1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(Pair<Any, Any>("Pos", bb.getByte()))
+            l.add(("Pos" to bb.getByte()))
             return true
         }
     })
     HudText : UserMessage(2, -1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(Pair<Any, Any>("Text", bb.getString()))
+            l.add(("Text" to bb.getString()))
             return true
         }
     })
@@ -44,24 +40,24 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
             val endBit = bb.positionBits() + lengthBits
             val client = bb.getBits(8)
-            l.add(Pair<Any, Any>("Client", client))
+            l.add(("Client" to client))
             // 0 - raw text, 1 - sets CHAT_FILTER_PUBLICCHAT
             val isRaw = bb.getBits(8) != 0L
-            l.add(Pair<Any, Any>("Raw", isRaw))
+            l.add(("Raw" to isRaw))
             // \x03 in the message for the team color of the specified clientid
             val kind = bb.getString()
-            l.add(Pair<Any, Any>("Kind", kind))
+            l.add(("Kind" to kind))
             val from = bb.getString()
-            l.add(Pair<Any, Any>("From", from))
+            l.add(("From" to from))
             val msg = bb.getString()
-            l.add(Pair<Any, Any>("Text", msg))
+            l.add(("Text" to msg))
             // This message can have two optional string parameters.
             val args = LinkedList<String>()
             while (bb.positionBits() < endBit) {
                 val arg = bb.getString()
                 args.add(arg)
             }
-            l.add(Pair<Any, Any>("Args", args))
+            l.add(("Args" to args))
             return true
         }
     })
@@ -69,8 +65,8 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
             val destination = array("HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK", "HUD_PRINTCENTER")
             val msgDest = bb.getByte()
-            l.add(Pair<Any, Any>("Destination", destination[msgDest.toInt()]))
-            l.add(Pair<Any, Any>("Message", bb.getString()))
+            l.add(("Destination" to destination[msgDest.toInt()]))
+            l.add(("Message" to bb.getString()))
             // These seem to be disabled in TF2
             //            l.add(new Pair<Object, Object>("args[0]", bb.getString()));
             //            l.add(new Pair<Object, Object>("args[1]", bb.getString()));
@@ -119,7 +115,7 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
             val fadeout = bb.getFloat()
             val holdtime = bb.getFloat()
             val fxtime = bb.getFloat()
-            l.add(Pair<Any, Any>("Text", bb.getString()))
+            l.add(("Text" to bb.getString()))
             return true
         }
 
@@ -127,7 +123,7 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
     })
     AmmoDenied : UserMessage(22, 2, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(Pair<Any, Any>("Ammo", bb.getShort().toInt() and 65535))
+            l.add("Ammo" to (bb.getShort().toInt() and 65535))
             return true
         }
     })
@@ -171,13 +167,13 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
         fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM): Boolean {
             val msgType = bb.getByte().toInt()
             val m = UserMessage[msgType]
-            l.add(Pair<Any, Any>("Message type", if ((m != null)) m.name() else ("Unknown: " + msgType)))
+            l.add(("Message type" to if ((m != null)) m.name() else ("Unknown: " + msgType)))
             val length = bb.getBits(11).toInt()
-            l.add(Pair<Any, Any>("Length in bits", length))
-            l.add(Pair<Any, Any>("Start bit", bb.positionBits()))
-            l.add(Pair<Any, Any>("End bit", bb.positionBits() + length))
+            l.add(("Length in bits" to length))
+            l.add(("Start bit" to bb.positionBits()))
+            l.add(("End bit" to bb.positionBits() + length))
             if ((m == null) || (m.handler == null)) {
-                l.add(Pair<Any, Any>("TODO", msgType))
+                l.add(("TODO" to msgType))
                 bb.getBits(length) // Skip
                 return true
             }

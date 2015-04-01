@@ -1,6 +1,5 @@
 package com.timepath.hl2.io.demo
 
-import com.timepath.Pair
 import com.timepath.hl2.io.util.Vector3f
 import com.timepath.io.BitBuffer
 import java.math.BigInteger
@@ -33,29 +32,29 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         })
         net_Disconnect : Type(1, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Reason", bb.getString()))
+                l.add(("Reason" to bb.getString()))
                 return true
             }
         })
         net_File : Type(2, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Transfer ID", bb.getInt()))
-                l.add(Pair<Any, Any>("Filename", bb.getString()))
-                l.add(Pair<Any, Any>("Requested", bb.getBoolean()))
+                l.add(("Transfer ID" to bb.getInt()))
+                l.add(("Filename" to bb.getString()))
+                l.add(("Requested" to bb.getBoolean()))
                 return true
             }
         })
         net_Tick : Type(3, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Tick", bb.getInt()))
-                l.add(Pair<Any, Any>("Host frametime", bb.getShort()))
-                l.add(Pair<Any, Any>("Host frametime StdDev", bb.getShort()))
+                l.add(("Tick" to bb.getInt()))
+                l.add(("Host frametime" to bb.getShort()))
+                l.add(("Host frametime StdDev" to bb.getShort()))
                 return true
             }
         })
         net_StringCmd : Type(4, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Command", bb.getString()))
+                l.add(("Command" to bb.getString()))
                 return true
             }
         })
@@ -63,7 +62,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val n = bb.getByte()
                 n.toInt().times {
-                    l.add(Pair<Any, Any>(bb.getString(), bb.getString()))
+                    l.add((bb.getString() to bb.getString()))
                 }
                 return true
             }
@@ -72,8 +71,8 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val state = bb.getByte().toInt() and 0xFF
                 val signon = SignonState.values()
-                l.add(Pair<Any, Any>("Signon state", if (state < signon.size()) signon[state] else state))
-                l.add(Pair<Any, Any>("Spawn count", bb.getBits(32)))
+                l.add(("Signon state" to if (state < signon.size()) signon[state] else state))
+                l.add(("Spawn count" to bb.getBits(32)))
                 return true
             }
         })
@@ -82,37 +81,37 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          */
         svc_Prval : Type(7, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Value", bb.getString()))
+                l.add(("Value" to bb.getString()))
                 return true
             }
         })
         svc_ServerInfo : Type(8, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val version = bb.getBits(16)
-                l.add(Pair<Any, Any>("Version", version))
-                l.add(Pair<Any, Any>("Server count", bb.getBits(32)))
-                l.add(Pair<Any, Any>("SourceTV", bb.getBoolean()))
-                l.add(Pair<Any, Any>("Dedicated", bb.getBoolean()))
-                l.add(Pair<Any, Any>("Server client CRC", "0x${Integer.toHexString(bb.getInt())}"))
-                l.add(Pair<Any, Any>("Max classes", bb.getBits(16)))
+                l.add(("Version" to version))
+                l.add(("Server count" to bb.getBits(32)))
+                l.add(("SourceTV" to bb.getBoolean()))
+                l.add(("Dedicated" to bb.getBoolean()))
+                l.add(("Server client CRC" to "0x${Integer.toHexString(bb.getInt())}"))
+                l.add(("Max classes" to bb.getBits(16)))
                 if (version >= 18) {
                     val md5 = ByteArray(16)
                     bb.get(md5)
-                    l.add(Pair<Any, Any>("Server map MD5",
+                    l.add(("Server map MD5" to
                             java.lang.String.format("%0${md5.size() * 2}x",
                                     BigInteger(1, md5))))
                 } else {
-                    l.add(Pair<Any, Any>("Server map CRC", "0x${Integer.toHexString(bb.getInt())}"))
+                    l.add(("Server map CRC" to "0x${Integer.toHexString(bb.getInt())}"))
                 }
-                l.add(Pair<Any, Any>("Current player count", bb.getBits(8)))
-                l.add(Pair<Any, Any>("Max player count", bb.getBits(8)))
-                l.add(Pair<Any, Any>("Interval per tick", bb.getFloat()))
-                l.add(Pair<Any, Any>("Platform", bb.getBits(8).toChar()))
-                l.add(Pair<Any, Any>("Game directory", bb.getString()))
-                l.add(Pair<Any, Any>("Map name", bb.getString()))
-                l.add(Pair<Any, Any>("Skybox name", bb.getString()))
-                l.add(Pair<Any, Any>("Hostname", bb.getString()))
-                l.add(Pair<Any, Any>("Has replay", bb.getBoolean())) // ???: protocol version
+                l.add(("Current player count" to bb.getBits(8)))
+                l.add(("Max player count" to bb.getBits(8)))
+                l.add(("Interval per tick" to bb.getFloat()))
+                l.add(("Platform" to bb.getBits(8).toChar()))
+                l.add(("Game directory" to bb.getString()))
+                l.add(("Map name" to bb.getString()))
+                l.add(("Skybox name" to bb.getString()))
+                l.add(("Hostname" to bb.getString()))
+                l.add(("Has replay" to bb.getBoolean())) // ???: protocol version
                 return true
             }
         })
@@ -123,16 +122,16 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_ClassInfo : Type(10, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val n = bb.getShort().toInt()
-                l.add(Pair<Any, Any>("Number of server classes", n))
+                l.add(("Number of server classes" to n))
                 val cc = bb.getBoolean()
-                l.add(Pair<Any, Any>("Create classes on client", cc))
+                l.add(("Create classes on client" to cc))
                 demo.serverClassBits = log2(n) + 1
-                l.add(Pair<Any, Any>("serverClassBits", demo.serverClassBits))
+                l.add(("serverClassBits" to demo.serverClassBits))
                 if (!cc) {
                     n.times {
-                        l.add(Pair<Any, Any>("Class ID", bb.getBits(demo.serverClassBits)))
-                        l.add(Pair<Any, Any>("Class name", bb.getString()))
-                        l.add(Pair<Any, Any>("Datatable name", bb.getString()))
+                        l.add(("Class ID" to bb.getBits(demo.serverClassBits)))
+                        l.add(("Class name" to bb.getString()))
+                        l.add(("Datatable name" to bb.getString()))
                     }
                 }
                 return true
@@ -140,7 +139,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         })
         svc_SetPause : Type(11, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Paused", bb.getBoolean()))
+                l.add(("Paused" to bb.getBoolean()))
                 return true
             }
         })
@@ -151,23 +150,23 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_CreateStringTable : Type(12, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val tableName = bb.getString()
-                l.add(Pair<Any, Any>("Table name", tableName))
+                l.add(("Table name" to tableName))
                 val maxEntries = bb.getShort().toInt()
-                l.add(Pair<Any, Any>("Max entries", maxEntries))
+                l.add(("Max entries" to maxEntries))
                 val entryBits = log2(maxEntries)
                 val numEntries = bb.getBits(entryBits + 1)
-                l.add(Pair<Any, Any>("Number of entries", numEntries))
+                l.add(("Number of entries" to numEntries))
                 val length = bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS + 3)
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 val userDataFixedSize = bb.getBoolean()
-                l.add(Pair<Any, Any>("Userdata fixed size", userDataFixedSize))
+                l.add(("Userdata fixed size" to userDataFixedSize))
                 var userDataSize = -1
                 var userDataSizeBits = -1
                 if (userDataFixedSize) {
                     userDataSize = bb.getBits(12).toInt()
-                    l.add(Pair<Any, Any>("Userdata size", userDataSize))
+                    l.add(("Userdata size" to userDataSize))
                     userDataSizeBits = bb.getBits(4).toInt()
-                    l.add(Pair<Any, Any>("Userdata bits", userDataSizeBits))
+                    l.add(("Userdata bits" to userDataSizeBits))
                 }
                 StringTable.create(tableName, maxEntries.toInt(), entryBits, userDataFixedSize, userDataSize, userDataSizeBits)
                 //                .parse(bb, l)
@@ -183,11 +182,11 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_UpdateStringTable : Type(13, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val tableID = bb.getBits(log2(StringTable.MAX_TABLES)) // 5 bits
-                l.add(Pair<Any, Any>("Table ID", tableID))
+                l.add(("Table ID" to tableID))
                 val changedEntries = if (bb.getBoolean()) bb.getBits(16) else 1
-                l.add(Pair<Any, Any>("Changed entries", changedEntries))
+                l.add(("Changed entries" to changedEntries))
                 val length = bb.getBits(20)
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 StringTable[tableID.toInt()]
                 //                .parse(bb, l)
 
@@ -197,8 +196,8 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         })
         svc_VoiceInit : Type(14, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Codec", bb.getString()))
-                l.add(Pair<Any, Any>("Quality", bb.getByte()))
+                l.add(("Codec" to bb.getString()))
+                l.add(("Quality" to bb.getByte()))
                 return true
             }
         })
@@ -220,26 +219,26 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_Sounds : Type(17, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val reliable = bb.getBoolean()
-                l.add(Pair<Any, Any>("Reliable", reliable))
+                l.add(("Reliable" to reliable))
                 val count = if (reliable) 1 else bb.getByte()
-                l.add(Pair<Any, Any>("Number of sounds", count))
+                l.add(("Number of sounds" to count))
                 val length = if (reliable) bb.getByte().toInt() else bb.getShort().toInt()
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 bb.getBits(length) // Skip
                 return true
             }
         })
         svc_SetView : Type(18, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Entity index", bb.getBits(11)))
+                l.add(("Entity index" to bb.getBits(11)))
                 return true
             }
         })
         svc_FixAngle : Type(19, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Relative", bb.getBoolean()))
+                l.add(("Relative" to bb.getBoolean()))
                 val v = Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
-                l.add(Pair<Any, Any>("Vector", v))
+                l.add(("Vector" to v))
                 return true
             }
 
@@ -250,7 +249,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_CrosshairAngle : Type(20, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val v = Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
-                l.add(Pair<Any, Any>("Vector", v))
+                l.add(("Vector" to v))
                 return true
             }
 
@@ -286,17 +285,17 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
             }
 
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Position", getVecCoord(bb)))
-                l.add(Pair<Any, Any>("Decal texture index", bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)))
+                l.add(("Position" to getVecCoord(bb)))
+                l.add(("Decal texture index" to bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)))
                 if (bb.getBoolean()) {
-                    l.add(Pair<Any, Any>("Entity index", bb.getBits(HL2DEM.MAX_EDICT_BITS)))
+                    l.add(("Entity index" to bb.getBits(HL2DEM.MAX_EDICT_BITS)))
                     var bits = HL2DEM.SP_MODEL_INDEX_BITS
                     if (demo.header.demoProtocol <= 21) {
                         bits--
                     }
-                    l.add(Pair<Any, Any>("Model index", bb.getBits(bits)))
+                    l.add(("Model index" to bb.getBits(bits)))
                 }
-                l.add(Pair<Any, Any>("Low priority", bb.getBoolean()))
+                l.add(("Low priority" to bb.getBoolean()))
                 return true
             }
         })
@@ -319,10 +318,10 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          */
         svc_EntityMessage : Type(24, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Entity index", bb.getBits(11)))
-                l.add(Pair<Any, Any>("Class ID", bb.getBits(9)))
+                l.add(("Entity index" to bb.getBits(11)))
+                l.add(("Class ID" to bb.getBits(9)))
                 val length = bb.getBits(11).toInt()
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 bb.getBits(length) // Skip
                 return true
             }
@@ -330,13 +329,13 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_GameEvent : Type(25, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val length = bb.getBits(11).toInt()
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 val gameEventId = bb.getBits(9).toInt()
                 val gameEvent = demo.gameEvents[gameEventId]
                 if (gameEvent != null) {
-                    l.add(Pair<Any, Any>(gameEvent.name, gameEvent.parse(bb).entrySet()))
+                    l.add((gameEvent.name to gameEvent.parse(bb).entrySet()))
                 } else {
-                    l.add(Pair<Any, Any>("Unknown event", gameEventId))
+                    l.add(("Unknown event" to gameEventId))
                     bb.getBits(length - 9) // Skip
                 }
                 return true
@@ -357,21 +356,21 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 val MAX_EDICT_BITS = 11
                 val DELTASIZE_BITS = 20
                 val maxEntries = bb.getBits(MAX_EDICT_BITS)
-                l.add(Pair<Any, Any>("Max entries", maxEntries))
+                l.add(("Max entries" to maxEntries))
                 val isDelta = bb.getBoolean()
-                l.add(Pair<Any, Any>("Is delta", isDelta))
+                l.add(("Is delta" to isDelta))
                 if (isDelta) {
                     val deltaFrom = bb.getBits(32).toInt()
-                    l.add(Pair<Any, Any>("Delta from", deltaFrom))
+                    l.add(("Delta from" to deltaFrom))
                 }
                 val baseline = bb.getBoolean()
-                l.add(Pair<Any, Any>("Baseline", baseline))
+                l.add(("Baseline" to baseline))
                 val updatedEntries = bb.getBits(MAX_EDICT_BITS)
-                l.add(Pair<Any, Any>("Updated entries", updatedEntries))
+                l.add(("Updated entries" to updatedEntries))
                 val length = bb.getBits(DELTASIZE_BITS)
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 val updateBaseline = bb.getBoolean()
-                l.add(Pair<Any, Any>("Update baseline", updateBaseline))
+                l.add(("Update baseline" to updateBaseline))
                 bb.getBits(length.toInt()) // Skip
                 return true
             }
@@ -383,9 +382,9 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_TempEntities : Type(27, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val numEntries = bb.getBits(HL2DEM.EVENT_INDEX_BITS)
-                l.add(Pair<Any, Any>("Number of entries", numEntries))
+                l.add(("Number of entries" to numEntries))
                 val length = bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS)
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 // FIXME: underflows, but is usually last
                 bb.getBits(length.toInt()) // Skip
                 return true
@@ -395,17 +394,17 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 numEntries = 1
             }
             val classID = -1
-            l.add(Pair<Any, Any>("serverClassBits", demo.serverClassBits))
+            l.add(("serverClassBits" to demo.serverClassBits))
             for(val i = 0 i < numEntries i++) {
                 float delay = 0
                 if(bb.getBoolean()) {
                     delay = bb.getBits(8) / 100.0f
                 }
-                l.add(Pair<Any, Any>("ent[" + i + "].delay", delay))
+                l.add(("ent[" + i + "].delay" to delay))
                 if(bb.getBoolean()) { // Full update
                     classID = (int) bb.getBits(demo.serverClassBits)
                 }
-                l.add(Pair<Any, Any>("ent[" + i + "].classID", classID))
+                l.add(("ent[" + i + "].classID" to classID))
             }
             return false
             */
@@ -414,7 +413,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_Prefetch : Type(28, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val bits = if (demo.header.networkProtocol >= 23) HL2DEM.MAX_SOUND_INDEX_BITS else 13
-                l.add(Pair<Any, Any>("Sound index", bb.getBits(bits)))
+                l.add(("Sound index" to bb.getBits(bits)))
                 return true
             }
         })
@@ -423,9 +422,9 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          */
         svc_Menu : Type(29, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Menu type", bb.getBits(16)))
+                l.add(("Menu type" to bb.getBits(16)))
                 val length = bb.getBits(16).toInt()
-                l.add(Pair<Any, Any>("Length in bytes", length))
+                l.add(("Length in bytes" to length))
                 bb.getBits(length * 8) // Skip
                 return true
             }
@@ -434,14 +433,14 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val numGameEvents = bb.getBits(9).toInt()
                 demo.gameEvents = arrayOfNulls<GameEvent>(HL2DEM.MAX_GAME_EVENTS)
-                l.add(Pair<Any, Any>("Number of events", numGameEvents))
+                l.add(("Number of events" to numGameEvents))
                 val length = bb.getBits(20)
-                l.add(Pair<Any, Any>("Length in bits", length))
+                l.add(("Length in bits" to length))
                 numGameEvents.times {
                     val id = bb.getBits(9).toInt()
                     val gameEvent = GameEvent(bb)
                     demo.gameEvents[id] = gameEvent
-                    l.add(Pair<Any, Any>("gameEvents[$id] = ${gameEvent.name}",
+                    l.add(("gameEvents[$id] = ${gameEvent.name}" to
                             gameEvent.declarations.entrySet()))
                 }
                 return true
@@ -449,8 +448,8 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         })
         svc_GetCvarValue : Type(31, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-                l.add(Pair<Any, Any>("Cookie", "0x${Integer.toHexString(bb.getInt())}"))
-                l.add(Pair<Any, Any>("value", bb.getString()))
+                l.add(("Cookie" to "0x${Integer.toHexString(bb.getInt())}"))
+                l.add(("value" to bb.getString()))
                 return true
             }
         })
@@ -460,7 +459,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
         svc_CmdKeyValues : Type(32, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val length = bb.getInt()
-                l.add(Pair<Any, Any>("Length in bits: ", length))
+                l.add(("Length in bits: " to length))
                 bb.getBits(length) // Skip
                 return true
             }
