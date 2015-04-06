@@ -17,5 +17,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     compile project(':jspeex')
+    compile 'com.timepath:commons:1.0-SNAPSHOT'
+    compile 'com.timepath:java-vfs:1.0-SNAPSHOT'
     compile 'com.timepath:steam-toolkit:1.0-SNAPSHOT'
 }
