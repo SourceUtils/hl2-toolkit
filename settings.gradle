@@ -1,0 +1,2 @@
+include 'jspeex'
+project(':jspeex').projectDir = new File(settingsDir, 'lib/jspeex')
