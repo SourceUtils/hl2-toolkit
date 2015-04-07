@@ -16,7 +16,7 @@ apply plugin: 'kotlin'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    compile project(':jspeex')
+    compile project(':jspeex-codec')
     compile 'com.timepath:commons:1.0-SNAPSHOT'
     compile 'com.timepath:java-vfs:1.0-SNAPSHOT'
     compile 'com.timepath:steam-toolkit:1.0-SNAPSHOT'

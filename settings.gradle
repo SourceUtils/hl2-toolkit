@@ -1,2 +1,2 @@
-include 'jspeex'
-project(':jspeex').projectDir = new File(settingsDir, 'lib/jspeex')
+include 'jspeex-codec'
+project(':jspeex-codec').projectDir = new File(settingsDir, 'lib/jspeex-codec')
