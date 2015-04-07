@@ -1,9 +1,7 @@
 package com.timepath.hl2.io.demo
 
 import com.timepath.DataUtils
-
 import java.io.File
-import java.io.IOException
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -46,11 +44,10 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
     var serverClassBits: Int = 0
 
     init {
-        header = DemoHeader.parse(DataUtils.getSlice(buffer, 32 + 260 * 4))
+        header = DemoHeader.parse(DataUtils.getSlice(buffer, /* Struct.sizeof(DemoHeader) */ 1072))
         while (true) {
-            val frame: Message
-            try {
-                frame = Message.parse(this, buffer)
+            val frame: Message = try {
+                Message.parse(this, buffer)
             } catch (e: BufferUnderflowException) {
                 LOG.log(Level.WARNING, "Unexpected end of demo")
                 break
@@ -67,8 +64,10 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
                 break
             }
 
-            frame.data = ByteBuffer.wrap(dst)
-            frame.data!!.order(ByteOrder.LITTLE_ENDIAN)
+            frame.data = ByteBuffer.wrap(dst).let {
+                it.order(ByteOrder.LITTLE_ENDIAN)
+                it
+            }
             if (eager) frame.parse()
         }
     }
@@ -84,19 +83,11 @@ public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
         public val MAX_SOUND_INDEX_BITS: Int = 14
         public val NET_MAX_PALYLOAD_BITS: Int = 17
         public val SP_MODEL_INDEX_BITS: Int = 12
-        /**
-         * TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h
-         */
+        /** TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h */
         public val WEAPON_SUBTYPE_BITS: Int = 6
         private val LOG = Logger.getLogger(javaClass<HL2DEM>().getName())
 
-        throws(javaClass<IOException>())
-        public fun load(f: File): HL2DEM {
-            return load(f, true)
-        }
-
-        throws(javaClass<IOException>())
-        public fun load(f: File, eager: Boolean): HL2DEM {
+        public fun load(f: File, eager: Boolean = true): HL2DEM {
             LOG.log(Level.INFO, "Parsing {0}", f)
             val buffer = DataUtils.mapFile(f)
             return HL2DEM(buffer, eager)

@@ -10,7 +10,6 @@ import java.util.logging.Logger
 import javax.sound.sampled.*
 
 /**
- * @author TimePath
  * @see <a>http://hg.limetech.org/java/DemoReader/file/2771d28988dc/src/org/limetech/demoreader/Main.java#l127</a>
  * @see <a>https://github.com/LestaD/SourceEngine2007/blob/master/se2007/engine/voice_codecs/speex/VoiceEncoder_Speex.cpp</a>
  */
@@ -20,9 +19,10 @@ class VoiceDataHandler : PacketHandler {
 
     init {
         try {
-            speexDecoder = SpeexDecoder()
+            // Disabled for now
+            // speexDecoder = SpeexDecoder()
             val mode = 1 // Narrow band
-            speexDecoder!!.init(mode, 11025, 1, true)
+            speexDecoder?.init(mode, 11025, 1, true)
             // Signed 16 bit LE mono
             val sourceVoiceFormat = AudioFormat(AudioFormat.Encoding.PCM_SIGNED, VOICE_OUTPUT_SAMPLE_RATE.toFloat(), 16, 1, 2, VOICE_OUTPUT_SAMPLE_RATE.toFloat(), false)
             LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat)
@@ -54,7 +54,7 @@ class VoiceDataHandler : PacketHandler {
         }
         val data = ByteArray(bitsToBytes(length))
         bb.get(data)
-        //        speex(client, data);
+        // speex(client, data);
         return true
     }
 
@@ -68,7 +68,7 @@ class VoiceDataHandler : PacketHandler {
             LOG.log(Level.SEVERE, null, ex)
         }
 
-        //        dump(index, decoded);
+        // dump(index, decoded);
         pcm(index, *decoded)
     }
 

@@ -6,9 +6,6 @@ import java.util.ArrayList
 import java.util.HashMap
 import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 class StringTable {
     private var tableName: String? = null
     private var id: Int = 0

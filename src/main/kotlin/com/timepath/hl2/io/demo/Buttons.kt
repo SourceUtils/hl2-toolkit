@@ -2,10 +2,8 @@ package com.timepath.hl2.io.demo
 
 /**
  * hl2sdk-ob-valve/public/inputsystem/ButtonCode.h
- *
- * @author TimePath
  */
-public enum class Buttons(val i: Int) {
+public enum class Buttons(val id: Int) {
     KEY_NONE : Buttons(0)
     KEY_0 : Buttons(1)
     KEY_1 : Buttons(2)

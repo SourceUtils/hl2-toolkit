@@ -2,50 +2,45 @@ package com.timepath.hl2.io.demo
 
 import com.timepath.io.BitBuffer
 
-/**
- * @author TimePath
- */
-public enum class GameEventMessageType(i: Int) {
-    /**
-     * A zero terminated string
-     */
-    STRING : GameEventMessageType(1)
-    /**
-     * Float, 32 bit
-     */
-    FLOAT : GameEventMessageType(2)
-    /**
-     * Signed int, 32 bit
-     */
-    LONG : GameEventMessageType(3)
-    /**
-     * Signed int, 16 bit
-     */
-    SHORT : GameEventMessageType(4)
-    /**
-     * Unsigned int, 8 bit
-     */
-    BYTE : GameEventMessageType(5)
-    /**
-     * Unsigned int, 1 bit
-     */
-    BOOL : GameEventMessageType(6)
-    /**
-     * Any data, but not networked to clients
-     */
-    LOCAL : GameEventMessageType(7)
+public enum class GameEventMessageType(private val i: Int) {
 
-    companion object {
-        fun get(i: Int): GameEventMessageType? {
-            val vals = values()
-            if ((i < 1) || (i > vals.size())) {
-                return null
-            }
-            return vals[i - 1]
-        }
+    /** Marks the end of an event description */
+    END : GameEventMessageType(0) {
+        override fun parse(bb: BitBuffer) = throw UnsupportedOperationException()
     }
 
-    public fun parse(bb: BitBuffer): Any? {
-        return null
+    /** A zero terminated string */
+    STRING : GameEventMessageType(1) {
+        override fun parse(bb: BitBuffer) = bb.getString()
+    }
+    /** Float, 32 bit */
+    FLOAT : GameEventMessageType(2) {
+        override fun parse(bb: BitBuffer) = bb.getFloat()
+    }
+    /** Signed int, 32 bit */
+    LONG : GameEventMessageType(3) {
+        override fun parse(bb: BitBuffer) = bb.getInt()
+    }
+    /** Signed int, 16 bit */
+    SHORT : GameEventMessageType(4) {
+        override fun parse(bb: BitBuffer) = bb.getShort()
+    }
+    /** Unsigned int, 8 bit */
+    BYTE : GameEventMessageType(5) {
+        override fun parse(bb: BitBuffer) = bb.getByte()
+    }
+    /** Unsigned int, 1 bit */
+    BOOL : GameEventMessageType(6) {
+        override fun parse(bb: BitBuffer) = bb.getBoolean()
+    }
+    /** Any data, but not networked to clients */
+    LOCAL : GameEventMessageType(7) {
+        override fun parse(bb: BitBuffer) = null
+    }
+
+    public abstract fun parse(bb: BitBuffer): Any?
+
+    companion object {
+        fun get(i: Int): GameEventMessageType = values().first { it.i == i }
     }
 }

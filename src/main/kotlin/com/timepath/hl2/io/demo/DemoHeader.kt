@@ -8,9 +8,6 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.properties.Delegates
 
-/**
- * @author TimePath
- */
 public class DemoHeader {
     StructField(index = 0, limit = 8)
     public var head: String by Delegates.notNull()

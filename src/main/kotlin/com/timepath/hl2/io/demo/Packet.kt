@@ -3,19 +3,13 @@ package com.timepath.hl2.io.demo
 import com.timepath.hl2.io.util.Vector3f
 import com.timepath.io.BitBuffer
 import java.math.BigInteger
-import java.text.MessageFormat
 import java.util.LinkedList
 
-/**
- * @author TimePath
- */
 public class Packet(public val type: Packet.Type, public val offset: Int) {
 
     public val list: MutableList<Pair<Any, Any>> = LinkedList()
 
-    override fun toString(): String {
-        return MessageFormat.format("{0}, offset {1}", type, offset)
-    }
+    override fun toString() = "${type}, offset ${offset}"
 
     /**
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/common/netmessages.h
@@ -76,9 +70,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 return true
             }
         })
-        /**
-         * 16 in newer protocols
-         */
+        /** 16 in newer protocols */
         svc_Prval : Type(7, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 l.add(("Value" to bb.getString()))
@@ -115,9 +107,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 return true
             }
         })
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_SendTable : Type(9)
         svc_ClassInfo : Type(10, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
@@ -213,9 +203,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          * svc_Print: split screen style message
          */
         svc_Unknown16 : Type(16)
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_Sounds : Type(17, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val reliable = bb.getBoolean()
@@ -305,17 +293,13 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
          * svc_SplitScreen: split screen style message
          */
         svc_unknown2 : Type(22)
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_UserMessage : Type(23, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 return UserMessage.read(bb, l, demo)
             }
         })
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_EntityMessage : Type(24, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 l.add(("Entity index" to bb.getBits(11)))
@@ -417,9 +401,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 return true
             }
         })
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_Menu : Type(29, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 l.add(("Menu type" to bb.getBits(16)))
@@ -453,9 +435,7 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
                 return true
             }
         })
-        /**
-         * TODO
-         */
+        /** TODO */
         svc_CmdKeyValues : Type(32, object : PacketHandler {
             override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
                 val length = bb.getInt()
@@ -467,18 +447,9 @@ public class Packet(public val type: Packet.Type, public val offset: Int) {
 
         companion object {
 
-            public fun get(i: Int): Type? {
-                for (t in Type.values()) {
-                    if (t.id == i) {
-                        return t
-                    }
-                }
-                return null
-            }
+            public fun get(i: Int): Type? = Type.values().firstOrNull { it.id == i }
 
-            private fun log2(i: Int): Int {
-                return (Math.log(i.toDouble()) / Math.log(2.0)).toInt()
-            }
+            private fun log2(i: Int) = (Math.log(i.toDouble()) / Math.log(2.0)).toInt()
         }
     }
 }

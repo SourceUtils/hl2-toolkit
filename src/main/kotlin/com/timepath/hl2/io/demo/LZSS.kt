@@ -17,8 +17,9 @@ public class LZSS {
 
         throws(javaClass<LZSSException>())
         public fun inflate(input: ByteArray): ByteArray {
+            // Pointers
             var pInput = 8
-            var pOutput = 0 // Pointers
+            var pOutput = 0
             // Header
             val id = String(input, 0, 4)
             val actualSize = readSwappedInteger(input, 4)

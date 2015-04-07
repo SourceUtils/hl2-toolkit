@@ -13,26 +13,21 @@ import java.util.LinkedList
 import java.util.logging.Level
 import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 public class Message(private val outer: HL2DEM, public val type: MessageType?,
-                     /**
-                      * Actually 3 bytes
-                      */
+                     /** Actually 3 bytes? */
                      StructField(index = 1)
                      public val tick: Int) {
     public var data: ByteBuffer? = null
+        set(data) {
+            $data = data
+            $size = data?.capacity() ?: 0
+        }
     public var meta: MutableList<Pair<Any, Any?>> = LinkedList()
     public var incomplete: Boolean = false
-    /**
-     * Command / sequence info. TODO: use
-     */
+    /** Command / sequence info. TODO: use */
     StructField(index = 2, nullable = true)
     public var cseq: ByteArray? = null
-    /**
-     * Outgoing sequence number. TODO: use
-     */
+    /** Outgoing sequence number. TODO: use */
     StructField(index = 3, nullable = true)
     public var oseq: ByteArray? = null
     StructField(index = 4)
@@ -41,7 +36,6 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
     private val op: Byte = 0
     private var parsed: Boolean = false
 
-    throws(javaClass<IOException>())
     public fun write(out: OrderedOutputStream) {
         out.writeByte(type!!.ordinal() + 1)
         out.writeInt(tick) // TODO: technically MessageType.Stop is 1 byte less
@@ -55,9 +49,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
         out.write(dst)
     }
 
-    override fun toString(): String {
-        return MessageFormat.format("{0}, tick {1}, {2} bytes", type, tick, if ((data != null)) data!!.limit() else 0)
-    }
+    override fun toString() = "${type}, tick ${tick}, ${data?.limit() ?: 0} bytes"
 
     fun parse() {
         if (type == null) return
@@ -157,16 +149,9 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                     meta.add("Underflow" to bb.remaining())
                 }
             }
-        // TODO
-            MessageType.DataTables, MessageType.StringTables -> {
-            }
+            MessageType.DataTables, MessageType.StringTables -> Unit // TODO
         }
         parsed = true
-    }
-
-    public fun setData(data: ByteArray) {
-        this.data = ByteBuffer.wrap(data)
-        this.size = data.size
     }
 
     companion object {

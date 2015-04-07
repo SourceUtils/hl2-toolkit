@@ -6,16 +6,12 @@ import java.awt.Point
 import java.util.LinkedList
 
 /**
- * @author TimePath
- * *
  * @see [https://forums.alliedmods.net/showthread.php?t=163224](null)
-
  * @see [https://github.com/LestaD/SourceEngine2007/blob/master/src_main/game/server/util.cpp.L1115](null)
-
  * @see [https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/hl2/hl2_usermessages.cpp](null)
  * HookMessage, HOOK_HUD_MESSAGE, MsgFunc_
  */
-public enum class UserMessage(private val i: Int, private val size: Int, private val handler: PacketHandler? = null) {
+public enum class UserMessage(private val id: Int, private val size: Int, private val handler: PacketHandler? = null) {
 
     Geiger : UserMessage(0, 1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
@@ -68,10 +64,10 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
             l.add(("Destination" to destination[msgDest.toInt()]))
             l.add(("Message" to bb.getString()))
             // These seem to be disabled in TF2
-            //            l.add(new Pair<Object, Object>("args[0]", bb.getString()));
-            //            l.add(new Pair<Object, Object>("args[1]", bb.getString()));
-            //            l.add(new Pair<Object, Object>("args[2]", bb.getString()));
-            //            l.add(new Pair<Object, Object>("args[3]", bb.getString()));
+            // l.add(new Pair<Object, Object>("args[0]", bb.getString()));
+            // l.add(new Pair<Object, Object>("args[1]", bb.getString()));
+            // l.add(new Pair<Object, Object>("args[2]", bb.getString()));
+            // l.add(new Pair<Object, Object>("args[3]", bb.getString()));
             return true
         }
     })
@@ -180,11 +176,6 @@ public enum class UserMessage(private val i: Int, private val size: Int, private
             return m.handler.read(bb, l, demo, length)
         }
 
-        private fun get(i: Int): UserMessage? = values().let {
-            when {
-                i < it.size() -> it[i]
-                else -> null
-            }
-        }
+        private fun get(i: Int) = values().firstOrNull { it.id == i }
     }
 }
