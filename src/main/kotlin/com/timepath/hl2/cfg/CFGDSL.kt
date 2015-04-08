@@ -26,7 +26,7 @@ abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf())
                 for (k in states) {
                     val match = k == any
                     val s = name(k)
-                    alias("${s}?") { if (match) cmd("${s}") }
+                    alias("${s}?") { if (match) eval("${s}") }
                 }
                 // Hack
                 return "$name\n${super.print()}"
@@ -37,7 +37,7 @@ abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf())
     fun Latch.invoke(any: Any, configure: CFGContext.() -> Unit): Unit {
         val s = name(any)
         alias(s, configure)
-        cmd("${s}?")
+        eval("${s}?")
     }
 }
 
@@ -56,9 +56,9 @@ class Command(val cmd: String, vararg val args: String) : CFGContext() {
     }
 }
 
-fun CFGContext.cmd(cmd: String, vararg args: String) = children.add(Command(cmd, *args))
+fun CFGContext.eval(cmd: String, vararg args: String) = children.add(Command(cmd, *args))
 
-fun CFGContext.echo(text: String) = cmd("echo", text)
+fun CFGContext.echo(text: String) = eval("echo", text)
 
 open class Alias(val name: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
     override fun print(): String = when {
@@ -80,14 +80,14 @@ fun CFGContext.alias(name: String = NameGen["_a"], configure: Alias.() -> Unit) 
     it
 }
 
-fun CFGContext.cmd(alias: Alias) = children.add(Command(alias.name))
+fun CFGContext.eval(alias: Alias) = children.add(Command(alias.name))
 
 data class Bind(val key: String)
 
 fun CFGContext.bind(key: String, press: Alias.(Bind) -> Unit) = bind(key, press, {})
 fun CFGContext.bind(key: String, press: Alias.(Bind) -> Unit, release: Alias.(Bind) -> Unit) = NameGen["_b"].let {
     val bind = Bind(key)
-    cmd("bind", key, "+$it")
+    eval("bind", key, "+$it")
     alias("+$it", { press(bind) })
     alias("-$it", { release(bind) })
     bind
@@ -109,11 +109,11 @@ fun CFGContext.cyclicList(name: String, size: Int, begin: Int = 0, configure: Al
     }
     for (i in size.indices) {
         alias(iter(i)) {
-            alias(exec) { cmd(action(i)) }
-            alias(next) { cmd(iter(i + 1)) }
-            alias(prev) { cmd(iter(i - 1)) }
+            alias(exec) { eval(action(i)) }
+            alias(next) { eval(iter(i + 1)) }
+            alias(prev) { eval(iter(i - 1)) }
         }
     }
-    cmd(iter(begin)) // Initialize
+    eval(iter(begin)) // Initialize
     return list
 }

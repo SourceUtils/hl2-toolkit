@@ -9,15 +9,15 @@ object CFGDSLTest {
             val pressedA = latch()
             bind("a", press = {
                 pressedA(true)
-                cmd(list.exec)
-                cmd(list.next)
+                eval(list.exec)
+                eval(list.next)
                 echo("pressed ${it}")
             }, release = {
                 pressedA(false)
             })
-            cmd("")
+            eval("")
             echo("hello world")
-            cmd("")
+            eval("")
             val btn1 = alias("bpr") {
                 pressedA(true) {
                     echo("A is pressed")
@@ -28,9 +28,9 @@ object CFGDSLTest {
                 echo("pressed")
                 echo("again")
             }
-            cmd("")
-            cmd(alias {
-                cmd(btn1)
+            eval("")
+            eval(alias {
+                eval(btn1)
             })
         }.let {
             println(it.print())
