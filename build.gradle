@@ -1,4 +1,4 @@
-apply from: 'https://raw.githubusercontent.com/SourceUtils/super/0e6138dace/common.gradle'
+apply from: 'https://raw.githubusercontent.com/SourceUtils/super/b9954f27cb/common.gradle'
 
 buildscript {
     ext.kotlin_version = '0.11.91.1'
@@ -16,7 +16,7 @@ apply plugin: 'kotlin'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    compile project(':jspeex-codec')
+    compile 'org.xiph.speex:jspeex-codec:0.9.8-SNAPSHOT'
     compile 'com.timepath:commons:1.0-SNAPSHOT'
     compile 'com.timepath:java-vfs:1.0-SNAPSHOT'
     compile 'com.timepath:steam-toolkit:1.0-SNAPSHOT'

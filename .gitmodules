@@ -1,3 +1,0 @@
-[submodule "lib/jspeex-codec"]
-	path = lib/jspeex-codec
-	url = https://github.com/SourceUtils/jspeex.git
