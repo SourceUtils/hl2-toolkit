@@ -9,8 +9,36 @@ private object NameGen {
     }
 }
 
+class Latch {
+    private val name = "${NameGen["_h"]}"
+    val states = hashSetOf<Any>()
+    fun name(any: Any, suffix: String = "") = "${name}[${any}]${suffix}"
+}
+
+fun CFGContext.latch() = Latch()
+
 abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf()) {
     abstract fun print(): String
+    fun Latch.invoke(any: Any) {
+        states.add(any)
+        children.add(object : Alias(name(any, suffix = "!!")) {
+            override fun print(): String {
+                for (k in states) {
+                    val match = k == any
+                    val s = name(k)
+                    alias("${s}?") { if (match) cmd("${s}") }
+                }
+                // Hack
+                return "$name\n${super.print()}"
+            }
+        })
+    }
+
+    fun Latch.invoke(any: Any, configure: CFGContext.() -> Unit): Unit {
+        val s = name(any)
+        alias(s, configure)
+        cmd("${s}?")
+    }
 }
 
 class CFGDSL(configure: CFGDSL.() -> Unit) : CFGContext() {
@@ -32,7 +60,7 @@ fun CFGContext.cmd(cmd: String, vararg args: String) = children.add(Command(cmd,
 
 fun CFGContext.echo(text: String) = cmd("echo", text)
 
-class Alias(val name: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
+open class Alias(val name: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
     override fun print(): String = when {
         children.isEmpty() -> "alias ${name}"
         children.size() == 1 -> "alias ${name} ${children.single().print()}"
