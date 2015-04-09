@@ -9,27 +9,41 @@ private object NameGen {
     }
 }
 
+class Payload(val id: String, val depends: List<Payload> = emptyList()) {
+    private fun toString(indent: String, depth: String = "", sb: StringBuilder = StringBuilder()): StringBuilder {
+        val doIndent = id.length() != 0
+        if (id.length() != 0) {
+            sb.append(depth + id + "\n")
+        }
+        if (depends.isNotEmpty()) {
+            depends.forEach { it.toString(indent, depth + if (doIndent) indent else "", sb) }
+        }
+        return sb
+    }
+
+    override fun toString() = toString("\t").toString()
+}
+
 class Latch {
-    private val name = "${NameGen["_h"]}"
+    private val id = "${NameGen["_h"]}"
     val states = hashSetOf<Any>()
-    fun name(any: Any, suffix: String = "") = "${name}[${any}]${suffix}"
+    fun name(any: Any, suffix: String = "") = "${id}[${any}]${suffix}"
 }
 
 fun CFGContext.latch() = Latch()
 
 abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf()) {
-    abstract fun print(): String
+    abstract fun payload(): Payload
     fun Latch.invoke(any: Any) {
         states.add(any)
         children.add(object : Alias(name(any, suffix = "!!")) {
-            override fun print(): String {
+            override fun payload(): Payload {
                 for (k in states) {
                     val match = k == any
                     val s = name(k)
                     alias("${s}?") { if (match) eval("${s}") }
                 }
-                // Hack
-                return "$name\n${super.print()}"
+                return Payload(id, listOf(super.payload()))
             }
         })
     }
@@ -42,34 +56,35 @@ abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf())
 }
 
 class CFGDSL(configure: CFGDSL.() -> Unit) : CFGContext() {
-    override fun print() = children.map { it.print() }.join("\n")
+    override fun payload() = Payload("", children.map { it.payload() })
+    override fun toString() = payload().toString()
 
     init {
         configure()
     }
 }
 
-class Command(val cmd: String, vararg val args: String) : CFGContext() {
-    override fun print() = when {
-        args.isEmpty() -> "${cmd}"
-        else -> "${cmd} ${args.joinToString(" ")}"
-    }
+class Command(val id: String, vararg val args: String) : CFGContext() {
+    override fun payload() = Payload(when {
+        args.isEmpty() -> id
+        else -> "${id} ${args.joinToString(" ")}"
+    })
 }
 
 fun CFGContext.eval(cmd: String, vararg args: String) = children.add(Command(cmd, *args))
 
 fun CFGContext.echo(text: String) = eval("echo", text)
 
-open class Alias(val name: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
-    override fun print(): String = when {
-        children.isEmpty() -> "alias ${name}"
-        children.size() == 1 -> "alias ${name} ${children.single().print()}"
-        else -> {
-            val cmds = children.map { Alias(NameGen["_t"], arrayListOf(it)) }
-            StringBuilder {
-                append("alias ${name} \"${cmds.map { it.name }.join("; ")}\"")
-                cmds.forEach { append("\n${it.print()}") }
-            }.toString()
+open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
+    override fun payload(): Payload = when {
+        children.isEmpty() -> Payload("alias ${id}")
+        children.size() == 1 -> children.single().let {
+            val p = it.payload()
+            // Hack
+            Payload("alias ${id} ${p.toString().split("\n").first()}", p.depends)
+        }
+        else -> children.map { Alias(NameGen["_t"], arrayListOf(it)) }.let {
+            Payload("alias ${id} \"${it.map { it.id }.join("; ")}\"", it.map { it.payload() })
         }
     }
 }
@@ -80,9 +95,9 @@ fun CFGContext.alias(name: String = NameGen["_a"], configure: Alias.() -> Unit) 
     it
 }
 
-fun CFGContext.eval(alias: Alias) = children.add(Command(alias.name))
+fun CFGContext.eval(alias: Alias) = children.add(Command(alias.id))
 
-data class Bind(val key: String)
+data class Bind(val id: String)
 
 fun CFGContext.bind(key: String, press: Alias.(Bind) -> Unit) = bind(key, press, {})
 fun CFGContext.bind(key: String, press: Alias.(Bind) -> Unit, release: Alias.(Bind) -> Unit) = NameGen["_b"].let {

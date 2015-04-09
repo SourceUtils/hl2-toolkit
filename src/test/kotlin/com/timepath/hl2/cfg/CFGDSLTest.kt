@@ -32,8 +32,6 @@ object CFGDSLTest {
             eval(alias {
                 eval(btn1)
             })
-        }.let {
-            println(it.print())
-        }
+        }.let { println(it) }
     }
 }
