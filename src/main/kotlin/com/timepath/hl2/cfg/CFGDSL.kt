@@ -77,15 +77,53 @@ fun CFGContext.echo(text: String) = eval("echo", text)
 
 open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
     override fun payload(): Payload = when {
+    /**
+     * `alias nop`
+     */
         children.isEmpty() -> Payload("alias ${id}")
-        children.size() == 1 -> children.single().let {
+    /**
+     * `alias take alias take alias take alias take alias check?`
+     */
+        children.childIsEffectivelyList() -> children.single().let {
             val p = it.payload()
             // Hack
             Payload("alias ${id} ${p.toString().split("\n").first()}", p.depends)
         }
+    /**
+     * Bug:
+     *
+     * ```
+     * ] alias a alias b "echo hello; echo world"
+     * ] a;b
+     * world
+     * hello
+     * ```
+     *
+     * Parsed as:
+     * `alias a "alias b echo hello; echo world"`
+     *
+     * Solution: create temporaries
+     *
+     * ```
+     * alias a alias b b$impl
+     *     alias b$impl "echo hello world"
+     * ```
+     *
+     */
+        children.size() == 1 -> children.single().let {
+            val tmp = Alias(NameGen["_t"], it.children)
+            Payload("alias ${id} \"alias ${(it as Alias).id} ${tmp.id}\"", listOf(tmp.payload()))
+        }
+    /**
+     * Multiple direct children
+     */
         else -> children.map { Alias(NameGen["_t"], arrayListOf(it)) }.let {
             Payload("alias ${id} \"${it.map { it.id }.join("; ")}\"", it.map { it.payload() })
         }
+    }
+
+    private fun List<CFGContext>.childIsEffectivelyList(): Boolean {
+        return singleOrNull()?.let { it.children.childIsEffectivelyList() } ?: isEmpty()
     }
 }
 
