@@ -9,6 +9,10 @@ private object NameGen {
     }
 }
 
+/**
+ * @param id how the payload is executed
+ * @param depends
+ */
 class Payload(val id: String, val depends: List<Payload> = emptyList()) {
     private fun toString(indent: String, depth: String = "", sb: StringBuilder = StringBuilder()): StringBuilder {
         val doIndent = id.length() != 0
@@ -34,6 +38,8 @@ fun CFGContext.latch() = Latch()
 
 abstract class CFGContext(val children: MutableList<CFGContext> = arrayListOf()) {
     abstract fun payload(): Payload
+    open val inline = false
+
     fun Latch.invoke(any: Any) {
         states.add(any)
         children.add(object : Alias(name(any, suffix = "!!")) {
@@ -69,6 +75,8 @@ class Command(val id: String, vararg val args: String) : CFGContext() {
         args.isEmpty() -> id
         else -> "${id} ${args.joinToString(" ")}"
     })
+
+    override val inline = "//" !in id
 }
 
 fun CFGContext.eval(cmd: String, vararg args: String) = children.add(Command(cmd, *args))
@@ -76,6 +84,16 @@ fun CFGContext.eval(cmd: String, vararg args: String) = children.add(Command(cmd
 fun CFGContext.echo(text: String) = eval("echo", text)
 
 open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf()) : CFGContext(children) {
+
+    /**
+     * Check for multiple children recursively
+     * @return true if no descendant has more than 1 child
+     * @return false otherwise
+     */
+    private fun List<CFGContext>.childIsEffectivelyList(): Boolean {
+        return singleOrNull()?.let { it.children.childIsEffectivelyList() } ?: isEmpty()
+    }
+
     override fun payload(): Payload = when {
     /**
      * `alias nop`
@@ -84,13 +102,13 @@ open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf
     /**
      * `alias take alias take alias take alias take alias check?`
      */
-        children.childIsEffectivelyList() -> children.single().let {
-            val p = it.payload()
-            // Hack
-            Payload("alias ${id} ${p.toString().split("\n").first()}", p.depends)
+        children.childIsEffectivelyList() -> children.single().payload().let {
+            Payload("alias ${id} ${it.id}", it.depends)
         }
     /**
-     * Bug:
+     * Special case of the above; a descendant exists with multiple children
+     *
+     * Fixes:
      *
      * ```
      * ] alias a alias b "echo hello; echo world"
@@ -99,32 +117,31 @@ open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf
      * hello
      * ```
      *
-     * Parsed as:
+     * Which is parsed as:
      * `alias a "alias b echo hello; echo world"`
      *
      * Solution: create temporaries
      *
      * ```
      * alias a alias b b$impl
-     *     alias b$impl "echo hello world"
+     *     alias b$impl "echo hello; echo world"
      * ```
      *
      */
-        children.size() == 1 -> children.single().let {
+        children.singleOrNull()?.let { it.children.size() > 1 } ?: false -> children.single().let {
             val tmp = Alias(NameGen["_t"], it.children)
-            Payload("alias ${id} \"alias ${(it as Alias).id} ${tmp.id}\"", listOf(tmp.payload()))
+            Payload("alias ${id} alias ${(it as Alias).id} ${tmp.id}", listOf(tmp.payload()))
         }
     /**
      * Multiple direct children
      */
-        else -> children.map { Alias(NameGen["_t"], arrayListOf(it)) }.let {
-            Payload("alias ${id} \"${it.map { it.id }.join("; ")}\"", it.map { it.payload() })
-        }
+        else -> children.map {
+            if (it.inline) it.payload().let { it.id to null }
+            else Alias(NameGen["_t"], arrayListOf(it)).let { it.id to it.payload() }
+        }.let { Payload("alias ${id} \"${it.map { it.first }.join(";")}\"", it.map { it.second }.filterNotNull()) }
     }
 
-    private fun List<CFGContext>.childIsEffectivelyList(): Boolean {
-        return singleOrNull()?.let { it.children.childIsEffectivelyList() } ?: isEmpty()
-    }
+    override val inline: Boolean get() = children.childIsEffectivelyList()
 }
 
 fun CFGContext.alias(name: String = NameGen["_a"], configure: Alias.() -> Unit) = Alias(name).let {
