@@ -135,13 +135,25 @@ open class Alias(val id: String, children: MutableList<CFGContext> = arrayListOf
     /**
      * Multiple direct children
      */
-        else -> children.map {
-            if (it.inline) it.payload().let { it.id to null }
-            else Alias(NameGen["_t"], arrayListOf(it)).let { it.id to it.payload() }
+        else -> children.map { c ->
+            when {
+                c.inline -> c.payload().id to null
+                c.children.isEmpty() -> Alias(NameGen["_r"], arrayListOf(c)).let {
+                    it.id to it.payload()
+                }
+                else -> Alias(NameGen["_t"], c.children.toArrayList()).let {
+                    c.children.clear()
+                    c.children.add(Command(it.id))
+                    c.payload().id to it.payload()
+                }
+            }
         }.let { Payload("alias ${id} \"${it.map { it.first }.join(";")}\"", it.map { it.second }.filterNotNull()) }
     }
 
-    override val inline: Boolean get() = children.childIsEffectivelyList()
+    /**
+     * The only case that can't be inlined is multiple immediate children
+     */
+    override val inline: Boolean get() = children.size() <= 1
 }
 
 fun CFGContext.alias(name: String = NameGen["_a"], configure: Alias.() -> Unit) = Alias(name).let {
