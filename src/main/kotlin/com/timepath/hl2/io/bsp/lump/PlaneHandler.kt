@@ -11,10 +11,10 @@ import java.util.logging.Logger
 
 class PlaneHandler : LumpHandler<List<Plane>> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): List<Plane> {
         try {
-            return (l.length / Struct.sizeof(Plane())).indices.map {
+            return (0..(l.length / Struct.sizeof(Plane())) - 1).map {
                 `in`.readStruct<Plane>(Plane())
             }
         } catch (ex: InstantiationException) {

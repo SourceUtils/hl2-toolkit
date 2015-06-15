@@ -11,10 +11,10 @@ import java.util.logging.Logger
 
 class FaceHandler : LumpHandler<List<Face>> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): List<Face> {
         try {
-            return (l.length / Struct.sizeof(Face())).indices.map {
+            return (0..(l.length / Struct.sizeof(Face())) - 1).map {
                 `in`.readStruct<Face>(Face())
             }
         } catch (ex: InstantiationException) {

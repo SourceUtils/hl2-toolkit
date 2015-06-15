@@ -41,7 +41,7 @@ public class VBF() {
     public var height: Short = 0
     public var width: Short = 0
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public constructor(input: InputStream) : this() {
         val array = ByteArray(input.available()) // XXX: TODO
         input.read(array)
@@ -72,16 +72,16 @@ public class VBF() {
             glyphs.add(g)
         }
         // Debugging
-        val dbg = array(
-                array("Header = ", id),
-                array("Version = ", version),
-                array("Width = ", width),
-                array("Height = ", height),
-                array("MaxCharWidth = ", maxCharWidth),
-                array("MaxCharHeight = ", maxCharHeight),
-                array("Flags = ", flags),
-                array("Ascent = ", ascent),
-                array("Total = ", numGlyphs)
+        val dbg = arrayOf(
+                arrayOf("Header = ", id),
+                arrayOf("Version = ", version),
+                arrayOf("Width = ", width),
+                arrayOf("Height = ", height),
+                arrayOf("MaxCharWidth = ", maxCharWidth),
+                arrayOf("MaxCharHeight = ", maxCharHeight),
+                arrayOf("Flags = ", flags),
+                arrayOf("Ascent = ", ascent),
+                arrayOf("Total = ", numGlyphs)
         )
         val sb = StringBuilder(0)
         for (i in dbg.indices) {
@@ -100,7 +100,7 @@ public class VBF() {
                 continue
             }
             val g = glyphs.get(glyphIndex)
-            LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", array(i, g.bounds, g.a, g.b, g.c))
+            LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", arrayOf(i, g.bounds, g.a, g.b, g.c))
         }
     }
 
@@ -113,7 +113,7 @@ public class VBF() {
         return false
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun save(output: OutputStream) {
         val buf = ByteBuffer.allocate(22 + 256 + (glyphs.size() * 14))
         buf.order(ByteOrder.LITTLE_ENDIAN)

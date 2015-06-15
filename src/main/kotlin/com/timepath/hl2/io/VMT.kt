@@ -17,7 +17,7 @@ import java.util.logging.Logger
  */
 public class VMT {
 
-    public class VMTNode [throws(javaClass<IOException>())]
+    public class VMTNode @throws(IOException::class) constructor
     (`is`: InputStream, c: Charset) : VDFNode() {
         public val root: VDFNode
 
@@ -27,7 +27,7 @@ public class VMT {
             LOG.log(Level.INFO, "Shader: {0}", root.getCustom())
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public val texture: VTF?
             get() = VTF.load(root.getValue("\$basetexture") as String)
 
@@ -39,22 +39,22 @@ public class VMT {
 
     companion object {
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(f: File): VMTNode {
             return load(FileInputStream(f))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`is`: InputStream): VMTNode {
             return load(`is`, StandardCharsets.UTF_8)
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`is`: InputStream, c: Charset): VMTNode {
             return VMTNode(`is`, c)
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(f: File, c: Charset): VMTNode {
             return load(FileInputStream(f), c)
         }

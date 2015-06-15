@@ -15,8 +15,8 @@ import java.util.ArrayList
 import java.util.logging.Level
 import java.util.logging.Logger
 
-public class MDL [throws(javaClass<IOException>(), javaClass<InstantiationException>(), javaClass<IllegalAccessException>())]
-private(`in`: InputStream) {
+public class MDL @throws(IOException::class, InstantiationException::class, IllegalAccessException::class)
+private constructor(`in`: InputStream) {
     public val header: StudioHeader
     val mdlBodyParts: MutableList<MStudioBodyParts>
     private val textureDirs: MutableList<MStudioTextureDir>
@@ -33,51 +33,51 @@ private(`in`: InputStream) {
         LOG.log(verbosity, "MStudioTexture[] textures = new MStudioTexture[{0}];", header.numtextures)
         position(header.textureindex)
         textures = ArrayList<MStudioTexture>(header.numtextures)
-        for (i in header.numtextures.indices) {
+        for (i in 0..header.numtextures - 1) {
             val offset = `is`.position()
             val tex = `is`.readStruct<MStudioTexture>(MStudioTexture())
             textures.add(tex)
             position(offset + tex.sznameindex)
             tex.textureName = `is`.readString()
             position(offset + Struct.sizeof(tex))
-            LOG.log(verbosity, "textures[{0}] = \"{1}\";", array<Any>(i, tex.textureName!!))
+            LOG.log(verbosity, "textures[{0}] = \"{1}\";", arrayOf<Any>(i, tex.textureName!!))
         }
         LOG.log(verbosity, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures)
         position(header.cdtextureindex)
         textureDirs = ArrayList<MStudioTextureDir>(header.numcdtextures)
-        for (i in header.numcdtextures.indices) {
+        for (i in 0..header.numcdtextures - 1) {
             val offset = `is`.position()
             val texDir = `is`.readStruct<MStudioTextureDir>(MStudioTextureDir())
             textureDirs.add(texDir)
             position(texDir.diroffset)
             texDir.textureDir = `is`.readString()
             position(offset + Struct.sizeof(texDir))
-            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", array<Any>(i, texDir.textureDir!!))
+            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", arrayOf<Any>(i, texDir.textureDir!!))
         }
         LOG.log(verbosity, "int[] skinTable = new int[{0}];", header.numskinref * header.numskinfamilies)
         position(header.skinindex)
         val skinTable = IntArray(header.numskinref * header.numskinfamilies)
         for (i in skinTable.indices) {
             skinTable[i] = `is`.readShort().toInt()
-            LOG.log(verbosity, "skinTable[{0}] = {1};", array<Any>(i, skinTable[i]))
+            LOG.log(verbosity, "skinTable[{0}] = {1};", arrayOf<Any>(i, skinTable[i]))
         }
         LOG.log(verbosity, "MStudioBodyParts[]")
         position(header.bodypartindex)
         mdlBodyParts = ArrayList<MStudioBodyParts>(header.numbodyparts)
-        for (i in header.numbodyparts.indices) {
+        for (i in 0..header.numbodyparts - 1) {
             val bodyPart = `is`.readStruct<MStudioBodyParts>(MStudioBodyParts())
             mdlBodyParts.add(bodyPart)
-            LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[]", array<Any>(1 + i, header.numbodyparts))
+            LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[]", arrayOf<Any>(1 + i, header.numbodyparts))
             position(bodyPart.offset + bodyPart.modelindex)
             bodyPart.models = ArrayList<MStudioModel>(bodyPart.nummodels)
-            for (j in bodyPart.nummodels.indices) {
+            for (j in 0..bodyPart.nummodels - 1) {
                 val model = `is`.readStruct<MStudioModel>(MStudioModel())
                 bodyPart.models!!.add(model)
-                LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels))
+                LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", arrayOf<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels))
                 position(model.offset + model.meshindex)
                 model.meshes = ArrayList<MStudioMesh>(model.nummeshes)
-                for (k in model.nummeshes.indices) {
-                    LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", array<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels, 1 + k, model.nummeshes))
+                for (k in 0..model.nummeshes - 1) {
+                    LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", arrayOf<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels, 1 + k, model.nummeshes))
                     val mesh = `is`.readStruct<MStudioMesh>(MStudioMesh())
                     model.meshes!!.add(mesh)
                 }
@@ -372,13 +372,13 @@ private(`in`: InputStream) {
 
         private val LOG = Logger.getLogger(javaClass<MDL>().getName())
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(file: File): MDL? {
             LOG.log(Level.INFO, "Loading MDL {0}", file)
             return load(ByteBufferInputStream(DataUtils.mapFile(file)))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`in`: InputStream): MDL? {
             try {
                 return MDL(BufferedInputStream(`in`))

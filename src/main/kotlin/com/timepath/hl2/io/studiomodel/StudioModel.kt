@@ -11,7 +11,7 @@ import java.nio.IntBuffer
 import java.util.logging.Level
 import java.util.logging.Logger
 
-public class StudioModel [throws(javaClass<IOException>())]
+public class StudioModel @throws(IOException::class) constructor
 (mdlStream: InputStream, vvdStream: InputStream, vtxStream: InputStream) {
     public val mdl: MDL?
     private val vtx: VTX?
@@ -46,12 +46,12 @@ public class StudioModel [throws(javaClass<IOException>())]
                     val vertTable = stripGroup.verts
                     stripGroup.indexOffset = indexOffset++
                     val sb = stripGroup.indexBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-                    for (l in stripGroup.numIndices.indices) {
+                    for (l in 0..stripGroup.numIndices - 1) {
                         val vertTableIndex = sb.get().toInt()
                         val index = vertTable[vertTableIndex].origMeshVertID.toInt() + mdlModel.vertexoffset + mdlMesh.vertexoffset
                         val s = index.toShort()
                         try {
-                            indices.write(byteArray((s.toInt() and 0xFF).toByte(), ((s.toInt() and 0xFF00) shr 8).toByte(), ((s.toInt() and 0xFF0000) shr 16).toByte(), ((s.toInt() and -16777216) shr 24).toByte()))
+                            indices.write(byteArrayOf((s.toInt() and 0xFF).toByte(), ((s.toInt() and 0xFF00) shr 8).toByte(), ((s.toInt() and 0xFF0000) shr 16).toByte(), ((s.toInt() and -16777216) shr 24).toByte()))
                         } catch (ex: IOException) {
                             LOG.log(Level.SEVERE, null, ex)
                             return null
@@ -62,16 +62,17 @@ public class StudioModel [throws(javaClass<IOException>())]
             }
         }
         val bytes = indices.toByteArray()
-        val buf = ByteBuffer.allocateDirect(bytes.size)
+        val buf = ByteBuffer.allocateDirect(bytes.size())
         buf.put(bytes).flip()
         return buf
     }
 
     private fun setRootLOD(rootLOD: Int) {
-        [suppress("NAME_SHADOWING")]
+        @suppress("NAME_SHADOWING")
         var rootLOD = rootLOD
-        val header = mdl!!.header
-        val bodyParts = mdl!!.mdlBodyParts
+        mdl!!
+        val header = mdl.header
+        val bodyParts = mdl.mdlBodyParts
         if ((header.numAllowedRootLODs > 0) && (rootLOD >= header.numAllowedRootLODs)) {
             rootLOD = header.numAllowedRootLODs.toInt() - 1
         }

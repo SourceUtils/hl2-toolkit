@@ -37,7 +37,7 @@ import kotlin.properties.Delegates
  * @see <a>https://forums.alliedmods.net/showthread.php?t=232925</a>
  * @see <a>http://demos.geit.co.uk/</a>
  */
-public class HL2DEM private(buffer: ByteBuffer, eager: Boolean) {
+public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
     val frames = LinkedList<Message>()
     var gameEvents: Array<GameEvent?> by Delegates.notNull()
     public var header: DemoHeader

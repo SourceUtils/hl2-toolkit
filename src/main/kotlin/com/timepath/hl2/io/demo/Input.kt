@@ -6,43 +6,43 @@ package com.timepath.hl2.io.demo
  */
 public enum class Input(bit: Int) {
 
-    private val mask = 1 shl bit
-
-    ATTACK : Input(0)
-    JUMP : Input(1)
-    DUCK : Input(2)
-    FORWARD : Input(3)
-    BACK : Input(4)
-    USE : Input(5)
-    CANCEL : Input(6)
-    LEFT : Input(7)
-    RIGHT : Input(8)
-    MOVELEFT : Input(9)
-    MOVERIGHT : Input(10)
-    ATTACK2 : Input(11)
-    RUN : Input(12)
-    RELOAD : Input(13)
-    ALT1 : Input(14)
-    ALT2 : Input(15)
-    SCORE : Input(16)
-    SPEED : Input(17)
-    WALK : Input(18)
+    ATTACK(0),
+    JUMP(1),
+    DUCK(2),
+    FORWARD(3),
+    BACK(4),
+    USE(5),
+    CANCEL(6),
+    LEFT(7),
+    RIGHT(8),
+    MOVELEFT(9),
+    MOVERIGHT(10),
+    ATTACK2(11),
+    RUN(12),
+    RELOAD(13),
+    ALT1(14),
+    ALT2(15),
+    SCORE(16),
+    SPEED(17),
+    WALK(18),
     /**
      * Zoom key for HUD zoom
      */
-    ZOOM : Input(19)
+    ZOOM(19),
     /**
      * Weapon defines these bits
      */
-    WEAPON1 : Input(20)
+    WEAPON1(20),
     /**
      * Weapon defines these bits
      */
-    WEAPON2 : Input(21)
-    BULLRUSH : Input(22)
-    GRENADE1 : Input(23)
-    GRENADE2 : Input(24)
-    ATTACK3 : Input(25)
+    WEAPON2(21),
+    BULLRUSH(22),
+    GRENADE1(23),
+    GRENADE2(24),
+    ATTACK3(25);
+
+    private val mask = 1 shl bit
 
     companion object {
         public fun get(bits: Int): Set<Input> = Input.values().filter { (it.mask and bits) != 0 }.toSet()

@@ -17,8 +17,8 @@ import java.util.Arrays
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class VVD [throws(javaClass<IOException>(), javaClass<InstantiationException>(), javaClass<IllegalAccessException>())]
-private(`in`: InputStream) {
+class VVD @throws(IOException::class, InstantiationException::class, IllegalAccessException::class)
+private constructor(`in`: InputStream) {
     val vertexBuffer: ByteBuffer
     val normalBuffer: ByteBuffer
     val tangentBuffer: ByteBuffer
@@ -38,7 +38,7 @@ private(`in`: InputStream) {
         normalBuffer = ByteBuffer.allocateDirect(vertCount * 4 * 4).order(ByteOrder.LITTLE_ENDIAN)
         uvBuffer = ByteBuffer.allocateDirect(vertCount * 2 * 4).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
         tangentBuffer = ByteBuffer.allocateDirect(vertCount * 4 * 4).order(ByteOrder.LITTLE_ENDIAN)
-        for (i in Math.max(header.numFixups, 1).indices) {
+        for (i in 0..Math.max(header.numFixups, 1) - 1) {
             // at least once
             var sourceVertexID = 0
             var numVertexes = vertCount
@@ -52,7 +52,7 @@ private(`in`: InputStream) {
                     continue
                 }
             }
-            for (j in numVertexes.indices) {
+            for (j in 0..numVertexes - 1) {
                 // Vertex table, 48 byte rows
                 position(header.vertexDataStart + ((sourceVertexID + j) * 48))
                 // TODO: Bones
@@ -80,7 +80,7 @@ private(`in`: InputStream) {
         normalBuffer.flip()
         uvBuffer.flip()
         tangentBuffer.flip()
-        LOG.log(VERBOSITY, "Underflow: {0}", array<Any>(`is`.available()))
+        LOG.log(VERBOSITY, "Underflow: {0}", arrayOf<Any>(`is`.available()))
     }
 
     private fun position(index: Int) {
@@ -152,13 +152,13 @@ private(`in`: InputStream) {
         private val LOG = Logger.getLogger(javaClass<VVD>().getName())
         private val VERBOSITY = Level.FINE
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(file: File): VVD? {
             LOG.log(Level.INFO, "Loading VVD {0}", file)
             return load(ByteBufferInputStream(DataUtils.mapFile(file)))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`in`: InputStream): VVD? {
             try {
                 return VVD(BufferedInputStream(`in`))

@@ -12,7 +12,7 @@ import java.util.logging.Logger
  */
 class EntitiesHandler : LumpHandler<String> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): String {
         return `in`.readString()
     }

@@ -42,7 +42,7 @@ public abstract class BSP {
      * @throws IOException
      */
     SuppressWarnings("unchecked")
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun <T : Any> getLump(type: LumpType): T? {
         return getLump(type, type.handler as LumpHandler<T>)
     }
@@ -56,7 +56,7 @@ public abstract class BSP {
      * @return
      * @throws IOException
      */
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     protected fun <T : Any> getLump(type: LumpType, handler: LumpHandler<T>?): T? {
         if (handler == null) {
             return null
@@ -76,7 +76,7 @@ public abstract class BSP {
     val revision: Int
         get() = header.mapRevision
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     abstract fun process()
 
     private class BSPHeader () {
@@ -107,7 +107,7 @@ public abstract class BSP {
 
         private val LOG = Logger.getLogger(javaClass<BSP>().getName())
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`is`: InputStream): BSP? {
             try {
                 val input = OrderedInputStream(BufferedInputStream(`is`))
@@ -119,7 +119,7 @@ public abstract class BSP {
                 bsp.input = input
                 bsp.header = header
                 // TODO: Struct parser callbacks
-                for (i in header.lumps.size().indices) {
+                for (i in 0..header.lumps.size() - 1) {
                     header.lumps[i]!!.type = LumpType.values()[i]
                 }
                 LOG.info("Processing map...")

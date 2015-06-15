@@ -166,7 +166,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
             }
             val tick = (65535 and buffer.getShort().toInt()) + (255 and (buffer.get().toInt() shl 16))
             if (type != MessageType.Stop) buffer.get()
-            LOG.log(Level.FINE, "{0} at tick {1} ({2}), {3} remaining bytes", array(type, tick, buffer.position(), buffer.remaining()))
+            LOG.log(Level.FINE, "{0} at tick {1} ({2}), {3} remaining bytes", arrayOf(type, tick, buffer.position(), buffer.remaining()))
             val m = Message(outer, type, tick)
             if (!(m.type == MessageType.Synctick || m.type == MessageType.Stop)) {
                 if (m.type == MessageType.Packet || m.type == MessageType.Signon) {

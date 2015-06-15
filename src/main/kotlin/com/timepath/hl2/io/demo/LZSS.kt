@@ -15,7 +15,7 @@ public class LZSS {
         public val ID: String = "LZSS"
         private val LZSS_LOOKSHIFT = 4
 
-        throws(javaClass<LZSSException>())
+        throws(LZSSException::class)
         public fun inflate(input: ByteArray): ByteArray {
             // Pointers
             var pInput = 8
@@ -43,7 +43,7 @@ public class LZSS {
                         break
                     }
                     var pSource = pOutput - position - 1
-                    for (i in count.indices) {
+                    for (i in 0..count - 1) {
                         output[pOutput++] = output[pSource++]
                     }
                     totalBytes += count

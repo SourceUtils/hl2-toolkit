@@ -18,8 +18,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.properties.Delegates
 
-class VTX [throws(javaClass<IOException>(), javaClass<InstantiationException>(), javaClass<IllegalAccessException>())]
-private(`in`: InputStream) {
+class VTX @throws(IOException::class, InstantiationException::class, IllegalAccessException::class)
+private constructor(`in`: InputStream) {
     val bodyParts: MutableList<BodyPart>
     private val header: VtxHeader
     private val `is`: OrderedInputStream
@@ -28,7 +28,7 @@ private(`in`: InputStream) {
         `is` = OrderedInputStream(`in`)
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
-        header = `is`.readStruct<VtxHeader>(VtxHeader())
+        header = `is`.readStruct(VtxHeader())
         LOG.log(verbosity, header.toString())
         // Parts
         bodyParts = ArrayList<BodyPart>(header.numBodyParts)
@@ -36,8 +36,8 @@ private(`in`: InputStream) {
         //                "\t\t\tparts[] = {2}: {0} vs {1}",
         //                new Object[] {is.position(), offset, header.numBodyParts});
         position(header.bodyPartOffset)
-        for (partIdx in header.numBodyParts.indices) {
-            val part = `is`.readStruct<BodyPart>(BodyPart())
+        for (partIdx in 0..header.numBodyParts - 1) {
+            val part = `is`.readStruct(BodyPart())
             bodyParts.add(part)
             // Models
             part.models = ArrayList<Model>(part.numModels)
@@ -45,8 +45,8 @@ private(`in`: InputStream) {
             //                    "\t\t\tparts[{3}].models[] = {2}: {0} vs {1}",
             //                    new Object[] {is.position(),  offset + part.modelOffset, part.numModels, partIdx});
             position(part.offset + part.modelOffset)
-            for (modelIdx in part.numModels.indices) {
-                val model = `is`.readStruct<Model>(Model())
+            for (modelIdx in 0..part.numModels - 1) {
+                val model = `is`.readStruct(Model())
                 part.models.add(model)
                 // LODs
                 model.lods = ArrayList<ModelLOD>(model.numLODs)
@@ -55,8 +55,8 @@ private(`in`: InputStream) {
                 //                        new Object[] {is.position(), offset + model.lodOffset, model.numLODs,
                 //                                      partIdx, modelIdx});
                 position(model.offset + model.lodOffset)
-                for (lodIdx in model.numLODs.indices) {
-                    val lod = `is`.readStruct<ModelLOD>(ModelLOD())
+                for (lodIdx in 0..model.numLODs - 1) {
+                    val lod = `is`.readStruct(ModelLOD())
                     model.lods.add(lod)
                     // Meshes
                     lod.meshes = ArrayList<Mesh>(lod.numMeshes)
@@ -65,8 +65,8 @@ private(`in`: InputStream) {
                     //                            new Object[] {is.position(), offset + lod.meshOffset, lod.numMeshes,
                     //                                          partIdx, modelIdx, lodIdx});
                     position(lod.offset + lod.meshOffset)
-                    for (meshIdx in lod.numMeshes.indices) {
-                        val mesh = `is`.readStruct<Mesh>(Mesh())
+                    for (meshIdx in 0..lod.numMeshes - 1) {
+                        val mesh = `is`.readStruct(Mesh())
                         lod.meshes.add(mesh)
                         // Strip groups
                         mesh.stripGroups = ArrayList<StripGroup>(mesh.numStripGroups)
@@ -77,10 +77,10 @@ private(`in`: InputStream) {
                         // mesh.numStripGroups,
                         //                                              partIdx, modelIdx, lodIdx, meshIdx});
                         position(mesh.offset + mesh.stripGroupHeaderOffset)
-                        for (groupIdx in mesh.numStripGroups.indices) {
-                            val stripGroup = `is`.readStruct<StripGroup>(StripGroup())
+                        for (groupIdx in 0..mesh.numStripGroups - 1) {
+                            val stripGroup = `is`.readStruct(StripGroup())
                             mesh.stripGroups.add(stripGroup)
-                            LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", array<Any>(stripGroup.offset, stripGroup.offset + stripGroup.vertOffset, stripGroup.offset + stripGroup.stripOffset, stripGroup.offset + stripGroup.indexOffset))
+                            LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", arrayOf<Any>(stripGroup.offset, stripGroup.offset + stripGroup.vertOffset, stripGroup.offset + stripGroup.stripOffset, stripGroup.offset + stripGroup.indexOffset))
                             // Strips
                             stripGroup.strips = ArrayList<Strip>(stripGroup.numStrips)
                             //                            LOG.log(verbosity,
@@ -90,8 +90,8 @@ private(`in`: InputStream) {
                             // stripGroup.numStrips,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.stripOffset)
-                            for (stripIdx in stripGroup.numStrips.indices) {
-                                val strip = `is`.readStruct<Strip>(Strip())
+                            for (stripIdx in 0..stripGroup.numStrips - 1) {
+                                val strip = `is`.readStruct(Strip())
                                 stripGroup.strips.add(strip)
                             }
                             // Verts
@@ -103,8 +103,8 @@ private(`in`: InputStream) {
                             // stripGroup.numVerts,
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.vertOffset)
-                            for (vertIdx in stripGroup.numVerts.indices) {
-                                val vert = `is`.readStruct<Vertex>(Vertex())
+                            for (vertIdx in 0..stripGroup.numVerts - 1) {
+                                val vert = `is`.readStruct(Vertex())
                                 stripGroup.verts.add(vert)
                             }
                             // Indices
@@ -117,7 +117,7 @@ private(`in`: InputStream) {
                             //                                                  partIdx, modelIdx, lodIdx, meshIdx, groupIdx});
                             position(stripGroup.offset + stripGroup.indexOffset)
                             `is`.readFully(indicesBuf)
-                            stripGroup.indexBuffer = ByteBuffer.allocateDirect(indicesBuf.size).put(indicesBuf)
+                            stripGroup.indexBuffer = ByteBuffer.allocateDirect(indicesBuf.size()).put(indicesBuf)
                             stripGroup.indexBuffer.flip()
                             position(stripGroup.offset + Struct.sizeof(stripGroup))
                         }
@@ -129,7 +129,7 @@ private(`in`: InputStream) {
             }
             position(part.offset + Struct.sizeof(part))
         }
-        LOG.log(verbosity, "Underflow: {0}", array<Any>(`is`.available()))
+        LOG.log(verbosity, "Underflow: {0}", arrayOf<Any>(`is`.available()))
     }
 
     private fun position(index: Int) {
@@ -301,13 +301,13 @@ private(`in`: InputStream) {
         private val LOG = Logger.getLogger(javaClass<VTX>().getName())
         private val verbosity = Level.FINE
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(file: File): VTX? {
             LOG.log(Level.INFO, "Loading VVD {0}", file)
             return load(ByteBufferInputStream(DataUtils.mapFile(file)))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`in`: InputStream): VTX? {
             try {
                 return VTX(BufferedInputStream(`in`))

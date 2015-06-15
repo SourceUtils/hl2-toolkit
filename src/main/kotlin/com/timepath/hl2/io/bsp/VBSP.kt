@@ -23,14 +23,14 @@ public class VBSP : BSP() {
      * @throws java.io.IOException
      * @see @see <a>https://github.com/toji/webgl-source/blob/master/js/source-bsp.js#L567</a>
      */
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun processToji() {
         val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
         LOG.log(Level.INFO, "Vertices: {0}", bspVertices!!.capacity())
         val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)
         LOG.log(Level.INFO, "Edges: {0}", bspEdges!!.size())
         val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)
-        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size)
+        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size())
         val bspFaces = getLump<Array<Face>>(LumpType.LUMP_FACES)
         LOG.log(Level.INFO, "Faces: {0}", bspFaces!!.size())
         val vertices = LinkedList<Float>()
@@ -41,7 +41,7 @@ public class VBSP : BSP() {
         for (face in bspFaces) {
             val edgeId = face.firstedge
             val vertLookupTable = HashMap<Int, Int>(0)
-            for (i in face.numedges.toInt().indices) {
+            for (i in 0..face.numedges.toInt() - 1) {
                 val surfEdge = bspSurfEdges[edgeId + 1]
                 val edge = bspEdges[Math.abs(surfEdge)]
                 val reverse = surfEdge >= 0
@@ -93,7 +93,7 @@ public class VBSP : BSP() {
             }
             new.flip()
             this.indices = new
-            LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", array<Any>(indices.size(), indices.size() / 3))
+            LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", arrayOf<Any>(indices.size(), indices.size() / 3))
         }
         if ((vertices != null) && !vertices.isEmpty()) {
             val new = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
@@ -102,7 +102,7 @@ public class VBSP : BSP() {
             }
             new.flip()
             this.vertices = new
-            LOG.log(Level.INFO, "Map: vertices {0}", array<Any>(vertices.size()))
+            LOG.log(Level.INFO, "Map: vertices {0}", arrayOf<Any>(vertices.size()))
         }
     }
 
@@ -111,14 +111,14 @@ public class VBSP : BSP() {
      * @see <a>https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L222</a>
      */
     SuppressWarnings("empty-statement", "StatementWithEmptyBody")
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun processW23() {
         val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
         LOG.log(Level.INFO, "Vertices: {0}", bspVertices!!.capacity())
         val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)
         LOG.log(Level.INFO, "Edges: {0}", bspEdges!!.size())
         val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)
-        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size)
+        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size())
         // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L253
         for (i in bspSurfEdges.indices) {
             bspSurfEdges[i] = (if (bspSurfEdges[i] >= 0) bspEdges[bspSurfEdges[i]].v[0] else bspEdges[-bspSurfEdges[i]].v[1]).toInt()
@@ -131,7 +131,7 @@ public class VBSP : BSP() {
             val edgeId = face.firstedge
             // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L347
             val index_shift = vertices.size()
-            for (i in face.numedges.toInt().indices) {
+            for (i in 0..face.numedges.toInt() - 1) {
                 bspVertices.position(bspSurfEdges[edgeId + i] * 3)
                 run {
                     var j = 0
@@ -149,13 +149,13 @@ public class VBSP : BSP() {
         done(vertices, indices)
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun process() {
         processBasic()
     }
 
     SuppressWarnings("empty-statement", "StatementWithEmptyBody")
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     fun processBasic() {
         val vertices = LinkedList<Float>()
         val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
@@ -169,7 +169,7 @@ public class VBSP : BSP() {
 
         private val LOG = Logger.getLogger(javaClass<VBSP>().getName())
 
-        throws(javaClass<Exception>())
+        throws(Exception::class)
         public platformStatic fun main(args: Array<String>) {
             val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
             LOG.log(Level.INFO, "Revision: {0}", b!!.revision)

@@ -4,143 +4,143 @@ package com.timepath.hl2.io.demo
  * hl2sdk-ob-valve/public/inputsystem/ButtonCode.h
  */
 public enum class Buttons(val id: Int) {
-    KEY_NONE : Buttons(0)
-    KEY_0 : Buttons(1)
-    KEY_1 : Buttons(2)
-    KEY_2 : Buttons(3)
-    KEY_3 : Buttons(4)
-    KEY_4 : Buttons(5)
-    KEY_5 : Buttons(6)
-    KEY_6 : Buttons(7)
-    KEY_7 : Buttons(8)
-    KEY_8 : Buttons(9)
-    KEY_9 : Buttons(10)
-    KEY_A : Buttons(11)
-    KEY_B : Buttons(12)
-    KEY_C : Buttons(13)
-    KEY_D : Buttons(14)
-    KEY_E : Buttons(15)
-    KEY_F : Buttons(16)
-    KEY_G : Buttons(17)
-    KEY_H : Buttons(18)
-    KEY_I : Buttons(19)
-    KEY_J : Buttons(20)
-    KEY_K : Buttons(21)
-    KEY_L : Buttons(22)
-    KEY_M : Buttons(23)
-    KEY_N : Buttons(24)
-    KEY_O : Buttons(25)
-    KEY_P : Buttons(26)
-    KEY_Q : Buttons(27)
-    KEY_R : Buttons(28)
-    KEY_S : Buttons(29)
-    KEY_T : Buttons(30)
-    KEY_U : Buttons(31)
-    KEY_V : Buttons(32)
-    KEY_W : Buttons(33)
-    KEY_X : Buttons(34)
-    KEY_Y : Buttons(35)
-    KEY_Z : Buttons(36)
-    KEY_PAD_0 : Buttons(37)
-    KEY_PAD_1 : Buttons(38)
-    KEY_PAD_2 : Buttons(39)
-    KEY_PAD_3 : Buttons(40)
-    KEY_PAD_4 : Buttons(41)
-    KEY_PAD_5 : Buttons(42)
-    KEY_PAD_6 : Buttons(43)
-    KEY_PAD_7 : Buttons(44)
-    KEY_PAD_8 : Buttons(45)
-    KEY_PAD_9 : Buttons(46)
-    KEY_PAD_DIVIDE : Buttons(47)
-    KEY_PAD_MULTIPLY : Buttons(48)
-    KEY_PAD_MINUS : Buttons(49)
-    KEY_PAD_PLUS : Buttons(50)
-    KEY_PAD_ENTER : Buttons(51)
-    KEY_PAD_DECIMAL : Buttons(52)
-    KEY_LBRACKET : Buttons(53)
-    KEY_RBRACKET : Buttons(54)
-    KEY_SEMICOLON : Buttons(55)
-    KEY_APOSTROPHE : Buttons(56)
-    KEY_BACKQUOTE : Buttons(57)
-    KEY_COMMA : Buttons(58)
-    KEY_PERIOD : Buttons(59)
-    KEY_SLASH : Buttons(60)
-    KEY_BACKSLASH : Buttons(61)
-    KEY_MINUS : Buttons(62)
-    KEY_EQUAL : Buttons(63)
-    KEY_ENTER : Buttons(64)
-    KEY_SPACE : Buttons(65)
-    KEY_BACKSPACE : Buttons(66)
-    KEY_TAB : Buttons(67)
-    KEY_CAPSLOCK : Buttons(68)
-    KEY_NUMLOCK : Buttons(69)
-    KEY_ESCAPE : Buttons(70)
-    KEY_SCROLLLOCK : Buttons(71)
-    KEY_INSERT : Buttons(72)
-    KEY_DELETE : Buttons(73)
-    KEY_HOME : Buttons(74)
-    KEY_END : Buttons(75)
-    KEY_PAGEUP : Buttons(76)
-    KEY_PAGEDOWN : Buttons(77)
-    KEY_BREAK : Buttons(78)
-    KEY_LSHIFT : Buttons(79)
-    KEY_RSHIFT : Buttons(80)
-    KEY_LALT : Buttons(81)
-    KEY_RALT : Buttons(82)
-    KEY_LCONTROL : Buttons(83)
-    KEY_RCONTROL : Buttons(84)
-    KEY_LWIN : Buttons(85)
-    KEY_RWIN : Buttons(86)
-    KEY_APP : Buttons(87)
-    KEY_UP : Buttons(88)
-    KEY_LEFT : Buttons(89)
-    KEY_DOWN : Buttons(90)
-    KEY_RIGHT : Buttons(91)
-    KEY_F1 : Buttons(92)
-    KEY_F2 : Buttons(93)
-    KEY_F3 : Buttons(94)
-    KEY_F4 : Buttons(95)
-    KEY_F5 : Buttons(96)
-    KEY_F6 : Buttons(97)
-    KEY_F7 : Buttons(98)
-    KEY_F8 : Buttons(99)
-    KEY_F9 : Buttons(100)
-    KEY_F10 : Buttons(101)
-    KEY_F11 : Buttons(102)
-    KEY_F12 : Buttons(103)
-    KEY_CAPSLOCKTOGGLE : Buttons(104)
-    KEY_NUMLOCKTOGGLE : Buttons(105)
-    KEY_SCROLLLOCKTOGGLE : Buttons(106)
-    MOUSE_LEFT : Buttons(107)
-    MOUSE_RIGHT : Buttons(108)
-    MOUSE_MIDDLE : Buttons(109)
-    MOUSE_4 : Buttons(110)
-    MOUSE_5 : Buttons(111)
-    MOUSE_WHEEL_UP : Buttons(112)
-    MOUSE_WHEEL_DOWN : Buttons(113)
-    KEY_XBUTTON_A : Buttons(114)
-    KEY_XBUTTON_B : Buttons(115)
-    KEY_XBUTTON_X : Buttons(116)
-    KEY_XBUTTON_Y : Buttons(117)
-    KEY_XBUTTON_LEFT_SHOULDER : Buttons(118)
-    KEY_XBUTTON_RIGHT_SHOULDER : Buttons(119)
-    KEY_XBUTTON_BACK : Buttons(120)
-    KEY_XBUTTON_START : Buttons(121)
-    KEY_XBUTTON_STICK1 : Buttons(122)
-    KEY_XBUTTON_STICK2 : Buttons(123)
+    KEY_NONE(0),
+    KEY_0(1),
+    KEY_1(2),
+    KEY_2(3),
+    KEY_3(4),
+    KEY_4(5),
+    KEY_5(6),
+    KEY_6(7),
+    KEY_7(8),
+    KEY_8(9),
+    KEY_9(10),
+    KEY_A(11),
+    KEY_B(12),
+    KEY_C(13),
+    KEY_D(14),
+    KEY_E(15),
+    KEY_F(16),
+    KEY_G(17),
+    KEY_H(18),
+    KEY_I(19),
+    KEY_J(20),
+    KEY_K(21),
+    KEY_L(22),
+    KEY_M(23),
+    KEY_N(24),
+    KEY_O(25),
+    KEY_P(26),
+    KEY_Q(27),
+    KEY_R(28),
+    KEY_S(29),
+    KEY_T(30),
+    KEY_U(31),
+    KEY_V(32),
+    KEY_W(33),
+    KEY_X(34),
+    KEY_Y(35),
+    KEY_Z(36),
+    KEY_PAD_0(37),
+    KEY_PAD_1(38),
+    KEY_PAD_2(39),
+    KEY_PAD_3(40),
+    KEY_PAD_4(41),
+    KEY_PAD_5(42),
+    KEY_PAD_6(43),
+    KEY_PAD_7(44),
+    KEY_PAD_8(45),
+    KEY_PAD_9(46),
+    KEY_PAD_DIVIDE(47),
+    KEY_PAD_MULTIPLY(48),
+    KEY_PAD_MINUS(49),
+    KEY_PAD_PLUS(50),
+    KEY_PAD_ENTER(51),
+    KEY_PAD_DECIMAL(52),
+    KEY_LBRACKET(53),
+    KEY_RBRACKET(54),
+    KEY_SEMICOLON(55),
+    KEY_APOSTROPHE(56),
+    KEY_BACKQUOTE(57),
+    KEY_COMMA(58),
+    KEY_PERIOD(59),
+    KEY_SLASH(60),
+    KEY_BACKSLASH(61),
+    KEY_MINUS(62),
+    KEY_EQUAL(63),
+    KEY_ENTER(64),
+    KEY_SPACE(65),
+    KEY_BACKSPACE(66),
+    KEY_TAB(67),
+    KEY_CAPSLOCK(68),
+    KEY_NUMLOCK(69),
+    KEY_ESCAPE(70),
+    KEY_SCROLLLOCK(71),
+    KEY_INSERT(72),
+    KEY_DELETE(73),
+    KEY_HOME(74),
+    KEY_END(75),
+    KEY_PAGEUP(76),
+    KEY_PAGEDOWN(77),
+    KEY_BREAK(78),
+    KEY_LSHIFT(79),
+    KEY_RSHIFT(80),
+    KEY_LALT(81),
+    KEY_RALT(82),
+    KEY_LCONTROL(83),
+    KEY_RCONTROL(84),
+    KEY_LWIN(85),
+    KEY_RWIN(86),
+    KEY_APP(87),
+    KEY_UP(88),
+    KEY_LEFT(89),
+    KEY_DOWN(90),
+    KEY_RIGHT(91),
+    KEY_F1(92),
+    KEY_F2(93),
+    KEY_F3(94),
+    KEY_F4(95),
+    KEY_F5(96),
+    KEY_F6(97),
+    KEY_F7(98),
+    KEY_F8(99),
+    KEY_F9(100),
+    KEY_F10(101),
+    KEY_F11(102),
+    KEY_F12(103),
+    KEY_CAPSLOCKTOGGLE(104),
+    KEY_NUMLOCKTOGGLE(105),
+    KEY_SCROLLLOCKTOGGLE(106),
+    MOUSE_LEFT(107),
+    MOUSE_RIGHT(108),
+    MOUSE_MIDDLE(109),
+    MOUSE_4(110),
+    MOUSE_5(111),
+    MOUSE_WHEEL_UP(112),
+    MOUSE_WHEEL_DOWN(113),
+    KEY_XBUTTON_A(114),
+    KEY_XBUTTON_B(115),
+    KEY_XBUTTON_X(116),
+    KEY_XBUTTON_Y(117),
+    KEY_XBUTTON_LEFT_SHOULDER(118),
+    KEY_XBUTTON_RIGHT_SHOULDER(119),
+    KEY_XBUTTON_BACK(120),
+    KEY_XBUTTON_START(121),
+    KEY_XBUTTON_STICK1(122),
+    KEY_XBUTTON_STICK2(123),
     // 124 - 145
-    KEY_XBUTTON_UP : Buttons(146)
-    KEY_XBUTTON_RIGHT : Buttons(147)
-    KEY_XBUTTON_DOWN : Buttons(148)
-    KEY_XBUTTON_LEFT : Buttons(149)
-    KEY_XSTICK1_RIGHT : Buttons(150)
-    KEY_XSTICK1_LEFT : Buttons(151)
-    KEY_XSTICK1_DOWN : Buttons(152)
-    KEY_XSTICK1_UP : Buttons(153)
-    KEY_XBUTTON_LTRIGGER : Buttons(154)
-    KEY_XBUTTON_RTRIGGER : Buttons(155)
-    KEY_XSTICK2_RIGHT : Buttons(156)
-    KEY_XSTICK2_LEFT : Buttons(157)
-    KEY_XSTICK2_DOWN : Buttons(158)
-    KEY_XSTICK2_UP : Buttons(159)
+    KEY_XBUTTON_UP(146),
+    KEY_XBUTTON_RIGHT(147),
+    KEY_XBUTTON_DOWN(148),
+    KEY_XBUTTON_LEFT(149),
+    KEY_XSTICK1_RIGHT(150),
+    KEY_XSTICK1_LEFT(151),
+    KEY_XSTICK1_DOWN(152),
+    KEY_XSTICK1_UP(153),
+    KEY_XBUTTON_LTRIGGER(154),
+    KEY_XBUTTON_RTRIGGER(155),
+    KEY_XSTICK2_RIGHT(156),
+    KEY_XSTICK2_LEFT(157),
+    KEY_XSTICK2_DOWN(158),
+    KEY_XSTICK2_UP(159)
 }

@@ -56,7 +56,7 @@ import javax.swing.UIManager
  * @author TimePath
  */
 
-throws(javaClass<IOException>())
+throws(IOException::class)
 public fun Element(`is`: InputStream, c: Charset): Element {
     val __ = Element(null)
     __.vdf = VDFNode(`is`, c)
@@ -91,7 +91,7 @@ public class Element(private val info: String?) : ViewableData {
             var tmp: String = s
             // assumes one set of quotes
             tmp = tmp.substring(1, tmp.length() - 1)
-            tmp = tmp.replaceAll("\"", "")
+            tmp = tmp.replace("\"", "")
             tmp.trim()
         }
         else -> s
@@ -139,7 +139,7 @@ public class Element(private val info: String?) : ViewableData {
 
                 vint = parseInt(v)
                 if (vint != null)
-                    localX = vint!!.toDouble()
+                    localX = vint.toDouble()
             } else if ("ypos" == switchArg) {
                 if (v.startsWith("c")) {
                     YAlignment = VAlignment.Center
@@ -152,9 +152,9 @@ public class Element(private val info: String?) : ViewableData {
                 }
                 vint = parseInt(v)
                 if (vint != null)
-                    localY = vint!!.toDouble()
+                    localY = vint.toDouble()
             } else if ("zpos" == switchArg) {
-                if (vint != null) layer = vint!!
+                if (vint != null) layer = vint
             } else if ("wide" == switchArg) {
                 if (v.startsWith("f")) {
                     v = v.substring(1)
@@ -162,7 +162,7 @@ public class Element(private val info: String?) : ViewableData {
                 }
                 vint = parseInt(v)
                 if (vint != null)
-                    wide = vint!!
+                    wide = vint
             } else if ("tall" == switchArg) {
                 if (v.startsWith("f")) {
                     v = v.substring(1)
@@ -170,20 +170,20 @@ public class Element(private val info: String?) : ViewableData {
                 }
                 vint = parseInt(v)
                 if (vint != null)
-                    tall = vint!!
+                    tall = vint
             } else if ("labeltext" == switchArg) {
                 labelText = v
             } else if ("textalignment" == switchArg) {
-                if ("center".equalsIgnoreCase(v)) {
+                if ("center".equals(v, ignoreCase = true)) {
                     textAlignment = Alignment.Center
                 } else {
-                    textAlignment = if ("right".equalsIgnoreCase(v)) Alignment.Right else Alignment.Left
+                    textAlignment = if ("right".equals(v, ignoreCase = true)) Alignment.Right else Alignment.Left
                 }
 
             } else if ("controlname" == switchArg) {
                 controlName = v
             } else if ("fgcolor" == switchArg) {
-                val c = v.split(" ")
+                val c = v.splitBy(" ")
                 try {
                     fgColor = Color(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]), Integer.parseInt(c[3]))
                 } catch (ignored: NumberFormatException) {
@@ -205,7 +205,7 @@ public class Element(private val info: String?) : ViewableData {
         if (controlName != null) {
             val control = Controls[controlName!!]
         } else {
-            if ("hudlayout".equalsIgnoreCase(file ?: "")) {
+            if ("hudlayout".equals(file ?: "", ignoreCase = true)) {
                 areas.put(name!!, this)
             }
         }
@@ -259,25 +259,25 @@ public class Element(private val info: String?) : ViewableData {
             val k = entry.getKey()
             if (k == null) continue
             try {
-                if ("enabled".equalsIgnoreCase(k)) {
+                if ("enabled".equals(k, ignoreCase = true)) {
                     entry.setValue(if (enabled) 1 else 0)
-                } else if ("visible".equalsIgnoreCase(k)) {
+                } else if ("visible".equals(k, ignoreCase = true)) {
                     entry.setValue(if (visible) 1 else 0)
-                } else if ("xpos".equalsIgnoreCase(k)) {
+                } else if ("xpos".equals(k, ignoreCase = true)) {
                     val e = XAlignment
-                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirst("l", "")}$localX")
-                } else if ("ypos".equalsIgnoreCase(k)) {
+                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirstLiteral("l", "")}$localX")
+                } else if ("ypos".equals(k, ignoreCase = true)) {
                     val e = Alignment.values()[YAlignment.ordinal()]
-                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirst("l", "")}$localY")
-                } else if ("zpos".equalsIgnoreCase(k)) {
+                    entry.setValue("${e.name().substring(0, 1).toLowerCase().replaceFirstLiteral("l", "")}$localY")
+                } else if ("zpos".equals(k, ignoreCase = true)) {
                     entry.setValue(layer)
-                } else if ("wide".equalsIgnoreCase(k)) {
+                } else if ("wide".equals(k, ignoreCase = true)) {
                     entry.setValue("${if ((wideMode == DimensionMode.Mode2)) "f" else ""}$wide")
-                } else if ("tall".equalsIgnoreCase(k)) {
+                } else if ("tall".equals(k, ignoreCase = true)) {
                     entry.setValue("${if ((tallMode == DimensionMode.Mode2)) "f" else ""}$tall")
-                } else if ("labelText".equalsIgnoreCase(k)) {
+                } else if ("labelText".equals(k, ignoreCase = true)) {
                     entry.setValue(labelText)
-                } else if ("ControlName".equalsIgnoreCase(k)) {
+                } else if ("ControlName".equals(k, ignoreCase = true)) {
                     entry.setValue(controlName)
                 }
 
@@ -343,19 +343,19 @@ public class Element(private val info: String?) : ViewableData {
     public var file: String? = null
 
     public enum class Alignment {
-        Left
-        Center
+        Left,
+        Center,
         Right
     }
 
     public enum class VAlignment {
-        Top
-        Center
+        Top,
+        Center,
         Bottom
     }
 
     public enum class DimensionMode {
-        Mode1
+        Mode1,
         Mode2
     }
 

@@ -58,7 +58,7 @@ public class VTF : ViewableData {
     public var width: Int = 0
         private set
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     fun loadFromStream(`is`: InputStream): Boolean {
         val magic = `is`.read() or (`is`.read() shl 8) or (`is`.read() shl 16)
         val type = `is`.read()
@@ -67,11 +67,11 @@ public class VTF : ViewableData {
             return false
         }
         val array = ByteArray(4 + `is`.available())
-        `is`.read(array, 4, array.size - 4)
+        `is`.read(array, 4, array.size() - 4)
         buf = ByteBuffer.wrap(array)
         buf!!.order(ByteOrder.LITTLE_ENDIAN)
         buf!!.position(4)
-        version = intArray(buf!!.getInt(), buf!!.getInt())
+        version = intArrayOf(buf!!.getInt(), buf!!.getInt())
         headerSize = buf!!.getInt()
         if (type == 'X'.toInt()) {
             flags = buf!!.getInt()
@@ -94,7 +94,7 @@ public class VTF : ViewableData {
             val mipSkipCount = buf!!.get()
             val numResources = buf!!.get()
         }
-        reflectivity = floatArray(buf!!.getFloat().toFloat(), buf!!.getFloat().toFloat(), buf!!.getFloat().toFloat())
+        reflectivity = floatArrayOf(buf!!.getFloat().toFloat(), buf!!.getFloat().toFloat(), buf!!.getFloat().toFloat())
         if (type == 0) {
             buf!!.get(ByteArray(4))
         }
@@ -111,7 +111,7 @@ public class VTF : ViewableData {
             buf!!.get(lowResImageSample)
             val compressedSize = buf!!.getInt()
         }
-        val debug = array(array("Width = ", width), array("Height = ", height), array("Frames = ", frameCount), array("Flags = ", enumSet), array("Format = ", format), array("MipCount = ", mipCount))
+        val debug = arrayOf(arrayOf("Width = ", width), arrayOf("Height = ", height), arrayOf("Frames = ", frameCount), arrayOf<Any?>("Flags = ", enumSet), arrayOf("Format = ", format), arrayOf("MipCount = ", mipCount))
         if (LOG.isLoggable(Level.FINE)) {
             LOG.fine(StringUtils.fromDoubleArray(debug, "VTF:"))
         }
@@ -150,7 +150,7 @@ public class VTF : ViewableData {
      * @return *
      * @throws IOException
      */
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun getImage(level: Int): Image? = getImage(level, frameFirst)
 
     /**
@@ -173,15 +173,15 @@ public class VTF : ViewableData {
         buf!!.position(headerSize + thumbLen)
         val sizesX = IntArray(mipCount) // smallest -> largest {1, 2, 4, 8, 16, 32, 64, 128}
         val sizesY = IntArray(mipCount)
-        for (n in mipCount.indices) {
+        for (n in 0..mipCount - 1) {
             sizesX[mipCount - 1 - n] = Math.max(width.ushr(n), 1)
             sizesY[mipCount - 1 - n] = Math.max(height.ushr(n), 1)
         }
         var image: BufferedImage? = null
-        for (i in mipCount.indices) {
+        for (i in 0..mipCount - 1) {
             val w = sizesX[i]
             val h = sizesY[i]
-            LOG.log(Level.FINE, "{0}, {1}", array<Any>(w, h))
+            LOG.log(Level.FINE, "{0}, {1}", arrayOf<Any>(w, h))
             val nBytes = format!!.getBytes(w, h)
             if (i == (mipCount - level - 1)) {
                 val imageData = ByteArray(nBytes * frameCount)
@@ -194,7 +194,7 @@ public class VTF : ViewableData {
                 System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes)
                 LOG.log(Level.INFO, "VTF format {0}", format)
                 image = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
-                val g = image!!.getGraphics() as Graphics2D
+                val g = image.getGraphics() as Graphics2D
                 g.drawImage(format!!.load(imageData, w, h), 0, 0, w, h, null)
             } else {
                 buf!![ByteArray(nBytes * frameCount)]
@@ -215,12 +215,12 @@ public class VTF : ViewableData {
          */
         private val VTF_RSRC_TEXTURE_CRC = 37966403
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(s: String): VTF? {
             return load(FileInputStream(s))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun load(`is`: InputStream): VTF? {
             val vtf = VTF()
             if (vtf.loadFromStream(`is`)) {

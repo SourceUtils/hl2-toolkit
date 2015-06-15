@@ -9,7 +9,7 @@ import java.util.logging.Logger
 
 class SurfaceEdgeHandler : LumpHandler<IntArray> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): IntArray {
         val e = IntArray(l.length / 4)
         for (i in e.indices) {

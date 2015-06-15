@@ -14,7 +14,7 @@ import java.util.logging.Logger
  */
 class VertexHander : LumpHandler<FloatBuffer> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): FloatBuffer {
         val verts = ByteBuffer.allocateDirect(l.length)
         val vertBuf = ByteArray(l.length)

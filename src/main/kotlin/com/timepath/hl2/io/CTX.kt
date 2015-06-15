@@ -17,7 +17,7 @@ import kotlin.platform.platformStatic
  *
  * @author TimePath
  */
-public class CTX private() {
+public class CTX private constructor() {
     companion object {
 
         public val TF2: String = "E2NcUkG2"
@@ -32,10 +32,10 @@ public class CTX private() {
                 if (key == null) {
                     key = TF2
                 }
-                var de = decrypt(key!!.getBytes("UTF-8"), `is`)
-                val is2 = encrypt(key!!.getBytes("UTF-8"), de)
+                var de = decrypt(key.toByteArray(), `is`)
+                val is2 = encrypt(key.toByteArray(), de)
                 `is` = FileInputStream(args[0])
-                de = decrypt(key!!.getBytes("UTF-8"), `is`)
+                de = decrypt(key.toByteArray(), `is`)
                 `is` = FileInputStream(args[0])
                 val bs = 4096
                 val debuf = ByteBuffer.allocate(de.available())
@@ -73,17 +73,17 @@ public class CTX private() {
 
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         private fun encrypt(key: ByteArray, `is`: InputStream): InputStream {
             return ByteArrayInputStream(method(key, `is`, false))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         public fun decrypt(key: ByteArray, `is`: InputStream): InputStream {
             return ByteArrayInputStream(method(key, `is`, true))
         }
 
-        throws(javaClass<IOException>())
+        throws(IOException::class)
         private fun method(key: ByteArray, `is`: InputStream, decrypt: Boolean): ByteArray {
             val buf = ByteBuffer.allocate(`is`.available())
             val ice = IceKey(0)

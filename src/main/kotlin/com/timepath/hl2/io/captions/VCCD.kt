@@ -48,16 +48,16 @@ public object VCCD {
 
     public fun hash(`in`: String): Int {
         val crc = CRC32()
-        crc.update(`in`.toLowerCase().getBytes(Charset.forName("UTF-8")))
+        crc.update(`in`.toLowerCase().toByteArray())
         return crc.getValue().toInt()
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun load(`is`: InputStream): List<VCCDEntry>? {
         return load(OrderedInputStream(`is`))
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     private fun load(ois: OrderedInputStream): List<VCCDEntry>? {
         LOG.log(Level.INFO, "Loading from {0}", ois)
         ois.order(ByteOrder.LITTLE_ENDIAN)
@@ -80,16 +80,16 @@ public object VCCD {
         val blockSize = ois.readInt()
         val totalEntries = ois.readInt()
         val dataOffset = ois.readInt()
-        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", array<Any>(version, blocks, blockSize, totalEntries, dataOffset))
+        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", arrayOf<Any>(version, blocks, blockSize, totalEntries, dataOffset))
         val entries = arrayOfNulls<VCCDEntry>(totalEntries)
-        for (i in totalEntries.indices) {
+        for (i in 0..totalEntries - 1) {
             val e = VCCDEntry()
             e.hash = ois.readInt()
             e.block = ois.readInt()
             e.offset = ois.readShort().toInt()
             e.length = (ois.readShort().toInt())
             entries[i] = e
-            LOG.log(Level.FINEST, "Loading {0}, {1} ({2}->{3})", array<Any>(i, e.hash, e.offset, e.offset + e.length))
+            LOG.log(Level.FINEST, "Loading {0}, {1} ({2}->{3})", arrayOf<Any>(i, e.hash, e.offset, e.offset + e.length))
         }
         ois.skipTo(dataOffset)
         for (e in entries) {
@@ -111,7 +111,7 @@ public object VCCD {
      * @param is
      * @return
      */
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun parse(`is`: InputStream): List<VCCDEntry> {
         val v = VDF.load(`is`, StandardCharsets.UTF_16)
         val children = LinkedList<VCCDEntry>()
@@ -142,12 +142,12 @@ public object VCCD {
         return children
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun save(entries: List<VCCDEntry>, os: OutputStream) {
         save(entries, os, false, false)
     }
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun save(entries: List<VCCDEntry>, os: OutputStream, byteswap: Boolean, smallBlocks: Boolean) {
         val buf = save(entries, byteswap, smallBlocks)
         val bytes = ByteArray(buf.capacity())
@@ -184,13 +184,13 @@ public object VCCD {
                 e.block = requiredBlocks - 1 // Zero indexed
                 e.offset = totalLength % blockSize
                 totalLength += thisLength
-                if ((longest == null) || (longest!!.length < e.length)) {
+                if ((longest == null) || (longest.length < e.length)) {
                     longest = e
                 }
             }
             LOG.log(Level.INFO, "Found {0} strings", entries.size())
-            LOG.log(Level.INFO, "Longest string ''{0}'' = ({1})", array(longest!!.key, longest!!.length))
-            LOG.log(Level.INFO, "{0} bytes wasted", array<Any>(totalWaste))
+            LOG.log(Level.INFO, "Longest string ''{0}'' = ({1})", arrayOf(longest!!.key, longest.length))
+            LOG.log(Level.INFO, "{0} bytes wasted", arrayOf<Any>(totalWaste))
         }
         var dataOffset = HEADER_SIZE + (entries.size() * ENTRY_SIZE)
         // Round up to nearest multiple of 512
@@ -207,22 +207,22 @@ public object VCCD {
         buf.putInt(blockSize)
         buf.putInt(entries.size())
         buf.putInt(dataOffset)
-        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", array<Any>(version, requiredBlocks, blockSize, entries.size(), dataOffset))
+        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", arrayOf<Any>(version, requiredBlocks, blockSize, entries.size(), dataOffset))
         var i = 0
         for (e in entries) {
             buf.putInt(e.hash)
             buf.putInt(e.block)
             buf.putShort((e.offset and 65535).toShort())
             buf.putShort((e.length and 65535).toShort())
-            LOG.log(Level.FINEST, "Saving #{0} ({1}) - block: {2}, region: {3} + {4} -> {5}", array(++i, e.key, e.block, e.offset, e.length, e.offset + e.length))
+            LOG.log(Level.FINEST, "Saving #{0} ({1}) - block: {2}, region: {3} + {4} -> {5}", arrayOf(++i, e.key, e.block, e.offset, e.length, e.offset + e.length))
         }
         buf.put(ByteArray(dataOffset - buf.position()))
         val encoding = if (byteswap) StandardCharsets.UTF_16BE else StandardCharsets.UTF_16LE
-        val nul = "\u0000".getBytes(encoding)
+        val nul = "\u0000".toByteArray(encoding)
         for (e in entries) {
             val p = dataOffset + (e.block * blockSize) + e.offset
             buf.position(p)
-            buf.put(e.value!!.getBytes(encoding))
+            buf.put(e.value!!.toByteArray(encoding))
             buf.put(nul)
         }
         buf.put(ByteArray(totalSize - buf.position())) // Padding
@@ -285,13 +285,13 @@ public object VCCD {
             if (e2 == null) {
                 e2 = ""
             }
-            return e1!!.compareToIgnoreCase(e2!!)
+            return e1.compareTo(e2, ignoreCase = true)
         }
 
         override fun hashCode(): Int {
             var hash = 3
-            hash = 71 * hash + this.hash
-            hash = 71 * hash + (if ((value != null)) value!!.hashCode() else 0)
+            hash *= 71 + this.hash
+            hash *= 71 + (if ((value != null)) value!!.hashCode() else 0)
             return hash
         }
 

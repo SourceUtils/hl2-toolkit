@@ -3,4 +3,4 @@ package com.timepath.vgui
 /**
  * @author TimePath
  */
-public trait Control
+public interface Control

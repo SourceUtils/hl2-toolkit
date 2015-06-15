@@ -15,259 +15,259 @@ public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*
     /**
      * Map entities
      */
-    LUMP_ENTITIES : LumpType(0, EntitiesHandler())
+    LUMP_ENTITIES(0, EntitiesHandler()),
     /**
      * Plane array
      */
-    LUMP_PLANES : LumpType(1, PlaneHandler())
+    LUMP_PLANES(1, PlaneHandler()),
     /**
      * Index to texture names
      */
-    LUMP_TEXDATA : LumpType(2)
+    LUMP_TEXDATA(2),
     /**
      * Vertex array
      */
-    LUMP_VERTEXES : LumpType(3, VertexHander())
+    LUMP_VERTEXES(3, VertexHander()),
     /**
      * Compressed visibility bit arrays
      */
-    LUMP_VISIBILITY : LumpType(4)
+    LUMP_VISIBILITY(4),
     /**
      * BSP tree nodes
      */
-    LUMP_NODES : LumpType(5)
+    LUMP_NODES(5),
     /**
      * Face texture array
      */
-    LUMP_TEXINFO : LumpType(6)
+    LUMP_TEXINFO(6),
     /**
      * Face array
      */
-    LUMP_FACES : LumpType(7, FaceHandler())
+    LUMP_FACES(7, FaceHandler()),
     /**
      * Lightmap samples
      */
-    LUMP_LIGHTING : LumpType(8)
+    LUMP_LIGHTING(8),
     /**
      * Occlusion polygons and vertices
      */
-    LUMP_OCCLUSION : LumpType(9)
+    LUMP_OCCLUSION(9),
     /**
      * BSP tree leaf nodes
      */
-    LUMP_LEAFS : LumpType(10)
+    LUMP_LEAFS(10),
     /**
      * Correlates between dfaces and Hammer face IDs. Also used as random seed for detail prop placement.
      */
-    LUMP_FACEIDS : LumpType(11)
+    LUMP_FACEIDS(11),
     /**
      * Edge array
      */
-    LUMP_EDGES : LumpType(12, EdgeHandler())
+    LUMP_EDGES(12, EdgeHandler()),
     /**
      * Index of edges
      */
-    LUMP_SURFEDGES : LumpType(13, SurfaceEdgeHandler())
+    LUMP_SURFEDGES(13, SurfaceEdgeHandler()),
     /**
      * Brush models (geometry of brush entities)
      */
-    LUMP_MODELS : LumpType(14)
+    LUMP_MODELS(14),
     /**
      * Internal world lights converted from the entity lump
      */
-    LUMP_WORLDLIGHTS : LumpType(15)
+    LUMP_WORLDLIGHTS(15),
     /**
      * Index to faces in each leaf
      */
-    LUMP_LEAFFACES : LumpType(16)
+    LUMP_LEAFFACES(16),
     /**
      * Index to brushes in each leaf
      */
-    LUMP_LEAFBRUSHES : LumpType(17)
+    LUMP_LEAFBRUSHES(17),
     /**
      * Brush array
      */
-    LUMP_BRUSHES : LumpType(18)
+    LUMP_BRUSHES(18),
     /**
      * Brushside array
      */
-    LUMP_BRUSHSIDES : LumpType(19)
+    LUMP_BRUSHSIDES(19),
     /**
      * Area array
      */
-    LUMP_AREAS : LumpType(20)
+    LUMP_AREAS(20),
     /**
      * Portals between areas
      */
-    LUMP_AREAPORTALS : LumpType(21)
+    LUMP_AREAPORTALS(21),
     /**
      *
      */
-    LUMP_UNUSED0 : LumpType(22)
+    LUMP_UNUSED0(22),
     /**
      *
      */
-    LUMP_UNUSED1 : LumpType(23)
+    LUMP_UNUSED1(23),
     /**
      *
      */
-    LUMP_UNUSED2 : LumpType(24)
+    LUMP_UNUSED2(24),
     /**
      *
      */
-    LUMP_UNUSED3 : LumpType(25)
+    LUMP_UNUSED3(25),
     /**
      * Displacement surface array
      */
-    LUMP_DISPINFO : LumpType(26)
+    LUMP_DISPINFO(26),
     /**
      * Brush faces array before splitting
      */
-    LUMP_ORIGINALFACES : LumpType(27)
+    LUMP_ORIGINALFACES(27),
     /**
      * Displacement physics collision data
      */
-    LUMP_PHYSDISP : LumpType(28)
+    LUMP_PHYSDISP(28),
     /**
      * Physics collision data
      */
-    LUMP_PHYSCOLLIDE : LumpType(29)
+    LUMP_PHYSCOLLIDE(29),
     /**
      * Face plane normals
      */
-    LUMP_VERTNORMALS : LumpType(30)
+    LUMP_VERTNORMALS(30),
     /**
      * Face plane normal index array
      */
-    LUMP_VERTNORMALINDICES : LumpType(31)
+    LUMP_VERTNORMALINDICES(31),
     /**
      * Displacement lightmap alphas (unused/empty since Source 2006)
      */
-    LUMP_DISP_LIGHTMAP_ALPHAS : LumpType(32)
+    LUMP_DISP_LIGHTMAP_ALPHAS(32),
     /**
      * Vertices of displacement surface meshes
      */
-    LUMP_DISP_VERTS : LumpType(33)
+    LUMP_DISP_VERTS(33),
     /**
      * Displacement lightmap sample positions
      */
-    LUMP_DISP_LIGHTMAP_SAMPLE_POSITIONS : LumpType(34)
+    LUMP_DISP_LIGHTMAP_SAMPLE_POSITIONS(34),
     /**
      * Game-specific data lump
      */
-    LUMP_GAME_LUMP : LumpType(35)
+    LUMP_GAME_LUMP(35),
     /**
      * Data for leaf nodes that are inside water
      */
-    LUMP_LEAFWATERDATA : LumpType(36)
+    LUMP_LEAFWATERDATA(36),
     /**
      * Water polygon data
      */
-    LUMP_PRIMITIVES : LumpType(37)
+    LUMP_PRIMITIVES(37),
     /**
      * Water polygon vertices
      */
-    LUMP_PRIMVERTS : LumpType(38)
+    LUMP_PRIMVERTS(38),
     /**
      * Water polygon vertex index array
      */
-    LUMP_PRIMINDICES : LumpType(39)
+    LUMP_PRIMINDICES(39),
     /**
      * Embedded uncompressed Zip-format file
      */
-    LUMP_PAKFILE : LumpType(40, PakfileHandler())
+    LUMP_PAKFILE(40, PakfileHandler()),
     /**
      * Clipped portal polygon vertices
      */
-    LUMP_CLIPPORTALVERTS : LumpType(41)
+    LUMP_CLIPPORTALVERTS(41),
     /**
      * env_cubemap location array
      */
-    LUMP_CUBEMAPS : LumpType(42)
+    LUMP_CUBEMAPS(42),
     /**
      * Texture name data
      */
-    LUMP_TEXDATA_STRING_DATA : LumpType(43)
+    LUMP_TEXDATA_STRING_DATA(43),
     /**
      * Index array into texdata string data
      */
-    LUMP_TEXDATA_STRING_TABLE : LumpType(44)
+    LUMP_TEXDATA_STRING_TABLE(44),
     /**
      * info_overlay data array
      */
-    LUMP_OVERLAYS : LumpType(45)
+    LUMP_OVERLAYS(45),
     /**
      * Distance from leaves to water
      */
-    LUMP_LEAFMINDISTTOWATER : LumpType(46)
+    LUMP_LEAFMINDISTTOWATER(46),
     /**
      * Macro texture info for faces
      */
-    LUMP_FACE_MACRO_TEXTURE_INFO : LumpType(47)
+    LUMP_FACE_MACRO_TEXTURE_INFO(47),
     /**
      * Displacement surface triangles
      */
-    LUMP_DISP_TRIS : LumpType(48)
+    LUMP_DISP_TRIS(48),
     /**
      * Compressed win32-specific Havok terrain surface collision data. Deprecated and no longer used.
      */
-    LUMP_PHYSCOLLIDESURFACE : LumpType(49)
+    LUMP_PHYSCOLLIDESURFACE(49),
     /**
      * info_overlay's on water faces?
      */
-    LUMP_WATEROVERLAYS : LumpType(50)
+    LUMP_WATEROVERLAYS(50),
     /**
      * Index of LUMP_LEAF_AMBIENT_LIGHTING_HDR
      */
-    LUMP_LEAF_AMBIENT_INDEX_HDR : LumpType(51)
+    LUMP_LEAF_AMBIENT_INDEX_HDR(51),
     /**
      * Index of LUMP_LEAF_AMBIENT_LIGHTING
      */
-    LUMP_LEAF_AMBIENT_INDEX : LumpType(52)
+    LUMP_LEAF_AMBIENT_INDEX(52),
     /**
      * HDR lightmap samples
      */
-    LUMP_LIGHTING_HDR : LumpType(53)
+    LUMP_LIGHTING_HDR(53),
     /**
      * Internal HDR world lights converted from the entity lump
      */
-    LUMP_WORLDLIGHTS_HDR : LumpType(54)
+    LUMP_WORLDLIGHTS_HDR(54),
     /**
      * HDR related leaf lighting data?
      */
-    LUMP_LEAF_AMBIENT_LIGHTING_HDR : LumpType(55)
+    LUMP_LEAF_AMBIENT_LIGHTING_HDR(55),
     /**
      * HDR related leaf lighting data?
      */
-    LUMP_LEAF_AMBIENT_LIGHTING : LumpType(56)
+    LUMP_LEAF_AMBIENT_LIGHTING(56),
     /**
      * XZip version of pak file for Xbox. Deprecated.
      */
-    LUMP_XZIPPAKFILE : LumpType(57)
+    LUMP_XZIPPAKFILE(57),
     /**
      * HDR maps may have different face data
      */
-    LUMP_FACES_HDR : LumpType(58)
+    LUMP_FACES_HDR(58),
     /**
      * Extended level-wide flags. Not present in all levels.
      */
-    LUMP_MAP_FLAGS : LumpType(59)
+    LUMP_MAP_FLAGS(59),
     /**
      * Fade distances for overlays
      */
-    LUMP_OVERLAY_FADES : LumpType(60)
+    LUMP_OVERLAY_FADES(60),
     /**
      * System level settings (min/max CPU & GPU to render this overlay)
      */
-    LUMP_OVERLAY_SYSTEM_LEVELS : LumpType(61)
+    LUMP_OVERLAY_SYSTEM_LEVELS(61),
     /**
      *
      */
-    LUMP_PHYSLEVEL : LumpType(62)
+    LUMP_PHYSLEVEL(62),
     /**
      * Displacement multiblend info
      */
-    LUMP_DISP_MULTIBLEND : LumpType(63)
+    LUMP_DISP_MULTIBLEND(63);
 
     private val LOG = Logger.getLogger(javaClass<LumpType>().getName())
 
@@ -275,13 +275,11 @@ public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*
         return MessageFormat.format("{0} ({1})", name(), ID)
     }
 
-//    SuppressWarnings("unchecked")
-//    throws(javaClass<IOException>())
     public fun <T : Any> handle(l: Lump, `in`: OrderedInputStream): T? {
         if (handler == null) {
             LOG.log(Level.WARNING, "No handler for {0}", this)
             return null
         }
-        return handler!!.handle(l, `in`) as T
+        return handler.handle(l, `in`) as T
     }
 }

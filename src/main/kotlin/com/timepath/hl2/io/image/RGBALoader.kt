@@ -7,7 +7,7 @@ import java.util.logging.Logger
 /**
  * @author TimePath
  */
-class RGBALoader private() {
+class RGBALoader private constructor() {
     companion object {
 
         private val LOG = Logger.getLogger(javaClass<RGBALoader>().getName())
@@ -23,12 +23,12 @@ class RGBALoader private() {
             val bi = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
             val raster = bi.getRaster()
             var pos = 0
-            for (y in height.indices) {
-                for (x in width.indices) {
+            for (y in 0..height - 1) {
+                for (x in 0..width - 1) {
                     raster.setSample(x, y, 3, 255)
                     for (b in order) {
                         raster.setSample(x, y, b.toInt(), d[pos].toInt())
-                        pos += bpp / 8 / order.size
+                        pos += bpp / 8 / order.size()
                     }
                 }
             }

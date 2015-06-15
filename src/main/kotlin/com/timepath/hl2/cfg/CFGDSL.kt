@@ -186,10 +186,10 @@ fun CFGContext.cyclicList(name: String, size: Int, begin: Int = 0, configure: Al
     fun action(i: Int) = "${name}[${idx(i)}]"
     fun iter(i: Int) = "${name}.i[${idx(i)}]"
     // Loop twice for nicer output
-    for (i in size.indices) {
+    for (i in 0..size - 1) {
         alias(action(i)) { configure(i) }
     }
-    for (i in size.indices) {
+    for (i in 0..size - 1) {
         alias(iter(i)) {
             alias(exec) { eval(action(i)) }
             alias(next) { eval(iter(i + 1)) }

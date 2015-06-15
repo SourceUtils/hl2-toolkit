@@ -38,7 +38,7 @@ public class HudFont(private val fontname: String, node: VDFNode) {
             return Font(name, Font.PLAIN, fontSize)
         }
         try {
-            LOG.log(Level.INFO, "Loading font: {0}... ({1})", array(fontname, name!!))
+            LOG.log(Level.INFO, "Loading font: {0}... ({1})", arrayOf(fontname, name!!))
             fontFileForName(name!!)?.let {
                 ge.registerFont(it)
                 return Font(fontname, Font.PLAIN, fontSize)
@@ -59,7 +59,7 @@ public class HudFont(private val fontname: String, node: VDFNode) {
             }?.forEach {
                 val f = Font.createFont(Font.TRUETYPE_FONT, it)
                 //            System.out.println(f.getFamily().toLowerCase());
-                if (f.getFamily() equalsIgnoreCase  name) {
+                if (f.getFamily().equals(name, ignoreCase = true)) {
                     LOG.log(Level.INFO, "Found font for {0}", name)
                     return f
                 }

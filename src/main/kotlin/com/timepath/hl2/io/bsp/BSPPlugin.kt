@@ -21,7 +21,7 @@ public class BSPPlugin : ProviderPlugin {
 
     override fun register(): SimpleVFile.FileHandler {
         return object : SimpleVFile.FileHandler {
-            throws(javaClass<IOException>())
+            throws(IOException::class)
             override fun handle(file: File): Collection<SimpleVFile>? {
                 if (!file.getName().endsWith(".bsp")) return null
                 val name = file.getName().replace(".bsp", "")

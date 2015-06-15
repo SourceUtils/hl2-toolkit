@@ -11,10 +11,10 @@ import java.util.logging.Logger
 
 class EdgeHandler : LumpHandler<List<Edge>> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): List<Edge> {
         try {
-            return (l.length / Struct.sizeof(Edge())).indices.map {
+            return (0..(l.length / Struct.sizeof(Edge())) - 1).map {
                 `in`.readStruct<Edge>(Edge())
             }
         } catch (ex: InstantiationException) {

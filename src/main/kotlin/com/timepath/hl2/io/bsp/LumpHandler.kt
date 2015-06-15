@@ -8,8 +8,8 @@ import java.io.IOException
  * @param <T> The return type of this handler
  * @author TimePath
  */
-public trait LumpHandler<T> {
+public interface LumpHandler<T> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     public fun handle(l: Lump, `in`: OrderedInputStream): T
 }

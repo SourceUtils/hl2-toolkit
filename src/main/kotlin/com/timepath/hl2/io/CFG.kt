@@ -17,12 +17,12 @@ import kotlin.platform.platformStatic
 public class CFG {
     var aliases: List<Alias> = LinkedList()
 
-    public enum class TokenType private(public val pattern: String) {
-        COMMENT : TokenType("//(.*)$")
-        SPACE : TokenType("(\\s+)")
-        SEPARATOR : TokenType("(;)")
-        QUOTE : TokenType("(\\\")")
-        TOKEN : TokenType("([^\\s;\\\"]+)")
+    public enum class TokenType private constructor(public val pattern: String) {
+        COMMENT("//(.*)$"),
+        SPACE("(\\s+)"),
+        SEPARATOR("(;)"),
+        QUOTE("(\\\")"),
+        TOKEN("([^\\s;\\\"]+)")
     }
 
     public class Token(public var type: TokenType, public var data: String) {
@@ -58,7 +58,7 @@ public class CFG {
             val tokenPatterns = Pattern.compile(tokenPatternsBuffer.substring(1))
             val matcher = tokenPatterns.matcher(input)
             while (matcher.find()) {
-                for (i in values.size().indices) {
+                for (i in 0..values.size() - 1) {
                     val type = values[i]
                     val group = matcher.group(i + 1)
                     if (group != null) {
@@ -93,14 +93,14 @@ public class CFG {
                 LOG.info("$q")
                 val cmd = LinkedList<Token>()
                 var quoted = false
-                for (t in q) {
+                loop@for (t in q) {
                     when (t.type) {
                         CFG.TokenType.QUOTE -> {
                             quoted = !quoted
                             if (!quoted) {
                                 LOG.info(eval(cmd))
                                 cmd.clear()
-                                break
+                                break@loop
                             }
                             cmd.add(t)
                         }
@@ -108,7 +108,7 @@ public class CFG {
                             if (!quoted) {
                                 LOG.info(eval(cmd))
                                 cmd.clear()
-                                break
+                                break@loop
                             }
                             cmd.add(t)
                         }

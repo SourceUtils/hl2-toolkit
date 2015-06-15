@@ -14,9 +14,9 @@ import java.util.logging.Logger
  */
 class PakfileHandler : LumpHandler<ZipFileProvider> {
 
-    throws(javaClass<IOException>())
+    throws(IOException::class)
     override fun handle(l: Lump, `in`: OrderedInputStream): ZipFileProvider {
-        LOG.log(Level.INFO, "Unzipping {0}", array<Any>(l))
+        LOG.log(Level.INFO, "Unzipping {0}", arrayOf<Any>(l))
         val data = ByteArray(l.length)
         `in`.readFully(data)
         return ZipFileProvider(data)

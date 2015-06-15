@@ -149,13 +149,13 @@ public abstract class VGUIRenderer {
             val p = Element.areas[element.file]!!
             p.addNode(element)
             addElement(p)
-        } else if ("HudPlayerHealth".equalsIgnoreCase(element.file!!)) {
+        } else if ("HudPlayerHealth".equals(element.file!!, ignoreCase = true)) {
             // Better, but still not perfect
             // Move by "CHealthAccountPanel" delta_item_x" and "delta_item_start_y"
             val p = Element.areas["CHealthAccountPanel"]!!
             p.addNode(element)
             addElement(p)
-        } else if ("HudAmmoWeapons".equalsIgnoreCase(element.file!!)) {
+        } else if ("HudAmmoWeapons".equals(element.file!!, ignoreCase = true)) {
             val p = Element.areas["HudWeaponAmmo"]!!
             p.addNode(element)
             addElement(p)
@@ -219,7 +219,7 @@ public abstract class VGUIRenderer {
 
     public fun translate(e: Element, dx: Double, dy: Double) {
         // TODO: scaling (scale 5 = 5 pixels to move 1 x/y co-ord)
-        [suppress("NAME_SHADOWING")]
+        @suppress("NAME_SHADOWING")
         var dx = dx
         //        Rectangle originalBounds = new Rectangle(e.getBounds())
         if (e.XAlignment == Element.Alignment.Right) {
@@ -229,7 +229,7 @@ public abstract class VGUIRenderer {
         dx = Math.round(dx / scaleX).toDouble()
         e.localX = e.localX + dx
 
-        [suppress("NAME_SHADOWING")]
+        @suppress("NAME_SHADOWING")
         var dy = dy
         if (e.YAlignment == Element.VAlignment.Bottom) {
             dy *= (-1).toDouble()

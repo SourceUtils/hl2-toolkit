@@ -17,7 +17,7 @@ import kotlin.properties.Delegates
  *
  * @see <a>http://forums.steampowered.com/forums/showthread.php?t=1882941</a>
  */
-public class ReplayDMX private(input: InputStream) {
+public class ReplayDMX private constructor(input: InputStream) {
 
     public val info: SessionInfoHeader
     public val blocks: List<RecordingSessionBlockSpec>
@@ -35,7 +35,7 @@ public class ReplayDMX private(input: InputStream) {
             it.order(ByteOrder.LITTLE_ENDIAN)
             it
         }
-        blocks = info.numBlocks.indices.map {
+        blocks = (0..info.numBlocks - 1).map {
             ois2.readStruct<RecordingSessionBlockSpec>(RecordingSessionBlockSpec())
         }
     }
@@ -60,15 +60,15 @@ public class ReplayDMX private(input: InputStream) {
     }
 
     enum class CompressorType {
-        INVALID
-        LZSS
-        BZ2
+        INVALID,
+        LZSS,
+        BZ2;
 
         companion object {
             public fun get(i: Int): CompressorType {
                 val values = values()
                 return when {
-                    i in (values.size() - 1).indices -> values[i + 1]
+                    i in 0..values.size() - 2 -> values[i + 1]
                     else -> INVALID
                 }
             }

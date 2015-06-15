@@ -9,7 +9,7 @@ import java.util.logging.Logger
 /**
  * @author TimePath
  */
-class DXTLoader private() {
+class DXTLoader private constructor() {
     companion object {
 
         private val LOG = Logger.getLogger(javaClass<DXTLoader>().getName())
@@ -56,11 +56,11 @@ class DXTLoader private() {
                                 colour[2] = Color((c0.getRed() + c1.getRed()) / 2, (c0.getGreen() + c1.getGreen()) / 2, (c0.getBlue() + c1.getBlue()) / 2)
                                 colour[3] = Color(0, 0, 0, 0)
                             }
-                            for (y1 in 4.indices) {
+                            for (y1 in 0..3) {
                                 // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                                 val rowData = b[pos++]
-                                val rowBits = intArray((rowData.toInt() and 192).ushr(6), (rowData.toInt() and 48).ushr(4), (rowData.toInt() and 12).ushr(2), rowData.toInt() and 3)
-                                for (x1 in 4.indices) {
+                                val rowBits = intArrayOf((rowData.toInt() and 192).ushr(6), (rowData.toInt() and 48).ushr(4), (rowData.toInt() and 12).ushr(2), rowData.toInt() and 3)
+                                for (x1 in 0..3) {
                                     // column scan
                                     val c = colour[rowBits[3 - x1]]!!
                                     val col = Color(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha())
@@ -98,8 +98,8 @@ class DXTLoader private() {
             val bits_34 = 48 // next 2 bits
             val bits_12 = 192 // first 2 bits
             var pos = 0
-            for (y in yBlocks.indices) {
-                for (x in xBlocks.indices) {
+            for (y in 0..yBlocks - 1) {
+                for (x in 0..xBlocks - 1) {
                     pos += 8 // 64 bits of alpha channel data (two 8 bit alpha values and a 4x4 3 bit lookup table)
                     val color_0 = (b[pos].toInt() and 255) + ((b[pos + 1].toInt() and 255) shl 8) // 2 bytes
                     pos += 2
@@ -114,13 +114,13 @@ class DXTLoader private() {
                     val blue2 = (color_1 and BLUE_MASK_565) shl 3
                     val c2 = Color(red2, green2, blue2)
                     // remaining 4 bytes
-                    val next4 = byteArray(b[pos], b[pos + 1], b[pos + 2], b[pos + 3])
+                    val next4 = byteArrayOf(b[pos], b[pos + 1], b[pos + 2], b[pos + 3])
                     pos += 4
-                    for (y1 in 4.indices) {
+                    for (y1 in 0..3) {
                         // 16 bits / 4 lines = 4 bits/line = 1 byte/line
                         val i = next4[y1].toInt()
-                        val bits = intArray((i and bits_12) shr 6, (i and bits_34) shr 4, (i and bits_56) shr 2, i and bits_78)
-                        4.indices.forEach { i ->
+                        val bits = intArrayOf((i and bits_12) shr 6, (i and bits_34) shr 4, (i and bits_56) shr 2, i and bits_78)
+                        (0..3).forEach { i ->
                             val bit = bits[i]
                             if (bit == 0) {
                                 g.setColor(c1)
@@ -179,17 +179,17 @@ class DXTLoader private() {
                                 a[7] = 255
                             }
                             val alphas = Array(4, { IntArray(4) })
-                            val alphaByte = intArray(b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255)
+                            val alphaByte = intArrayOf(b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255, b[pos++].toInt() and 255)
                             var sel1 = ((alphaByte[2] shl 16) or (alphaByte[1] shl 8) or alphaByte[0]) and 16777215
                             var sel2 = ((alphaByte[5] shl 16) or (alphaByte[4] shl 8) or alphaByte[3]) and 16777215
-                            for (yi in 2.indices) {
-                                for (xi in 4.indices) {
+                            for (yi in 0..1) {
+                                for (xi in 0..3) {
                                     alphas[yi][xi] = a[sel1 and 7]
                                     sel1 = sel1 ushr 3
                                 }
                             }
-                            for (yi in 2..4 - 1) {
-                                for (xi in 4.indices) {
+                            for (yi in 2..3) {
+                                for (xi in 0..3) {
                                     alphas[yi][xi] = a[sel2 and 7]
                                     sel2 = sel2 ushr 3
                                 }
@@ -209,11 +209,11 @@ class DXTLoader private() {
                                 colour[2] = Color((c0.getRed() + c1.getRed()) / 2, (c0.getGreen() + c1.getGreen()) / 2, (c0.getBlue() + c1.getBlue()) / 2)
                                 colour[3] = Color(0, 0, 0)
                             }
-                            for (y1 in 4.indices) {
+                            for (y1 in 0..3) {
                                 // 16 bits / 4 rows = 4 bits/line = 1 byte/row
                                 val rowData = b[pos++]
-                                val rowBits = intArray((rowData.toInt() and 192).ushr(6), (rowData.toInt() and 48).ushr(4), (rowData.toInt() and 12).ushr(2), rowData.toInt() and 3)
-                                for (x1 in 4.indices) {
+                                val rowBits = intArrayOf((rowData.toInt() and 192).ushr(6), (rowData.toInt() and 48).ushr(4), (rowData.toInt() and 12).ushr(2), rowData.toInt() and 3)
+                                for (x1 in 0..3) {
                                     // column scan
                                     val color = colour[rowBits[3 - x1]]!!
                                     val col = Color(color.getRed(), color.getGreen(), color.getBlue(), alphas[y1][x1])
