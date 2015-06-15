@@ -173,10 +173,12 @@ inline fun DatagramSocket.send(it: Sendable, then: () -> Unit) {
     then()
 }
 
-fun DatagramSocket.recv(size: Int = MAX_ROUTABLE_PAYLOAD) = ByteArray(size).let {
-    val p = DatagramPacket(it, it.size())
-    receive(p)
-    val packet = Packet(it.copyOf(p.getLength()))
+fun DatagramSocket.recv(size: Int = MAX_ROUTABLE_PAYLOAD) = ByteArray(size + 1).let {
+    val data = DatagramPacket(it, it.size())
+    receive(data)
+    val actualSize = data.getLength()
+    check(actualSize == size, "Actual size ($actualSize) differs from expected size ($size)")
+    val packet = Packet(it.copyOf(actualSize))
     println(packet)
     packet
 }
