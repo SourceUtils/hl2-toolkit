@@ -73,13 +73,13 @@ data class S2C_CHALLENGE(
 data class C2S_CONNECT(
         val challenge: S2C_CHALLENGE,
         val name: String,
-        val password: kotlin.String = ""
+        val password: String = ""
 ) : Sendable {
     companion object {
         val ID = 'k'.toByte()
     }
 
-    override fun send() = kotlin.with(Packet()) {
+    override fun send() = with(Packet()) {
         writeLong(CONNECTIONLESS_HEADER)
         writeByte(ID)
         writeLong(PROTOCOL_VERSION)
