@@ -6,6 +6,7 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.URL
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Arrays
@@ -186,6 +187,21 @@ data class S2C_CONNREJECT {
     }
 }
 
+data class S2C_CONNECTION {
+    companion object : Readable<S2C_CONNECTION> {
+        val ID = 'B'.toByte()
+
+        override fun read(it: Packet): S2C_CONNECTION {
+            check(it.readLong() == CONNECTIONLESS_HEADER)
+            check(it.readByte() == ID)
+            fun r() = it.readByte().toInt() and 0xFF
+            val i = intArrayOf(r(), r(), r(), r())
+            check(it.readString() == "0000000000")
+            return S2C_CONNECTION()
+        }
+    }
+}
+
 fun main(args: Array<String>) {
     require(args.size() == 2, "Usage: <ip> <port>")
     with(DatagramSocket()) {
@@ -197,6 +213,8 @@ fun main(args: Array<String>) {
                         try {
                             S2C_CONNREJECT(it)
                         } catch(e: IllegalStateException) {
+                            it.rewind()
+                            S2C_CONNECTION(it)
                             println("we're okay")
                         }
                     }
@@ -234,6 +252,10 @@ class Packet(array: ByteArray = ByteArray(MAX_ROUTABLE_PAYLOAD)) {
     }
 
     override fun toString() = "${size()}: ${Arrays.toString(buffer.array())}"
+
+    fun rewind() {
+        buffer.rewind()
+    }
 
     fun readBytes(n: Int) = ByteArray(n).let { buffer.get(it); it }
 
