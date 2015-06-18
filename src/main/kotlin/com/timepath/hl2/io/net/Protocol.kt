@@ -1,16 +1,45 @@
 package com.timepath.hl2.io.net
 
+import com.timepath.steam.SteamUtils
+import java.lang.management.ManagementFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Arrays
 import java.util.Random
+import java.util.concurrent.TimeUnit
+import kotlin.properties.Delegates
+
+// net_usesocketsforloopback 1
+
+// tshark -r capture.pcapng -T fields -e data > raw
+
+/*
+#!/bin/env python
+
+import binascii
+import sys
+
+if not len(sys.argv) == 3:
+    print("Usage: {} <input> <output>".format(sys.argv[0]))
+else:
+    i = 0
+    outname = sys.argv[2]
+    for line in open(sys.argv[1], 'r'):
+        i += 1
+        with open(outname + '.' + str(i), 'wb') as o:
+            o.write(binascii.unhexlify(line[:-1]))
+*/
 
 val CONNECTIONLESS_HEADER = 0xffffffff.toInt()
 
 val PROTOCOL_VERSION = 24
+
+val GAME_VERSION = "2827522"
+val GAME_ID = 440
 
 data class A2S_GETCHALLENGE(
         val myKey: Int = Random().nextInt()
@@ -43,40 +72,54 @@ enum class Protocol {
 }
 
 data class S2C_CHALLENGE(
-        val challenge: Int,
-        val protocol: Protocol
+        val key1: Int,
+        val key2: Int,
+        val protocol: Protocol,
+        val gameConTicket: ByteArray = byteArrayOf()
 ) {
     companion object : Readable<S2C_CHALLENGE> {
         val ID = 'A'.toByte()
 
         override fun read(it: Packet): S2C_CHALLENGE {
             check(it.readLong() == CONNECTIONLESS_HEADER)
-            check(it.readByte() == S2C_CHALLENGE.ID)
-            val challenge = it.readLong() // very stable
-            val dummy1 = it.readLong() // relatively unstable (5s)
-            val dummy2 = it.readLong() // unstable (1s)
+            check(it.readByte() == ID)
+            val key1 = it.readLong() // very stable
+            val key2 = it.readLong() // relatively unstable (5s)
+            val unknown = it.readLong() // unstable (1s)
             val authprotocol = it.readLong()
             val keysize = it.readShort()
             val key = it.readBytes(keysize.toInt())
-            val sid1 = it.readLong()
-            val sid2 = it.readLong()
+            val sid = it.readLongLong()
             val secure = it.readByte()
             check(it.readString() == "000000")
-            return S2C_CHALLENGE(
-                    challenge = challenge,
-                    protocol = Protocol.get(authprotocol)
-            )
+            return S2C_CHALLENGE(key1 = key1, key2 = key2, protocol = Protocol[authprotocol])
         }
     }
+}
+
+object PrivateData {
+    var ticket by Delegates.notNull<IntArray>()
+    var hash by Delegates.notNull<IntArray>()
+    var time: Int? = null
 }
 
 data class C2S_CONNECT(
         val challenge: S2C_CHALLENGE,
         val name: String,
-        val password: String = ""
+        val password: String = "",
+        val steamid: Int = SteamUtils.getUser()!!.ID32.substringAfterLast(":").toInt(),
+        val publicIpv4: IntArray = URL("http://checkip.amazonaws.com").openStream().use {
+            it.bufferedReader().readLine().splitBy(".").reverse().map { it.toInt() }.toIntArray()
+        },
+        val localipv4: IntArray = InetAddress.getLocalHost().getAddress().reverse().map { it.toInt() }.toIntArray(),
+        val minutes: Int = TimeUnit.MILLISECONDS.toMinutes(ManagementFactory.getRuntimeMXBean().getUptime()).toInt()
 ) : Sendable {
     companion object {
         val ID = 'k'.toByte()
+        val STEAMID64_OFFSET = 17825793
+        val clientNumber = sequence(1) { it + 1 }.iterator()
+        /** 21 day lease, first two fields are from and to */
+        val ticket = PrivateData.ticket
     }
 
     override fun send() = with(Packet()) {
@@ -84,21 +127,81 @@ data class C2S_CONNECT(
         writeByte(ID)
         writeLong(PROTOCOL_VERSION)
         writeLong(challenge.protocol.i)
-        writeLong(challenge.challenge)
+        writeLong(challenge.key1)
+        writeLong(challenge.key2)
         writeString(name)
         writeString(password)
+        writeString(GAME_VERSION)
+        run {
+            val keySize = 96 + ticket.size()
+            writeShort(keySize.toShort())
+            // The key follows
+            writeLong(steamid)
+            writeLong(STEAMID64_OFFSET)
+            run {
+                // Obtained from `SteamUser->InitiateGameConnection`, last 4 bytes discarded
+                val sectionSize = 20 // InitiateGameConnection returns about this many bytes
+                if (challenge.gameConTicket.size() >= sectionSize) {
+                    writeBytes(*challenge.gameConTicket.slice(0..4 + sectionSize - 1).toByteArray())
+                } else {
+                    writeLong(sectionSize)
+                    writeBytes(*PrivateData.hash)
+                    writeLong(steamid)
+                    writeLong(STEAMID64_OFFSET)
+                    writeLong(PrivateData.time ?: (System.currentTimeMillis() / 1000).toInt())
+                }
+            }
+            writeLong(PROTOCOL_VERSION)
+            writeLong(1)
+            writeLong(2)
+            writeBytes(*publicIpv4)
+            writeLong(0)
+            writeLong(minutes * 100000)
+            writeLong(clientNumber.next())
+            writeLong(0xB8)
+            writeLong(0x38)
+            writeLong(4)
+            writeLong(steamid)
+            writeLong(STEAMID64_OFFSET)
+            writeLong(GAME_ID)
+            writeBytes(*publicIpv4)
+            writeBytes(*localipv4)
+            writeLong(0)
+            writeBytes(*ticket)
+        }
         this
     }
 }
 
-fun main(args: Array<String>): Unit {
+data class S2C_CONNREJECT {
+    companion object : Readable<S2C_CONNREJECT> {
+        val ID = '9'.toByte()
+
+        override fun read(it: Packet): S2C_CONNREJECT {
+            check(it.readLong() == CONNECTIONLESS_HEADER)
+            check(it.readByte() == ID)
+            fun r() = it.readByte().toInt() and 0xFF
+            val i = intArrayOf(r(), r(), r(), r())
+            throw Exception("${Arrays.toString(i)}: ${it.readString()}")
+        }
+    }
+}
+
+fun main(args: Array<String>) {
     require(args.size() == 2, "Usage: <ip> <port>")
     with(DatagramSocket()) {
         connect(InetAddress.getByName(args[0]), args[1].toInt())
         send(A2S_GETCHALLENGE()) {
-            val reply = S2C_CHALLENGE(recv(39))
-            send(C2S_CONNECT(reply, "Hello world")) {
-                recv(42)
+            S2C_CHALLENGE(recv(39)).let {
+                send(C2S_CONNECT(it, "Hello world")) {
+                    recv(42).let {
+                        try {
+                            S2C_CONNREJECT(it)
+                        } catch(e: IllegalStateException) {
+                            // we're okay
+                        }
+                    }
+                }
             }
         }
     }
@@ -136,18 +239,33 @@ class Packet(array: ByteArray = ByteArray(MAX_ROUTABLE_PAYLOAD)) {
     fun readBytes(n: Int) = ByteArray(n).let { buffer.get(it); it }
 
     fun readByte() = buffer.get()
-    fun writeByte(value: Byte): Unit {
+    fun writeByte(value: Byte) {
         buffer.put(value)
+    }
+
+    fun writeBytes(vararg values: Byte) {
+        buffer.put(values)
+    }
+
+    fun writeBytes(vararg values: Int) {
+        values.forEach {
+            buffer.put(it.toByte())
+        }
     }
 
     fun readShort() = buffer.getShort()
 
-    fun readLong() = buffer.getInt()
+    fun writeShort(value: Short) {
+        buffer.putShort(value)
+    }
 
+    fun readLong() = buffer.getInt()
     /** 4 bytes */
-    fun writeLong(value: Int): Unit {
+    fun writeLong(value: Int) {
         buffer.putInt(value)
     }
+
+    fun readLongLong() = buffer.getLong()
 
     fun readString() = StringBuilder {
         while (true) {
@@ -163,7 +281,6 @@ class Packet(array: ByteArray = ByteArray(MAX_ROUTABLE_PAYLOAD)) {
     }
 
     fun size() = buffer.limit()
-    val underflow: Int get() = buffer.remaining()
 }
 
 fun <T> Readable<T>.invoke(it: Packet) = read(it)
