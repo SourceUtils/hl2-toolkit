@@ -72,8 +72,7 @@ enum class Protocol {
 }
 
 data class S2C_CHALLENGE(
-        val key1: Int,
-        val key2: Int,
+        val challenge: Long,
         val protocol: Protocol,
         val gameConTicket: ByteArray = byteArrayOf()
 ) {
@@ -83,26 +82,27 @@ data class S2C_CHALLENGE(
         override fun read(it: Packet): S2C_CHALLENGE {
             check(it.readLong() == CONNECTIONLESS_HEADER)
             check(it.readByte() == ID)
-            val key1 = it.readLong() // very stable
-            val key2 = it.readLong() // relatively unstable (5s)
-            val unknown = it.readLong() // unstable (1s)
+            val k = it.readLong() // very stable
+            val challenge = it.readLongLong() // high bytes relatively unstable (5s), low bytes unstable (1s)
             val authprotocol = it.readLong()
-            val keysize = it.readShort()
-            val key = it.readBytes(keysize.toInt())
+            val keySize = it.readShort()
+            val key = it.readBytes(keySize.toInt())
             val sid = it.readLongLong()
             val secure = it.readByte()
             check(it.readString() == "000000")
-            return S2C_CHALLENGE(key1 = key1, key2 = key2, protocol = Protocol[authprotocol])
+            return S2C_CHALLENGE(challenge = challenge, protocol = Protocol[authprotocol])
         }
     }
 }
 
 object PrivateData {
     var ticket by Delegates.notNull<IntArray>()
-    var hash by Delegates.notNull<IntArray>()
-    var time: Int? = null
+    var hash: IntArray? = null
 }
 
+/**
+ * https://partner.steamgames.com/documentation/auth
+ */
 data class C2S_CONNECT(
         val challenge: S2C_CHALLENGE,
         val name: String,
@@ -127,13 +127,12 @@ data class C2S_CONNECT(
         writeByte(ID)
         writeLong(PROTOCOL_VERSION)
         writeLong(challenge.protocol.i)
-        writeLong(challenge.key1)
-        writeLong(challenge.key2)
+        writeLongLong(challenge.challenge)
         writeString(name)
         writeString(password)
         writeString(GAME_VERSION)
         run {
-            val keySize = 96 + ticket.size()
+            val keySize = ticket.size() + 96
             writeShort(keySize.toShort())
             // The key follows
             writeLong(steamid)
@@ -145,10 +144,10 @@ data class C2S_CONNECT(
                     writeBytes(*challenge.gameConTicket.slice(0..4 + sectionSize - 1).toByteArray())
                 } else {
                     writeLong(sectionSize)
-                    writeBytes(*PrivateData.hash)
+                    writeBytes(*PrivateData.hash ?: IntArray(8))
                     writeLong(steamid)
                     writeLong(STEAMID64_OFFSET)
-                    writeLong(PrivateData.time ?: (System.currentTimeMillis() / 1000).toInt())
+                    writeLong((System.currentTimeMillis() / 1000).toInt())
                 }
             }
             writeLong(PROTOCOL_VERSION)
@@ -158,8 +157,8 @@ data class C2S_CONNECT(
             writeLong(0)
             writeLong(minutes * 100000)
             writeLong(clientNumber.next())
-            writeLong(0xB8)
-            writeLong(0x38)
+            writeLong(ticket.size() + 32)
+            writeLong(ticket.size() - 96)
             writeLong(4)
             writeLong(steamid)
             writeLong(STEAMID64_OFFSET)
@@ -194,11 +193,11 @@ fun main(args: Array<String>) {
         send(A2S_GETCHALLENGE()) {
             S2C_CHALLENGE(recv(39)).let {
                 send(C2S_CONNECT(it, "Hello world")) {
-                    recv(42).let {
+                    recv(42, strict = false).let {
                         try {
                             S2C_CONNREJECT(it)
                         } catch(e: IllegalStateException) {
-                            // we're okay
+                            println("we're okay")
                         }
                     }
                 }
@@ -267,6 +266,10 @@ class Packet(array: ByteArray = ByteArray(MAX_ROUTABLE_PAYLOAD)) {
 
     fun readLongLong() = buffer.getLong()
 
+    fun writeLongLong(value: Long) {
+        buffer.putLong(value)
+    }
+
     fun readString() = StringBuilder {
         while (true) {
             val c = buffer.get().toChar()
@@ -290,11 +293,11 @@ inline fun DatagramSocket.send(it: Sendable, then: () -> Unit) {
     then()
 }
 
-fun DatagramSocket.recv(size: Int = MAX_ROUTABLE_PAYLOAD) = ByteArray(size + 1).let {
+fun DatagramSocket.recv(size: Int = MAX_ROUTABLE_PAYLOAD, strict: Boolean = true) = ByteArray(size + 1).let {
     val data = DatagramPacket(it, it.size())
     receive(data)
     val actualSize = data.getLength()
-    check(actualSize == size, "Actual size ($actualSize) differs from expected size ($size)")
+    check(!strict || actualSize == size, "Actual size ($actualSize) differs from expected size ($size)")
     val packet = Packet(it.copyOf(actualSize))
     println(packet)
     packet
