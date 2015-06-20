@@ -83,13 +83,17 @@ data class S2C_CHALLENGE(
         override fun read(it: Packet): S2C_CHALLENGE {
             check(it.readLong() == CONNECTIONLESS_HEADER)
             check(it.readByte() == ID)
-            val k = it.readLong() // very stable
+            val k = it.readLong()
+            check(k == 0x5A4F4933)
             val challenge = it.readLongLong() // high bytes relatively unstable (5s), low bytes unstable (1s)
             val authprotocol = it.readLong()
-            val keySize = it.readShort()
-            val key = it.readBytes(keySize.toInt())
-            val sid = it.readLongLong()
-            val secure = it.readByte()
+            if (authprotocol == 3) {
+                val keySize = it.readShort()
+                check(keySize.toInt() == 0)
+                val key = it.readBytes(keySize.toInt())
+                val sid = it.readLongLong()
+                val secure = it.readByte()
+            }
             check(it.readString() == "000000")
             return S2C_CHALLENGE(challenge = challenge, protocol = Protocol[authprotocol])
         }
