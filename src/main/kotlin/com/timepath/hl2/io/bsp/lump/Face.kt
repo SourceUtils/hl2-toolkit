@@ -2,8 +2,6 @@ package com.timepath.hl2.io.bsp.lump
 
 import com.timepath.io.struct.StructField
 
-import java.util.logging.Logger
-
 public class Face {
     /**
      * switchable lighting info
@@ -93,7 +91,6 @@ public class Face {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<Face>().getName())
         private val MAXLIGHTMAPS = 4
     }
 }

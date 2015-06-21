@@ -1,13 +1,12 @@
 package com.timepath.hl2.io.bsp.lump
 
+import com.timepath.Logger
 import com.timepath.hl2.io.bsp.Lump
 import com.timepath.hl2.io.bsp.LumpHandler
 import com.timepath.io.OrderedInputStream
 import com.timepath.io.struct.Struct
-
 import java.io.IOException
 import java.util.logging.Level
-import java.util.logging.Logger
 
 class FaceHandler : LumpHandler<List<Face>> {
 
@@ -18,9 +17,9 @@ class FaceHandler : LumpHandler<List<Face>> {
                 `in`.readStruct<Face>(Face())
             }
         } catch (ex: InstantiationException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         } catch (ex: IllegalAccessException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
 
         return emptyList()
@@ -28,7 +27,7 @@ class FaceHandler : LumpHandler<List<Face>> {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<FaceHandler>().getName())
+        private val LOG = Logger()
         private val MAX_MAP_FACES = 65536
     }
 }

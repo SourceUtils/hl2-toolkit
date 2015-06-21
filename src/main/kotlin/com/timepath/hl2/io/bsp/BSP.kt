@@ -1,21 +1,18 @@
 package com.timepath.hl2.io.bsp
 
+import com.timepath.Logger
 import com.timepath.hl2.io.bsp.lump.LumpType
 import com.timepath.io.OrderedInputStream
 import com.timepath.io.struct.StructField
-
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 /**
- * @author TimePath
  * @see <a>https://developer.valvesoftware.com/wiki/Source_BSP_File_Format</a>
  * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp.js</a>
  * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-struct.js</a>
@@ -41,7 +38,6 @@ public abstract class BSP {
      * @return The lump
      * @throws IOException
      */
-    SuppressWarnings("unchecked")
     throws(IOException::class)
     public fun <T : Any> getLump(type: LumpType): T? {
         return getLump(type, type.handler as LumpHandler<T>)
@@ -79,7 +75,7 @@ public abstract class BSP {
     throws(IOException::class)
     abstract fun process()
 
-    private class BSPHeader () {
+    private class BSPHeader() {
 
         /**
          * BSP file identifier: VBSP
@@ -105,33 +101,25 @@ public abstract class BSP {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<BSP>().getName())
+        private val LOG = Logger()
 
         throws(IOException::class)
         public fun load(`is`: InputStream): BSP? {
-            try {
-                val input = OrderedInputStream(BufferedInputStream(`is`))
-                input.order(ByteOrder.LITTLE_ENDIAN)
-                input.mark(input.available())
-                val header = input.readStruct<BSPHeader>(BSPHeader())
-                // TODO: Other BSP types
-                val bsp = VBSP()
-                bsp.input = input
-                bsp.header = header
-                // TODO: Struct parser callbacks
-                for (i in 0..header.lumps.size() - 1) {
-                    header.lumps[i]!!.type = LumpType.values()[i]
-                }
-                LOG.info("Processing map...")
-                bsp.process()
-                return bsp
-            } catch (ex: InstantiationException) {
-                LOG.log(Level.SEVERE, null, ex)
-            } catch (ex: IllegalAccessException) {
-                LOG.log(Level.SEVERE, null, ex)
+            val input = OrderedInputStream(BufferedInputStream(`is`))
+            input.order(ByteOrder.LITTLE_ENDIAN)
+            input.mark(input.available())
+            val header = input.readStruct<BSPHeader>(BSPHeader())
+            // TODO: Other BSP types
+            val bsp = VBSP()
+            bsp.input = input
+            bsp.header = header
+            // TODO: Struct parser callbacks
+            for (i in 0..header.lumps.size() - 1) {
+                header.lumps[i]!!.type = LumpType.values()[i]
             }
-
-            return null
+            LOG.info { "Processing map..." }
+            bsp.process()
+            return bsp
         }
     }
 }

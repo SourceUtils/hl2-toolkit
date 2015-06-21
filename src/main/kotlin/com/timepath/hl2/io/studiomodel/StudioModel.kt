@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.studiomodel
 
 
+import com.timepath.Logger
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -9,7 +10,6 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.util.logging.Level
-import java.util.logging.Logger
 
 public class StudioModel @throws(IOException::class) constructor
 (mdlStream: InputStream, vvdStream: InputStream, vtxStream: InputStream) {
@@ -53,7 +53,7 @@ public class StudioModel @throws(IOException::class) constructor
                         try {
                             indices.write(byteArrayOf((s.toInt() and 0xFF).toByte(), ((s.toInt() and 0xFF00) shr 8).toByte(), ((s.toInt() and 0xFF0000) shr 16).toByte(), ((s.toInt() and -16777216) shr 24).toByte()))
                         } catch (ex: IOException) {
-                            LOG.log(Level.SEVERE, null, ex)
+                            LOG.log(Level.SEVERE, { null }, ex)
                             return null
                         }
 
@@ -112,6 +112,6 @@ public class StudioModel @throws(IOException::class) constructor
 
         val MAX_NUM_BONES_PER_VERT = 3
         val MAX_NUM_LODS = 8
-        private val LOG = Logger.getLogger(javaClass<StudioModel>().getName())
+        private val LOG = Logger()
     }
 }

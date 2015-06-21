@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.captions
 
+import com.timepath.Logger
 import com.timepath.io.OrderedInputStream
 import com.timepath.steam.io.VDF
 import java.io.IOException
@@ -14,11 +15,9 @@ import java.util.Arrays
 import java.util.Collections
 import java.util.LinkedList
 import java.util.logging.Level
-import java.util.logging.Logger
 import java.util.zip.CRC32
 
 /**
- * @author TimePath
  * @see <a href="https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/utils/captioncompiler
  * /captioncompiler.cpp">the reference implementation</a> and its <a href="https://github.com/ValveSoftware/source
  * -sdk-2013/blob/master/mp/src/public/captioncompiler.h">header</a>
@@ -42,7 +41,7 @@ public object VCCD {
      * 4 * 6
      */
     private val HEADER_SIZE = 24
-    private val LOG = Logger.getLogger(javaClass<VCCD>().getName())
+    private val LOG = Logger()
     private val MAX_BLOCK_BITS = 13
     private val MAX_BLOCK_SIZE = 1 shl MAX_BLOCK_BITS
 
@@ -59,7 +58,7 @@ public object VCCD {
 
     throws(IOException::class)
     private fun load(ois: OrderedInputStream): List<VCCDEntry>? {
-        LOG.log(Level.INFO, "Loading from {0}", ois)
+        LOG.info({ "Loading from ${ois}" })
         ois.order(ByteOrder.LITTLE_ENDIAN)
         val header = ois.readInt()
         val encoding: Charset
@@ -69,18 +68,20 @@ public object VCCD {
             encoding = Charset.forName("UTF-16BE")
             ois.order(ByteOrder.BIG_ENDIAN)
         } else {
-            LOG.severe("Header mismatch")
+            LOG.severe({ "Header mismatch" })
             return null
         }
         val version = ois.readInt()
         if (version != COMPILED_CAPTION_VERSION) {
-            LOG.log(Level.WARNING, "Unsupported version: {0}", version)
+            LOG.log(Level.WARNING, { "Unsupported version: ${version}" })
         }
         val blocks = ois.readInt()
         val blockSize = ois.readInt()
         val totalEntries = ois.readInt()
         val dataOffset = ois.readInt()
-        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", arrayOf<Any>(version, blocks, blockSize, totalEntries, dataOffset))
+        LOG.log(Level.FINE, {
+            "Version: ${version}, Blocks: ${blocks}, BlockSize: ${blockSize}, DirectorySize: ${totalEntries}, DataOffset: ${dataOffset}"
+        })
         val entries = arrayOfNulls<VCCDEntry>(totalEntries)
         for (i in 0..totalEntries - 1) {
             val e = VCCDEntry()
@@ -89,7 +90,7 @@ public object VCCD {
             e.offset = ois.readShort().toInt()
             e.length = (ois.readShort().toInt())
             entries[i] = e
-            LOG.log(Level.FINEST, "Loading {0}, {1} ({2}->{3})", arrayOf<Any>(i, e.hash, e.offset, e.offset + e.length))
+            LOG.log(Level.FINEST, { "Loading ${i}, ${e.hash} (${e.offset}->${e.offset + e.length})" })
         }
         ois.skipTo(dataOffset)
         for (e in entries) {
@@ -101,7 +102,7 @@ public object VCCD {
             e.value = (String(chars, encoding))
         }
         // The rest of the file is useless, 0's or otherwise
-        LOG.log(Level.INFO, "Loaded from {0}", ois)
+        LOG.info({ "Loaded from ${ois}" })
         return Arrays.asList<VCCDEntry>(*entries)
     }
 
@@ -115,8 +116,7 @@ public object VCCD {
     public fun parse(`is`: InputStream): List<VCCDEntry> {
         val v = VDF.load(`is`, StandardCharsets.UTF_16)
         val children = LinkedList<VCCDEntry>()
-        val vdfNode = v["lang", "Tokens"]
-        if (vdfNode == null) return listOf()
+        val vdfNode = v["lang", "Tokens"] ?: return listOf()
         val props = vdfNode.getProperties()
         val usedKeys = LinkedList<String>()
         run {
@@ -124,11 +124,11 @@ public object VCCD {
             while (i >= 0) {
                 // do it in reverse to make overriding easier. TODO: use iterator
                 val p = props[i]
-                LOG.log(Level.FINER, "Adding {0}", p.toString())
+                LOG.log(Level.FINER, { "Adding ${p}" })
                 val e = VCCDEntry()
                 val key = p.getKey()
                 if (key in usedKeys || "//" == key || "\\n" == key) {
-                    LOG.log(Level.WARNING, "Discarding: {0}", key)
+                    LOG.log(Level.WARNING, { "Discarding: ${key}" })
                     continue
                 }
                 usedKeys.add(key)
@@ -170,7 +170,7 @@ public object VCCD {
                 // Pack into blocks
                 val thisLength = e.length
                 if (thisLength >= blockSize) {
-                    LOG.log(Level.WARNING, "Token overflow: {0}", e)
+                    LOG.log(Level.WARNING, { "Token overflow: ${e}" })
                     continue
                 }
                 // XXX: The official compiler will not use the last byte in a block
@@ -188,9 +188,9 @@ public object VCCD {
                     longest = e
                 }
             }
-            LOG.log(Level.INFO, "Found {0} strings", entries.size())
-            LOG.log(Level.INFO, "Longest string ''{0}'' = ({1})", arrayOf(longest!!.key, longest.length))
-            LOG.log(Level.INFO, "{0} bytes wasted", arrayOf<Any>(totalWaste))
+            LOG.info({ "Found ${entries.size()} strings" })
+            LOG.info({ "Longest string '${longest!!.key}' = (${longest!!.length})" })
+            LOG.info({ "${totalWaste} bytes wasted" })
         }
         var dataOffset = HEADER_SIZE + (entries.size() * ENTRY_SIZE)
         // Round up to nearest multiple of 512
@@ -199,7 +199,7 @@ public object VCCD {
         val totalSize = dataOffset + (requiredBlocks * blockSize)
         val buf = ByteBuffer.allocate(totalSize)
         buf.order(if (byteswap) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN)
-        LOG.log(Level.INFO, "Saving to {0}", buf)
+        LOG.info({ "Saving to ${buf}" })
         buf.putInt(COMPILED_CAPTION_FILEID)
         val version = 1
         buf.putInt(version)
@@ -207,14 +207,25 @@ public object VCCD {
         buf.putInt(blockSize)
         buf.putInt(entries.size())
         buf.putInt(dataOffset)
-        LOG.log(Level.FINE, "Version: {0}, Blocks: {1}, BlockSize: {2}, DirectorySize: {3}, DataOffset: {4}", arrayOf<Any>(version, requiredBlocks, blockSize, entries.size(), dataOffset))
+        LOG.log(Level.FINE, {
+            "Version: ${version}, " +
+                    "Blocks: ${requiredBlocks}, " +
+                    "BlockSize: ${blockSize}, " +
+                    "DirectorySize: ${entries.size()}, " +
+                    "DataOffset: ${dataOffset}"
+        })
         var i = 0
         for (e in entries) {
             buf.putInt(e.hash)
             buf.putInt(e.block)
             buf.putShort((e.offset and 65535).toShort())
             buf.putShort((e.length and 65535).toShort())
-            LOG.log(Level.FINEST, "Saving #{0} ({1}) - block: {2}, region: {3} + {4} -> {5}", arrayOf(++i, e.key, e.block, e.offset, e.length, e.offset + e.length))
+            i++
+            LOG.log(Level.FINEST, {
+                "Saving #$i (${e.key}) - " +
+                        "block: ${e.block}, " +
+                        "region: ${e.offset} + ${e.length} -> ${e.offset + e.length}"
+            })
         }
         buf.put(ByteArray(dataOffset - buf.position()))
         val encoding = if (byteswap) StandardCharsets.UTF_16BE else StandardCharsets.UTF_16LE
@@ -227,7 +238,7 @@ public object VCCD {
         }
         buf.put(ByteArray(totalSize - buf.position())) // Padding
         buf.flip()
-        LOG.log(Level.INFO, "Saved to {0}", buf)
+        LOG.info({ "Saved to ${buf}" })
         return buf
     }
 
@@ -315,9 +326,5 @@ public object VCCD {
             return MessageFormat.format("[H: {0}, b: {1}, o: {2}, l: {3}]({4}) = '{5}'", hash, block, offset, length, if ((key != null)) ("\'$key\'") else '?', value)
         }
 
-        companion object {
-
-            private val LOG = Logger.getLogger(javaClass<VCCDEntry>().getName())
-        }
     }
 }

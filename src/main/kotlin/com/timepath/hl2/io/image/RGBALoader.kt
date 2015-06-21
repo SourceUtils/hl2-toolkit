@@ -1,16 +1,13 @@
 package com.timepath.hl2.io.image
 
 
+import com.timepath.Logger
 import java.awt.image.BufferedImage
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 class RGBALoader private constructor() {
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<RGBALoader>().getName())
+        private val LOG = Logger()
 
         public fun load(d: ByteArray, width: Int, height: Int, order: ByteArray, len: ByteArray): BufferedImage {
             var bpp = 0

@@ -1,5 +1,6 @@
 package com.timepath.hl2.io.bsp
 
+import com.timepath.Logger
 import com.timepath.hl2.io.bsp.lump.Edge
 import com.timepath.hl2.io.bsp.lump.Face
 import com.timepath.hl2.io.bsp.lump.LumpType
@@ -10,13 +11,8 @@ import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.HashMap
 import java.util.LinkedList
-import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.platform.platformStatic
 
-/**
- * @author TimePath
- */
 public class VBSP : BSP() {
 
     /**
@@ -25,14 +21,14 @@ public class VBSP : BSP() {
      */
     throws(IOException::class)
     public fun processToji() {
-        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
-        LOG.log(Level.INFO, "Vertices: {0}", bspVertices!!.capacity())
-        val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)
-        LOG.log(Level.INFO, "Edges: {0}", bspEdges!!.size())
-        val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)
-        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size())
-        val bspFaces = getLump<Array<Face>>(LumpType.LUMP_FACES)
-        LOG.log(Level.INFO, "Faces: {0}", bspFaces!!.size())
+        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)!!
+        LOG.info { "Vertices: ${bspVertices.capacity()}" }
+        val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)!!
+        LOG.info { "Edges: ${bspEdges.size()}" }
+        val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)!!
+        LOG.info { "Surfedges: ${bspSurfEdges.size()}" }
+        val bspFaces = getLump<Array<Face>>(LumpType.LUMP_FACES)!!
+        LOG.info { "Faces: ${bspFaces.size()}" }
         val vertices = LinkedList<Float>()
         val indices = LinkedList<Int>()
         val vertexBase = 0
@@ -93,7 +89,7 @@ public class VBSP : BSP() {
             }
             new.flip()
             this.indices = new
-            LOG.log(Level.INFO, "Map: indices {0}, triangles {1}", arrayOf<Any>(indices.size(), indices.size() / 3))
+            LOG.info { "Map: indices ${indices.size()}, triangles ${indices.size() / 3}" }
         }
         if ((vertices != null) && !vertices.isEmpty()) {
             val new = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
@@ -102,7 +98,7 @@ public class VBSP : BSP() {
             }
             new.flip()
             this.vertices = new
-            LOG.log(Level.INFO, "Map: vertices {0}", arrayOf<Any>(vertices.size()))
+            LOG.info { "Map: vertices ${vertices.size()}" }
         }
     }
 
@@ -110,21 +106,20 @@ public class VBSP : BSP() {
      * @throws java.io.IOException
      * @see <a>https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L222</a>
      */
-    SuppressWarnings("empty-statement", "StatementWithEmptyBody")
     throws(IOException::class)
     public fun processW23() {
-        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
-        LOG.log(Level.INFO, "Vertices: {0}", bspVertices!!.capacity())
-        val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)
-        LOG.log(Level.INFO, "Edges: {0}", bspEdges!!.size())
-        val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)
-        LOG.log(Level.INFO, "Surfedges: {0}", bspSurfEdges!!.size())
+        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)!!
+        LOG.info({ "Vertices: ${bspVertices.capacity()}" })
+        val bspEdges = getLump<Array<Edge>>(LumpType.LUMP_EDGES)!!
+        LOG.info({ "Edges: ${bspEdges.size()}" })
+        val bspSurfEdges = getLump<IntArray>(LumpType.LUMP_SURFEDGES)!!
+        LOG.info({ "Surfedges: ${bspSurfEdges.size()}" })
         // https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L253
         for (i in bspSurfEdges.indices) {
             bspSurfEdges[i] = (if (bspSurfEdges[i] >= 0) bspEdges[bspSurfEdges[i]].v[0] else bspEdges[-bspSurfEdges[i]].v[1]).toInt()
         }
-        val bspFaces = getLump<Array<Face>>(LumpType.LUMP_FACES)
-        LOG.log(Level.INFO, "Faces: {0}", bspFaces!!.size())
+        val bspFaces = getLump<Array<Face>>(LumpType.LUMP_FACES)!!
+        LOG.info({ "Faces: ${bspFaces.size()}" })
         val vertices = LinkedList<Float>()
         val indices = LinkedList<Int>()
         for (face in bspFaces) {
@@ -154,7 +149,6 @@ public class VBSP : BSP() {
         processBasic()
     }
 
-    SuppressWarnings("empty-statement", "StatementWithEmptyBody")
     throws(IOException::class)
     fun processBasic() {
         val vertices = LinkedList<Float>()
@@ -167,22 +161,21 @@ public class VBSP : BSP() {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<VBSP>().getName())
+        private val LOG = Logger()
 
         throws(Exception::class)
         public platformStatic fun main(args: Array<String>) {
-            val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)
-            LOG.log(Level.INFO, "Revision: {0}", b!!.revision)
+            val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)!!
+            LOG.info({ "Revision: ${b.revision}" })
             // val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
             // System.out.println(ents);
             val z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
             z?.let {
-                LOG.info(it.name)
+                LOG.info { it.name }
             }
             b.getLump<Any>(LumpType.LUMP_VERTEXES)
         }
 
-        SuppressWarnings("empty-statement", "StatementWithEmptyBody")
         private fun compileGpuVertex(verts: FloatBuffer, pos: Int, vertices: MutableCollection<Float>): Int {
             val index = vertices.size() / 3
             verts.position(pos)

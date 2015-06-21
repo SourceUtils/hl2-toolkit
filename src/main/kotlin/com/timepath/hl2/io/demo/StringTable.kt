@@ -1,10 +1,9 @@
 package com.timepath.hl2.io.demo
 
+import com.timepath.Logger
 import com.timepath.io.BitBuffer
-
 import java.util.ArrayList
 import java.util.HashMap
-import java.util.logging.Logger
 
 class StringTable {
     private var tableName: String? = null
@@ -29,7 +28,7 @@ class StringTable {
             }
             lastEntry = entryIndex
             if (entryIndex < 0 || entryIndex >= maxEntries) {
-                LOG.warning(java.lang.String.format("Server sent bogus string index %d for table %s", entryIndex, tableName))
+                LOG.warning({ "Server sent bogus string index $entryIndex for table $tableName" })
             }
             var entry = ""
             if (bb.getBoolean()) {
@@ -77,7 +76,7 @@ class StringTable {
         public val MAX_USERDATA_SIZE: Int = 1 shl MAX_USERDATA_BITS
         public val MAX_TABLES: Int = 32
         public val tables: Map<Int, StringTable> = HashMap()
-        private val LOG = Logger.getLogger(javaClass<StringTable>().getName())
+        private val LOG = Logger()
 
         fun get(id: Int) = tables[id]!!
 

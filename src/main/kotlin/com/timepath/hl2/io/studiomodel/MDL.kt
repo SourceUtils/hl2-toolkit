@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.studiomodel
 
 import com.timepath.DataUtils
+import com.timepath.Logger
 import com.timepath.hl2.io.util.Vector3f
 import com.timepath.io.ByteBufferInputStream
 import com.timepath.io.OrderedInputStream
@@ -13,7 +14,6 @@ import java.io.InputStream
 import java.nio.ByteOrder
 import java.util.ArrayList
 import java.util.logging.Level
-import java.util.logging.Logger
 
 public class MDL @throws(IOException::class, InstantiationException::class, IllegalAccessException::class)
 private constructor(`in`: InputStream) {
@@ -29,8 +29,8 @@ private constructor(`in`: InputStream) {
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
         header = `is`.readStruct<StudioHeader>(StudioHeader())
-        LOG.log(verbosity, "StudioHeader header = \"{0}\";", header.toString())
-        LOG.log(verbosity, "MStudioTexture[] textures = new MStudioTexture[{0}];", header.numtextures)
+        LOG.log(verbosity, { "StudioHeader header = \"${header}\";" })
+        LOG.log(verbosity, { "MStudioTexture[] textures = new MStudioTexture[${header.numtextures}];" })
         position(header.textureindex)
         textures = ArrayList<MStudioTexture>(header.numtextures)
         for (i in 0..header.numtextures - 1) {
@@ -40,9 +40,9 @@ private constructor(`in`: InputStream) {
             position(offset + tex.sznameindex)
             tex.textureName = `is`.readString()
             position(offset + Struct.sizeof(tex))
-            LOG.log(verbosity, "textures[{0}] = \"{1}\";", arrayOf<Any>(i, tex.textureName!!))
+            LOG.log(verbosity, { "textures[${i}] = \"${tex.textureName}\";" })
         }
-        LOG.log(verbosity, "MStudioTextureDir[] textureDirs = new MStudioTextureDir[{0}];", header.numcdtextures)
+        LOG.log(verbosity, { "MStudioTextureDir[] textureDirs = new MStudioTextureDir[${header.numcdtextures}];" })
         position(header.cdtextureindex)
         textureDirs = ArrayList<MStudioTextureDir>(header.numcdtextures)
         for (i in 0..header.numcdtextures - 1) {
@@ -52,32 +52,36 @@ private constructor(`in`: InputStream) {
             position(texDir.diroffset)
             texDir.textureDir = `is`.readString()
             position(offset + Struct.sizeof(texDir))
-            LOG.log(verbosity, "textureDirs[{0}] = \"{1}\";", arrayOf<Any>(i, texDir.textureDir!!))
+            LOG.log(verbosity, { "textureDirs[${i}] = \"${texDir.textureDir}\";" })
         }
-        LOG.log(verbosity, "int[] skinTable = new int[{0}];", header.numskinref * header.numskinfamilies)
+        LOG.log(verbosity, { "int[] skinTable = new int[${header.numskinref * header.numskinfamilies}];" })
         position(header.skinindex)
         val skinTable = IntArray(header.numskinref * header.numskinfamilies)
         for (i in skinTable.indices) {
             skinTable[i] = `is`.readShort().toInt()
-            LOG.log(verbosity, "skinTable[{0}] = {1};", arrayOf<Any>(i, skinTable[i]))
+            LOG.log(verbosity, { "skinTable[${i}] = ${skinTable[i]};" })
         }
-        LOG.log(verbosity, "MStudioBodyParts[]")
+        LOG.log(verbosity, { "MStudioBodyParts[]" })
         position(header.bodypartindex)
         mdlBodyParts = ArrayList<MStudioBodyParts>(header.numbodyparts)
         for (i in 0..header.numbodyparts - 1) {
             val bodyPart = `is`.readStruct<MStudioBodyParts>(MStudioBodyParts())
             mdlBodyParts.add(bodyPart)
-            LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[]", arrayOf<Any>(1 + i, header.numbodyparts))
+            LOG.log(verbosity, { "MStudioBodyParts[${1 + i}/${header.numbodyparts}].models[]" })
             position(bodyPart.offset + bodyPart.modelindex)
             bodyPart.models = ArrayList<MStudioModel>(bodyPart.nummodels)
             for (j in 0..bodyPart.nummodels - 1) {
                 val model = `is`.readStruct<MStudioModel>(MStudioModel())
                 bodyPart.models!!.add(model)
-                LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[]", arrayOf<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels))
+                LOG.log(verbosity, { "MStudioBodyParts[${1 + i}/${header.numbodyparts}].models[${1 + j}/${bodyPart.nummodels}].meshes[]" })
                 position(model.offset + model.meshindex)
                 model.meshes = ArrayList<MStudioMesh>(model.nummeshes)
                 for (k in 0..model.nummeshes - 1) {
-                    LOG.log(verbosity, "MStudioBodyParts[{0}/{1}].models[{2}/{3}].meshes[{4}/{5}]", arrayOf<Any>(1 + i, header.numbodyparts, 1 + j, bodyPart.nummodels, 1 + k, model.nummeshes))
+                    LOG.log(verbosity, {
+                        "MStudioBodyParts[${1 + i}/${header.numbodyparts}]" +
+                                ".models[${1 + j}/${bodyPart.nummodels}]" +
+                                ".meshes[${1 + k}/${model.nummeshes}]"
+                    })
                     val mesh = `is`.readStruct<MStudioMesh>(MStudioMesh())
                     model.meshes!!.add(mesh)
                 }
@@ -93,7 +97,7 @@ private constructor(`in`: InputStream) {
             `is`.reset()
             `is`.skipBytes(index - `is`.position())
         } catch (ex: IOException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
 
     }
@@ -370,11 +374,11 @@ private constructor(`in`: InputStream) {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<MDL>().getName())
+        private val LOG = Logger()
 
         throws(IOException::class)
         public fun load(file: File): MDL? {
-            LOG.log(Level.INFO, "Loading MDL {0}", file)
+            LOG.info({ "Loading MDL ${file}" })
             return load(ByteBufferInputStream(DataUtils.mapFile(file)))
         }
 
@@ -383,9 +387,9 @@ private constructor(`in`: InputStream) {
             try {
                 return MDL(BufferedInputStream(`in`))
             } catch (ex: InstantiationException) {
-                LOG.log(Level.SEVERE, null, ex)
+                LOG.log(Level.SEVERE, { null }, ex)
             } catch (ex: IllegalAccessException) {
-                LOG.log(Level.SEVERE, null, ex)
+                LOG.log(Level.SEVERE, { null }, ex)
             }
 
             return null

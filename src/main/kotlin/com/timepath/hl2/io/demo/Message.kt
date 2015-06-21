@@ -1,17 +1,15 @@
 package com.timepath.hl2.io.demo
 
 import com.timepath.DataUtils
+import com.timepath.Logger
 import com.timepath.io.BitBuffer
 import com.timepath.io.OrderedOutputStream
 import com.timepath.io.struct.StructField
-
-import java.io.IOException
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.text.MessageFormat
 import java.util.LinkedList
 import java.util.logging.Level
-import java.util.logging.Logger
 
 public class Message(private val outer: HL2DEM, public val type: MessageType?,
                      /** Actually 3 bytes? */
@@ -91,7 +89,7 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
                     if (error != null) {
                         incomplete = true
                         meta.add("error" to error)
-                        thrown?.let { LOG.log(Level.WARNING, error, it) }
+                        thrown?.let { LOG.log(Level.WARNING, { error }, it) }
                         break
                     }
                 }
@@ -156,17 +154,17 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<Message>().getName())
+        private val LOG = Logger()
 
         fun parse(outer: HL2DEM, buffer: ByteBuffer): Message {
             val op = buffer.get().toInt()
             val type = MessageType[op]
             if (type == null) {
-                LOG.log(Level.SEVERE, "Unknown demo message type encountered: {0}", op)
+                LOG.severe({ "Unknown demo message type encountered: ${op}" })
             }
             val tick = (65535 and buffer.getShort().toInt()) + (255 and (buffer.get().toInt() shl 16))
             if (type != MessageType.Stop) buffer.get()
-            LOG.log(Level.FINE, "{0} at tick {1} ({2}), {3} remaining bytes", arrayOf(type, tick, buffer.position(), buffer.remaining()))
+            LOG.fine({ "${type} at tick ${tick} (${buffer.position()}), ${buffer.remaining()} remaining bytes" })
             val m = Message(outer, type, tick)
             if (!(m.type == MessageType.Synctick || m.type == MessageType.Stop)) {
                 if (m.type == MessageType.Packet || m.type == MessageType.Signon) {

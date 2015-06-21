@@ -1,21 +1,16 @@
 package com.timepath.hl2.io
 
+import com.timepath.Logger
 import com.timepath.hl2.io.image.VTF
 import com.timepath.steam.io.VDFNode
-
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.util.logging.Level
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
-public class VMT {
+public object VMT {
 
     public class VMTNode @throws(IOException::class) constructor
     (`is`: InputStream, c: Charset) : VDFNode() {
@@ -24,7 +19,7 @@ public class VMT {
         init {
             VDFNode(`is`, c, this)
             root = getNodes()[0]
-            LOG.log(Level.INFO, "Shader: {0}", root.getCustom())
+            LOG.info({ "Shader: ${root.getCustom()}" })
         }
 
         throws(IOException::class)
@@ -33,30 +28,27 @@ public class VMT {
 
         companion object {
 
-            private val LOG = Logger.getLogger(javaClass<VMTNode>().getName())
+            private val LOG = Logger()
         }
     }
 
-    companion object {
+    throws(IOException::class)
+    public fun load(f: File): VMTNode {
+        return load(FileInputStream(f))
+    }
 
-        throws(IOException::class)
-        public fun load(f: File): VMTNode {
-            return load(FileInputStream(f))
-        }
+    throws(IOException::class)
+    public fun load(`is`: InputStream): VMTNode {
+        return load(`is`, StandardCharsets.UTF_8)
+    }
 
-        throws(IOException::class)
-        public fun load(`is`: InputStream): VMTNode {
-            return load(`is`, StandardCharsets.UTF_8)
-        }
+    throws(IOException::class)
+    public fun load(`is`: InputStream, c: Charset): VMTNode {
+        return VMTNode(`is`, c)
+    }
 
-        throws(IOException::class)
-        public fun load(`is`: InputStream, c: Charset): VMTNode {
-            return VMTNode(`is`, c)
-        }
-
-        throws(IOException::class)
-        public fun load(f: File, c: Charset): VMTNode {
-            return load(FileInputStream(f), c)
-        }
+    throws(IOException::class)
+    public fun load(f: File, c: Charset): VMTNode {
+        return load(FileInputStream(f), c)
     }
 }

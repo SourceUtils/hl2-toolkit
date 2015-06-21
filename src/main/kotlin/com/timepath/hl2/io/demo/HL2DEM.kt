@@ -1,13 +1,13 @@
 package com.timepath.hl2.io.demo
 
 import com.timepath.DataUtils
+import com.timepath.Logger
 import java.io.File
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.LinkedList
 import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 /**
@@ -21,7 +21,6 @@ import kotlin.properties.Delegates
  * ...
  * }
  *
- * @author TimePath
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/common/proto_version.h</a>
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/demofile/demoformat.h</a>
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/networkstringtabledefs.h</a>
@@ -49,7 +48,7 @@ public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
             val frame: Message = try {
                 Message.parse(this, buffer)
             } catch (e: BufferUnderflowException) {
-                LOG.log(Level.WARNING, "Unexpected end of demo")
+                LOG.log(Level.WARNING, { "Unexpected end of demo" })
                 break
             }
 
@@ -60,7 +59,7 @@ public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
             try {
                 buffer.get(dst)
             } catch (e: BufferUnderflowException) {
-                LOG.log(Level.SEVERE, "Unexpected end of message", e)
+                LOG.log(Level.SEVERE, { "Unexpected end of message" }, e)
                 break
             }
 
@@ -85,10 +84,10 @@ public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
         public val SP_MODEL_INDEX_BITS: Int = 12
         /** TF2 specific, need enough space for OBJ_LAST items from tf_shareddefs.h */
         public val WEAPON_SUBTYPE_BITS: Int = 6
-        private val LOG = Logger.getLogger(javaClass<HL2DEM>().getName())
+        private val LOG = Logger()
 
         public fun load(f: File, eager: Boolean = true): HL2DEM {
-            LOG.log(Level.INFO, "Parsing {0}", f)
+            LOG.info({ "Parsing ${f}" })
             val buffer = DataUtils.mapFile(f)
             return HL2DEM(buffer, eager)
         }

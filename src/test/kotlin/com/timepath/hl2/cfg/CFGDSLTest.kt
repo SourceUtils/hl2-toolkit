@@ -1,7 +1,9 @@
 package com.timepath.hl2.cfg
 
+import kotlin.platform.platformStatic
+
 object CFGDSLTest {
-    public kotlin.platform.platformStatic fun main(args: Array<String>) {
+    public platformStatic fun main(args: Array<String>) {
         CFGDSL {
             val list = cyclicList("li", 3) { i ->
                 echo("${i}")

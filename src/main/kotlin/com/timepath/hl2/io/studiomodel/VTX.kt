@@ -1,11 +1,11 @@
 package com.timepath.hl2.io.studiomodel
 
 import com.timepath.DataUtils
+import com.timepath.Logger
 import com.timepath.io.ByteBufferInputStream
 import com.timepath.io.OrderedInputStream
 import com.timepath.io.struct.Struct
 import com.timepath.io.struct.StructField
-
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -15,7 +15,6 @@ import java.nio.ByteOrder
 import java.text.MessageFormat
 import java.util.ArrayList
 import java.util.logging.Level
-import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 class VTX @throws(IOException::class, InstantiationException::class, IllegalAccessException::class)
@@ -29,7 +28,7 @@ private constructor(`in`: InputStream) {
         `is`.mark(Integer.MAX_VALUE)
         `is`.order(ByteOrder.LITTLE_ENDIAN)
         header = `is`.readStruct(VtxHeader())
-        LOG.log(verbosity, header.toString())
+        LOG.log(verbosity, { header.toString() })
         // Parts
         bodyParts = ArrayList<BodyPart>(header.numBodyParts)
         //        LOG.log(verbosity,
@@ -80,7 +79,13 @@ private constructor(`in`: InputStream) {
                         for (groupIdx in 0..mesh.numStripGroups - 1) {
                             val stripGroup = `is`.readStruct(StripGroup())
                             mesh.stripGroups.add(stripGroup)
-                            LOG.log(verbosity, "\t\t\tOffset:{0} stripOff: {1}, vertOff: {2}, indOff: {3},", arrayOf<Any>(stripGroup.offset, stripGroup.offset + stripGroup.vertOffset, stripGroup.offset + stripGroup.stripOffset, stripGroup.offset + stripGroup.indexOffset))
+                            LOG.log(verbosity, {
+                                "\t\t\t" +
+                                        "Offset:${stripGroup.offset} " +
+                                        "stripOff: ${stripGroup.offset + stripGroup.vertOffset}, " +
+                                        "vertOff: ${stripGroup.offset + stripGroup.stripOffset}, " +
+                                        "indOff: ${stripGroup.offset + stripGroup.indexOffset},"
+                            })
                             // Strips
                             stripGroup.strips = ArrayList<Strip>(stripGroup.numStrips)
                             //                            LOG.log(verbosity,
@@ -129,7 +134,7 @@ private constructor(`in`: InputStream) {
             }
             position(part.offset + Struct.sizeof(part))
         }
-        LOG.log(verbosity, "Underflow: {0}", arrayOf<Any>(`is`.available()))
+        LOG.log(verbosity, { "Underflow: ${`is`.available()}" })
     }
 
     private fun position(index: Int) {
@@ -138,7 +143,7 @@ private constructor(`in`: InputStream) {
             `is`.reset()
             `is`.skipBytes(index - `is`.position())
         } catch (ex: IOException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
 
     }
@@ -152,7 +157,7 @@ private constructor(`in`: InputStream) {
 
     }
 
-    private class Strip () {
+    private class Strip() {
 
         StructField(index = 0)
         var numIndices: Int = 0
@@ -298,12 +303,12 @@ private constructor(`in`: InputStream) {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<VTX>().getName())
+        private val LOG = Logger()
         private val verbosity = Level.FINE
 
         throws(IOException::class)
         public fun load(file: File): VTX? {
-            LOG.log(Level.INFO, "Loading VVD {0}", file)
+            LOG.info({ "Loading VVD ${file}" })
             return load(ByteBufferInputStream(DataUtils.mapFile(file)))
         }
 
@@ -312,9 +317,9 @@ private constructor(`in`: InputStream) {
             try {
                 return VTX(BufferedInputStream(`in`))
             } catch (ex: InstantiationException) {
-                LOG.log(Level.SEVERE, null, ex)
+                LOG.log(Level.SEVERE, { null }, ex)
             } catch (ex: IllegalAccessException) {
-                LOG.log(Level.SEVERE, null, ex)
+                LOG.log(Level.SEVERE, { null }, ex)
             }
 
             return null

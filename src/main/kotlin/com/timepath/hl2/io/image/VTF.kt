@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.image
 
 import com.timepath.EnumFlags
+import com.timepath.Logger
 import com.timepath.StringUtils
 import com.timepath.io.utils.ViewableData
 import java.awt.Graphics2D
@@ -13,13 +14,10 @@ import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.logging.Level
-import java.util.logging.Logger
 import javax.swing.ImageIcon
 
 /**
  * TODO: .360.vtf files seem to be a slightly different format... and LZMA compressed.
- *
- * @author TimePath
  */
 public class VTF : ViewableData {
     private var buf: ByteBuffer? = null
@@ -63,7 +61,7 @@ public class VTF : ViewableData {
         val magic = `is`.read() or (`is`.read() shl 8) or (`is`.read() shl 16)
         val type = `is`.read()
         if (magic != HEADER) {
-            LOG.log(Level.FINE, "Invalid VTF file: {0}", magic)
+            LOG.log(Level.FINE, { "Invalid VTF file: ${magic}" })
             return false
         }
         val array = ByteArray(4 + `is`.available())
@@ -112,9 +110,7 @@ public class VTF : ViewableData {
             val compressedSize = buf!!.getInt()
         }
         val debug = arrayOf(arrayOf("Width = ", width), arrayOf("Height = ", height), arrayOf("Frames = ", frameCount), arrayOf<Any?>("Flags = ", enumSet), arrayOf("Format = ", format), arrayOf("MipCount = ", mipCount))
-        if (LOG.isLoggable(Level.FINE)) {
-            LOG.fine(StringUtils.fromDoubleArray(debug, "VTF:"))
-        }
+        LOG.fine({ StringUtils.fromDoubleArray(debug, "VTF:") })
         return true
     }
 
@@ -124,9 +120,9 @@ public class VTF : ViewableData {
         val crcHead = buf!!.getInt()
         val crc = buf!!.getInt()
         if (crcHead == VTF_RSRC_TEXTURE_CRC) {
-            LOG.log(Level.INFO, "CRC=0x{0}", Integer.toHexString(crc).toUpperCase())
+            LOG.info({ "CRC=0x${Integer.toHexString(crc).toUpperCase()}" })
         } else {
-            LOG.log(Level.WARNING, "CRC header {0} is invalid", crcHead)
+            LOG.log(Level.WARNING, { "CRC header ${crcHead} is invalid" })
         }
     }
 
@@ -181,18 +177,18 @@ public class VTF : ViewableData {
         for (i in 0..mipCount - 1) {
             val w = sizesX[i]
             val h = sizesY[i]
-            LOG.log(Level.FINE, "{0}, {1}", arrayOf<Any>(w, h))
+            LOG.log(Level.FINE, { "${w}, ${h}" })
             val nBytes = format!!.getBytes(w, h)
             if (i == (mipCount - level - 1)) {
                 val imageData = ByteArray(nBytes * frameCount)
                 try {
                     buf!![imageData]
                 } catch (ignored: BufferUnderflowException) {
-                    LOG.log(Level.SEVERE, "Underflow; {0}", nBytes)
+                    LOG.log(Level.SEVERE, { "Underflow; ${nBytes}" })
                 }
 
                 System.arraycopy(imageData, frame * nBytes, imageData, 0, nBytes)
-                LOG.log(Level.INFO, "VTF format {0}", format)
+                LOG.info({ "VTF format ${format}" })
                 image = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
                 val g = image.getGraphics() as Graphics2D
                 g.drawImage(format!!.load(imageData, w, h), 0, 0, w, h, null)
@@ -209,7 +205,7 @@ public class VTF : ViewableData {
          * 'VTF\0' as little endian
          */
         private val HEADER = 4609110
-        private val LOG = Logger.getLogger(javaClass<VTF>().getName())
+        private val LOG = Logger()
         /**
          * 'CRC\2' as little endian
          */

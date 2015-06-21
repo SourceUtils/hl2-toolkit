@@ -1,22 +1,17 @@
 package com.timepath.hl2.io.image
 
 
+import com.timepath.Logger
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 class UVLoader private constructor() {
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<UVLoader>().getName())
+        private val LOG = Logger()
 
-        public fun load(d: ByteArray, width: Int, height: Int, channels: Int): BufferedImage {
-            return loadUV(d, width, height)
-        }
+        public fun load(d: ByteArray, width: Int, height: Int, channels: Int): BufferedImage = loadUV(d, width, height)
 
         private fun loadUV(b: ByteArray, width: Int, height: Int): BufferedImage {
             val bi = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)

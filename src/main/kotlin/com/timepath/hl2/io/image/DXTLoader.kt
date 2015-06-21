@@ -1,18 +1,15 @@
 package com.timepath.hl2.io.image
 
 
+import com.timepath.Logger
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 class DXTLoader private constructor() {
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<DXTLoader>().getName())
+        private val LOG = Logger()
         private val ALPHA_MASK_555 = 1
         private val BLUE_MASK_555 = 31
         private val BLUE_MASK_565 = 31

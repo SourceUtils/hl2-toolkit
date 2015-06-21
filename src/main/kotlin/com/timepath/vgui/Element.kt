@@ -1,5 +1,6 @@
 package com.timepath.vgui
 
+import com.timepath.Logger
 import com.timepath.io.utils.ViewableData
 import com.timepath.steam.io.VDFNode
 import java.awt.Color
@@ -12,7 +13,6 @@ import java.nio.charset.Charset
 import java.util.LinkedHashMap
 import java.util.LinkedList
 import java.util.logging.Level
-import java.util.logging.Logger
 import javax.swing.Icon
 import javax.swing.UIManager
 
@@ -52,8 +52,6 @@ import javax.swing.UIManager
  * <td>Xbox360</td>
  * </tr>
  * </table>
- *
- * @author TimePath
  */
 
 throws(IOException::class)
@@ -198,7 +196,7 @@ public class Element(private val info: String?) : ViewableData {
             } else if ("image" == switchArg || "icon" == switchArg) {
                 image = VGUIRenderer.locateImage(v)
             } else {
-                LOG.log(Level.WARNING, "Unknown property: {0}", k)
+                LOG.log(Level.WARNING, { "Unknown property: ${k}" })
             }
         }
 
@@ -285,7 +283,7 @@ public class Element(private val info: String?) : ViewableData {
                 //                entry.setValue(this.getFont()) // TODO
                 //            }
             } catch (e: PropertyVetoException) {
-                LOG.log(Level.SEVERE, null, e)
+                LOG.log(Level.SEVERE, { null }, e)
             }
 
 
@@ -301,13 +299,9 @@ public class Element(private val info: String?) : ViewableData {
         return UIManager.getIcon("FileChooser.listViewIcon")
     }
 
-    public fun isVisible(): Boolean {
-        return visible
-    }
+    public fun isVisible(): Boolean = visible
 
-    public fun isEnabled(): Boolean {
-        return enabled
-    }
+    public fun isEnabled(): Boolean = enabled
 
     public val properties: List<VDFNode.VDFProperty> get() = props
 
@@ -361,26 +355,25 @@ public class Element(private val info: String?) : ViewableData {
 
     companion object {
 
-        private val LOG = Logger.getLogger(Element.javaClass.getName())
+        private val LOG = Logger()
 
         /**
          * TODO
          */
         fun parseScheme(props: VDFNode) {
-            val root = props["Scheme", "Fonts"]
-            if (root == null) return
+            val root = props["Scheme", "Fonts"] ?: return
 
-            LOG.info("Found scheme")
+            LOG.info { "Found scheme" }
             for (fontNode in root.getNodes()) {
                 for (detailNode in fontNode.getNodes()) {
                     // val fontKey = fontNode.getCustom().toString()
                     val fontName = detailNode.getValue("name").toString()
                     fonts.put(fontName, HudFont(fontName, detailNode))
-                    LOG.log(Level.INFO, "TODO: Load font {0}", fontName)
+                    LOG.info({ "TODO: Load font ${fontName}" })
                     break// XXX: hardcoded detail level (the first one)
                 }
 
-                LOG.info("Loaded scheme")
+                LOG.info { "Loaded scheme" }
             }
 
         }

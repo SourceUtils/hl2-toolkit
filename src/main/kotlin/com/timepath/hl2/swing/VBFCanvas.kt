@@ -1,5 +1,6 @@
 package com.timepath.hl2.swing
 
+import com.timepath.Logger
 import com.timepath.hl2.io.font.VBF
 import com.timepath.hl2.io.image.VTF
 import java.awt.*
@@ -9,13 +10,9 @@ import java.awt.event.MouseMotionListener
 import java.io.IOException
 import java.util.LinkedList
 import java.util.logging.Level
-import java.util.logging.Logger
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
-/**
- * @author TimePath
- */
 public class VBFCanvas
 /**
  * Creates new form VBFTest
@@ -131,7 +128,7 @@ public class VBFCanvas
             try {
                 img = vtf!!.getImage(0)
             } catch (ex: IOException) {
-                LOG.log(Level.SEVERE, null, ex)
+                LOG.log(Level.SEVERE, { null }, ex)
             }
 
         }
@@ -179,7 +176,7 @@ public class VBFCanvas
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<VBFCanvas>().getName())
+        private val LOG = Logger()
         private val serialVersionUID = 1
         private val acNormal = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
         private val acSelected = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)

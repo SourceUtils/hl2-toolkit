@@ -1,16 +1,13 @@
 package com.timepath.vgui
 
+import com.timepath.Logger
 import com.timepath.steam.io.VDFNode
 import java.awt.Font
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
 import java.io.File
 import java.util.logging.Level
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 public class HudFont(private val fontname: String, node: VDFNode) {
     var name: String? = null
     var tall: Int = 0
@@ -38,20 +35,20 @@ public class HudFont(private val fontname: String, node: VDFNode) {
             return Font(name, Font.PLAIN, fontSize)
         }
         try {
-            LOG.log(Level.INFO, "Loading font: {0}... ({1})", arrayOf(fontname, name!!))
+            LOG.info { "Loading font: ${fontname}... (${name})}" }
             fontFileForName(name!!)?.let {
                 ge.registerFont(it)
                 return Font(fontname, Font.PLAIN, fontSize)
             }
         } catch (ex: Exception) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
         return null
     }
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<HudFont>().getName())
+        private val LOG = Logger()
 
         private fun fontFileForName(name: String): Font? {
             File("").listFiles { dir, name ->
@@ -60,7 +57,7 @@ public class HudFont(private val fontname: String, node: VDFNode) {
                 val f = Font.createFont(Font.TRUETYPE_FONT, it)
                 //            System.out.println(f.getFamily().toLowerCase());
                 if (f.getFamily().equals(name, ignoreCase = true)) {
-                    LOG.log(Level.INFO, "Found font for {0}", name)
+                    LOG.info { "Found font for ${name}" }
                     return f
                 }
             }

@@ -1,15 +1,12 @@
 package com.timepath.vgui
 
+import com.timepath.Logger
 import com.timepath.vgui.controls.CExLabel
 import java.util.logging.Level
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 public object Controls {
 
-    private val LOG = Logger.getLogger(Controls.javaClass.getName())
+    private val LOG = Logger()
 
     public fun get(type: String): Class<out Control> = when (type) {
         "CExLabel" -> javaClass<CExLabel>()
@@ -158,7 +155,7 @@ public object Controls {
         "HTML" -> javaClass<Control>()
         "TextEntry" -> javaClass<Control>()
         else -> {
-            LOG.log(Level.WARNING, "Unknown control: {0}", type)
+            LOG.log(Level.WARNING, { "Unknown control: $type" })
             javaClass<Control>()
         }
     }

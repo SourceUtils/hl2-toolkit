@@ -2,13 +2,8 @@ package com.timepath.hl2.io.bsp
 
 import com.timepath.hl2.io.bsp.lump.LumpType
 import com.timepath.io.struct.StructField
-
-import java.util.logging.Logger
 import kotlin.properties.Delegates
 
-/**
- * @author TimePath
- */
 public class Lump {
     /**
      * Length of lump (bytes)
@@ -52,10 +47,5 @@ public class Lump {
      */
     fun isEmpty(): Boolean {
         return (offset == 0) && (length == 0) && (version == 0) && (ident == 0)
-    }
-
-    companion object {
-
-        private val LOG = Logger.getLogger(javaClass<Lump>().getName())
     }
 }

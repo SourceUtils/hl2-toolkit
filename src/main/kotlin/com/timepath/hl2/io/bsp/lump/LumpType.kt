@@ -1,16 +1,11 @@
 package com.timepath.hl2.io.bsp.lump
 
+import com.timepath.Logger
 import com.timepath.hl2.io.bsp.Lump
 import com.timepath.hl2.io.bsp.LumpHandler
 import com.timepath.io.OrderedInputStream
 import java.text.MessageFormat
-import java.util.logging.Level
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
-SuppressWarnings("rawtypes")
 public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*>? = null) {
     /**
      * Map entities
@@ -269,7 +264,7 @@ public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*
      */
     LUMP_DISP_MULTIBLEND(63);
 
-    private val LOG = Logger.getLogger(javaClass<LumpType>().getName())
+    private val LOG = Logger()
 
     override fun toString(): String {
         return MessageFormat.format("{0} ({1})", name(), ID)
@@ -277,7 +272,7 @@ public enum class LumpType(public val ID: Int, public val handler: LumpHandler<*
 
     public fun <T : Any> handle(l: Lump, `in`: OrderedInputStream): T? {
         if (handler == null) {
-            LOG.log(Level.WARNING, "No handler for {0}", this)
+            LOG.warning { "No handler for ${this}" }
             return null
         }
         return handler.handle(l, `in`) as T

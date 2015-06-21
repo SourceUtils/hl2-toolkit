@@ -2,7 +2,6 @@ package com.timepath.vgui.swing
 
 import com.timepath.steam.SteamUtils
 import com.timepath.steam.io.VDFNode
-import com.timepath.steam.io.VDFNode.VDFProperty
 import com.timepath.vgui.Element
 import com.timepath.vgui.ImageUtils
 import com.timepath.vgui.VGUIRenderer
@@ -11,10 +10,6 @@ import java.awt.event.*
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
-import java.nio.charset.StandardCharsets
-import java.util.ArrayList
-import java.util.Arrays
 import java.util.LinkedList
 import javax.swing.JFrame
 import javax.swing.JPanel
@@ -22,10 +17,6 @@ import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
 import kotlin.platform.platformStatic
 
-/**
- * @author TimePath
- */
-SuppressWarnings("serial")
 public class VGUICanvas : JPanel(), MouseListener, MouseMotionListener {
 
     public val r: VGUIRenderer = object : VGUIRenderer() {

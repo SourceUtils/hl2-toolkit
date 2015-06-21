@@ -10,7 +10,6 @@ import java.util.LinkedList
 import kotlin.properties.Delegates
 
 /**
- * @author TimePath
  * @see <a href="http://i.imgur.com/KxiV3.jpg">OSX</a>
  * @see <a href="http://i.imgur.com/VqABM.jpg">WIN</a>
  */

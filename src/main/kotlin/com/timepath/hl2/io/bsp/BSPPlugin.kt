@@ -1,21 +1,17 @@
 package com.timepath.hl2.io.bsp
 
+import com.timepath.Logger
 import com.timepath.hl2.io.bsp.lump.LumpType
 import com.timepath.vfs.SimpleVFile
 import com.timepath.vfs.provider.ProviderPlugin
 import com.timepath.vfs.provider.zip.ZipFileProvider
 import org.kohsuke.MetaInfServices
-
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.logging.Level
-import java.util.logging.Logger
 
-/**
- * @author TimePath
- */
 MetaInfServices
 public class BSPPlugin : ProviderPlugin {
 
@@ -28,7 +24,7 @@ public class BSPPlugin : ProviderPlugin {
                 return setOf(object : SimpleVFile() {
                     fun checkBSP() {
                         if (z != null) return
-                        LOG.log(Level.INFO, "Loading {0}", file)
+                        LOG.info({ "Loading ${file}" })
                         try {
                             FileInputStream(file).use { `is` ->
                                 BSP.load(`is`)?.let {
@@ -36,7 +32,7 @@ public class BSPPlugin : ProviderPlugin {
                                 }
                             }
                         } catch (e: IOException) {
-                            LOG.log(Level.SEVERE, null, e)
+                            LOG.log(Level.SEVERE, { null }, e)
                         }
 
                     }
@@ -66,6 +62,6 @@ public class BSPPlugin : ProviderPlugin {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<BSPPlugin>().getName())
+        private val LOG = Logger()
     }
 }

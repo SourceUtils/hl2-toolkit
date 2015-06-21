@@ -1,19 +1,15 @@
 package com.timepath.hl2.io
 
 
+import com.timepath.Logger
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.Deque
 import java.util.LinkedList
 import java.util.Scanner
-import java.util.logging.Level
-import java.util.logging.Logger
 import java.util.regex.Pattern
 import kotlin.platform.platformStatic
 
-/**
- * @author TimePath
- */
 public class CFG {
     var aliases: List<Alias> = LinkedList()
 
@@ -32,7 +28,7 @@ public class CFG {
         }
     }
 
-    public class Alias (
+    public class Alias(
             /**
              * 32 characters
              */
@@ -46,7 +42,7 @@ public class CFG {
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<CFG>().getName())
+        private val LOG = Logger()
 
         private fun lex(input: CharSequence): List<Token> {
             val tokens = LinkedList<Token>()
@@ -90,7 +86,7 @@ public class CFG {
                 val line = scanner.nextLine().trim()
                 lineNum++
                 val q = lex(line)
-                LOG.info("$q")
+                LOG.info { "$q" }
                 val cmd = LinkedList<Token>()
                 var quoted = false
                 loop@for (t in q) {
@@ -98,7 +94,7 @@ public class CFG {
                         CFG.TokenType.QUOTE -> {
                             quoted = !quoted
                             if (!quoted) {
-                                LOG.info(eval(cmd))
+                                LOG.info { eval(cmd) }
                                 cmd.clear()
                                 break@loop
                             }
@@ -106,7 +102,7 @@ public class CFG {
                         }
                         CFG.TokenType.SEPARATOR -> {
                             if (!quoted) {
-                                LOG.info(eval(cmd))
+                                LOG.info { eval(cmd) }
                                 cmd.clear()
                                 break@loop
                             }
@@ -118,7 +114,7 @@ public class CFG {
                         else -> throw AssertionError(t.type.name())
                     }
                 }
-                LOG.info(eval(cmd))
+                LOG.info { eval(cmd) }
             }
             return cfg
         }

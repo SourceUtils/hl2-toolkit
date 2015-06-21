@@ -1,12 +1,12 @@
 package com.timepath.hl2.io.demo
 
+import com.timepath.Logger
 import com.timepath.io.BitBuffer
 import org.xiph.speex.SpeexDecoder
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.StreamCorruptedException
 import java.util.logging.Level
-import java.util.logging.Logger
 import javax.sound.sampled.*
 
 /**
@@ -25,7 +25,7 @@ class VoiceDataHandler : PacketHandler {
             speexDecoder?.init(mode, 11025, 1, true)
             // Signed 16 bit LE mono
             val sourceVoiceFormat = AudioFormat(AudioFormat.Encoding.PCM_SIGNED, VOICE_OUTPUT_SAMPLE_RATE.toFloat(), 16, 1, 2, VOICE_OUTPUT_SAMPLE_RATE.toFloat(), false)
-            LOG.log(Level.INFO, "Voice: {0}", sourceVoiceFormat)
+            LOG.info({ "Voice: ${sourceVoiceFormat}" })
             val info = DataLine.Info(javaClass<SourceDataLine>(), sourceVoiceFormat)
             audioOut = AudioSystem.getLine(info) as SourceDataLine
             audioOut?.open(sourceVoiceFormat)
@@ -33,7 +33,7 @@ class VoiceDataHandler : PacketHandler {
         } catch (ex: Exception) {
             when (ex) {
                 is LineUnavailableException, is IllegalArgumentException -> {
-                    LOG.log(Level.SEVERE, null, ex)
+                    LOG.log(Level.SEVERE, { null }, ex)
                 }
                 else -> throw ex
             }
@@ -65,7 +65,7 @@ class VoiceDataHandler : PacketHandler {
             decoded = ByteArray(speexDecoder!!.getProcessedDataByteSize())
             speexDecoder!!.getProcessedData(decoded, 0)
         } catch (ex: StreamCorruptedException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
 
         // dump(index, decoded);
@@ -76,14 +76,14 @@ class VoiceDataHandler : PacketHandler {
         try {
             audioOut?.write(data, 0, data.size())
         } catch (ex: IllegalArgumentException) {
-            LOG.log(Level.SEVERE, null, ex.getMessage())
+            LOG.log(Level.SEVERE, { ex.getMessage()!! })
         }
 
     }
 
     companion object {
 
-        private val LOG = Logger.getLogger(javaClass<VoiceDataHandler>().getName())
+        private val LOG = Logger()
         private val VOICE_OUTPUT_SAMPLE_RATE = 11025
 
         fun bitsToBytes(bits: Int) = (bits + 7) / 8
@@ -94,7 +94,7 @@ class VoiceDataHandler : PacketHandler {
                 it.flush()
             }
         } catch (ex: IOException) {
-            LOG.log(Level.SEVERE, null, ex)
+            LOG.log(Level.SEVERE, { null }, ex)
         }
     }
 }

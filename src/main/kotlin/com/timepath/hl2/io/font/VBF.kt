@@ -1,7 +1,8 @@
 package com.timepath.hl2.io.font
 
 
-import java.awt.*
+import com.timepath.Logger
+import java.awt.Rectangle
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -9,15 +10,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.ArrayList
 import java.util.logging.Level
-import java.util.logging.Logger
 
 /**
  * Valve Bitmap Font
-
- * @author TimePath
- * *
  * @see [https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/BitmapFontFile.h](null)
-
  * @see [https://github.com/LestaD/SourceEngine2007/blob/master/src_main/utils/xbox/FontMaker/glyphs.cpp](null)
  */
 public class VBF() {
@@ -92,7 +88,7 @@ public class VBF() {
                 sb.append('\n')
             }
         }
-        LOG.fine(sb.toString())
+        LOG.fine({ sb.toString() })
         for (i in table.indices) {
             val glyphIndex = table[i].toInt()
             if (glyphIndex == 0) {
@@ -100,7 +96,7 @@ public class VBF() {
                 continue
             }
             val g = glyphs.get(glyphIndex)
-            LOG.log(Level.FINE, "{0}: ({1})\t'{'{2}, {3}, {4}'}'", arrayOf(i, g.bounds, g.a, g.b, g.c))
+            LOG.log(Level.FINE, { "${i}: (${g.bounds})\t'{'${g.a}, ${g.b}, ${g.c}'}'" })
         }
     }
 
@@ -174,6 +170,6 @@ public class VBF() {
 
         private val BITMAPFONT_ID = "VFNT".mapIndexed { i, it -> it.toInt() shl (i * 8) }.fold(0) { p, it -> p or it }
         private val BITMAPFONT_VERSION = 3
-        private val LOG = Logger.getLogger(javaClass<VBF>().getName())
+        private val LOG = Logger()
     }
 }
