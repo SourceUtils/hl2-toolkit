@@ -1,12 +1,12 @@
 package com.timepath.hl2.io.net
 
+import com.timepath.io.BitBuffer
 import com.timepath.steam.SteamUtils
 import java.lang.management.ManagementFactory
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.URL
-import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Arrays
@@ -220,11 +220,230 @@ fun main(args: Array<String>) {
                             it.rewind()
                             S2C_CONNECTION(it)
                             println("we're okay")
+                            val c = NetChannel()
+                            while (true) {
+                                val bb = BitBuffer(recv(strict = false).buffer)
+                                c.processPacket(bb)
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * void CNetChan::ProcessPacket(netpacket_t *packet, bool bHasHeader)
+ * int CNetChan::SendDatagram(bf_write *datagram)
+ * int CNetChan::ProcessPacketHeader(netpacket_t *packet)
+ * void CNetChan::ProcessPacket(netpacket_t *packet, bool bHasHeader)
+ */
+class NetChannel {
+
+    private val FL_RELIABLE = 1 shl 0
+    private val FL_COMPRESSED = 1 shl 1
+    private val FL_ENCRYPTED = 1 shl 2
+    private val FL_SPLIT = 1 shl 3
+    private val FL_CHOKED = 1 shl 4
+    private fun FL_DECODE_PAD(flags: Int) = (flags shr 5) and 0xff
+    private fun FL_ENCODE_PAD(flags: Int) = (flags shl 5) and 0xff
+    private val MAX_STREAMS = 2
+    private val MAX_SUBCHANNELS = 8
+    private val NETMSG_TYPE_BITS = 5
+
+    private fun Byte.has(mask: Int) = toInt() and mask != 0
+
+    private var reliable: Int = 0
+
+    val net_NOP = 0
+    val net_Disconnect = 1
+    val net_File = 2
+
+    fun processPacket(bb: BitBuffer, hasHeader: Boolean = true) {
+        val flags = if (hasHeader) processPacketHeader(bb) else 0
+        if (flags has FL_RELIABLE) {
+            val bit = 1 shl bb.getBits(3).toInt()
+            for (i in 0..MAX_STREAMS - 1) {
+                if (bb.getBoolean()) {
+                    if (!readSubChannelData(bb, i)) {
+                        return
+                    }
+                }
+            }
+            reliable = reliable xor bit
+            // for (i in 0..MAX_STREAMS - 1) {
+            //     if (!checkReceivingList(i)) {
+            //         return
+            //     }
+            // }
+        }
+
+        if (bb.remainingBits() > 0) {
+            if (!processMessages(bb)) {
+                return
+            }
+        }
+    }
+
+    fun processPacketHeader(bb: BitBuffer): Byte {
+        val seq = bb.getInt()
+        val ack = bb.getInt()
+        val flags = bb.getByte()
+        println("seq: $seq, ack: $ack")
+
+        val checksum = bb.getShort()
+
+        /** 8 subchannels states */
+        val substates = bb.getByte()
+
+        if (flags has FL_CHOKED) {
+            val chokedPackets = bb.getByte()
+            println("choke: $chokedPackets")
+        }
+
+        // for (i in 0..MAX_SUBCHANNELS - 1) {
+        //     val mask = 1 shl i
+        // }
+
+        return flags
+    }
+
+    fun readSubChannelData(bb: BitBuffer, i: Int): Boolean {
+        val FRAGMENT_BITS = 8
+        val FRAGMENT_SIZE = 1 shl FRAGMENT_BITS
+        val MAX_FILE_SIZE_BITS = 26
+
+        val NET_MAX_PAYLOAD_BITS = 17
+
+        @data class DataFragment {
+            var file: Any? = null
+            var ackedFragments: Int = 0
+            var numFragments: Int = 0
+            var asTCP: Boolean = false
+            var buffer: ByteArray? = null
+            val bits: Long get() = bytes * 8
+            var filename: String? = null
+            var transferID: Int = 0
+            var bytes: Long = 0
+            var uncompressedSize: Long = 0
+            var isCompressed: Boolean = false
+
+        }
+
+        val data = DataFragment()
+        val startFragment: Int
+        var numFragments: Int
+        val offset: Int
+        var length: Int
+        val singleBlock = bb.getBoolean()
+        if (!singleBlock) {
+            startFragment = bb.getBits(MAX_FILE_SIZE_BITS - FRAGMENT_BITS).toInt()
+            numFragments = bb.getBits(3).toInt()
+            offset = startFragment * FRAGMENT_SIZE
+            length = numFragments * FRAGMENT_SIZE
+        } else {
+            startFragment = 0
+            numFragments = 0
+            offset = 0
+            length = 0
+        }
+        if (offset == 0) {
+            if (singleBlock) {
+                if (bb.getBoolean()) {
+                    data.isCompressed = true
+                    data.uncompressedSize = bb.getBits(MAX_FILE_SIZE_BITS)
+                } else {
+                    data.isCompressed = false
+                }
+                data.bytes = bb.getBits(NET_MAX_PAYLOAD_BITS)
+            } else {
+                if (bb.getBoolean()) {
+                    // it's a file
+                    data.transferID = bb.getInt()
+                    data.filename = bb.getString(260)
+                }
+                if (bb.getBoolean()) {
+                    // it's compressed
+                    data.isCompressed = true
+                    data.uncompressedSize = bb.getBits(MAX_FILE_SIZE_BITS)
+                } else {
+                    data.isCompressed = false
+                }
+                data.bytes = bb.getBits(MAX_FILE_SIZE_BITS)
+            }
+            // Pad a number so it lies on an N byte boundary.
+            // So PAD_NUMBER(0,4) is 0 and PAD_NUMBER(1,4) is 4
+            fun PAD_NUMBER(number: Int, boundary: Int)
+                    = ( ((number) + ( (boundary) - 1) ) / (boundary) ) * (boundary)
+            data.buffer = ByteArray(PAD_NUMBER(data.bytes.toInt(), 4))
+            data.asTCP = false
+            fun BYTES2FRAGMENTS(i: Int) = ((i + FRAGMENT_SIZE - 1) / FRAGMENT_SIZE)
+            data.numFragments = BYTES2FRAGMENTS(data.bytes.toInt())
+            data.ackedFragments = 0
+            data.file = null
+            if (singleBlock) {
+                numFragments = data.numFragments
+                length = numFragments * FRAGMENT_SIZE
+            }
+        } else {
+            if (data.buffer == null) {
+                // the header was dropped
+                return false
+            }
+        }
+
+        if (startFragment + numFragments == data.numFragments) {
+            val rest = FRAGMENT_SIZE - (data.bytes % FRAGMENT_SIZE).toInt()
+            if (rest < FRAGMENT_SIZE)
+                length -= rest
+        }
+
+        check(offset + length <= data.bytes)
+
+        bb.get(data.buffer!!, offset, length)
+        data.ackedFragments += numFragments
+        return true
+    }
+
+    fun processMessages(bb: BitBuffer): Boolean {
+        while (true) {
+            if (bb.remainingBits() < NETMSG_TYPE_BITS) {
+                break
+            }
+            val cmd = bb.getBits(NETMSG_TYPE_BITS).toInt()
+            if (cmd <= net_File) {
+                if (!processControlMessage(cmd, bb)) {
+                    return false
+                }
+                continue
+            }
+            // try demo parser here
+            run {
+                println("Unknown message $cmd")
+                return false
+            }
+        }
+        return true
+    }
+
+    fun processControlMessage(cmd: Int, bb: BitBuffer): Boolean {
+        if (cmd == net_NOP) {
+            return true
+        }
+        if (cmd == net_Disconnect) {
+            val reason = bb.getString()
+            println("Disconnect: $reason")
+        }
+        if (cmd == net_File) {
+            val id = bb.getInt()
+            val name = bb.getString()
+            if (bb.getBoolean()) {
+                println("Download $id: $name")
+            }
+            return true
+        }
+        return false
     }
 }
 
@@ -236,11 +455,12 @@ interface Readable<T> {
     fun read(it: Packet): T
 }
 
+val MIN_ROUTABLE_PAYLOAD = 16
 val MAX_ROUTABLE_PAYLOAD = 1260
 
 class Packet(array: ByteArray = ByteArray(MAX_ROUTABLE_PAYLOAD)) {
 
-    private val buffer = ByteBuffer.wrap(array).let {
+    val buffer = ByteBuffer.wrap(array).let {
         it.order(ByteOrder.LITTLE_ENDIAN)
         it
     }
