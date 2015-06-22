@@ -23,7 +23,7 @@ public class Message(
             $size = data?.capacity() ?: 0
         }
 
-    public var meta: MutableList<Pair<Any, Any?>> = LinkedList()
+    public var meta: TupleMap<Any, Any?> = TupleMap()
     public var incomplete: Boolean = false
     /** Command / sequence info. TODO: use */
     StructField(index = 2, nullable = true) public var cseq: ByteArray? = null
@@ -35,15 +35,19 @@ public class Message(
 
     public fun write(out: OrderedOutputStream) {
         out.writeByte(type!!.ordinal() + 1)
-        out.writeInt(tick) // TODO: technically MessageType.Stop is 1 byte less
+        out.writeInt(tick)
         cseq?.let { out.write(it) }
         oseq?.let { out.write(it) }
-        if (!(type == MessageType.Synctick || type == MessageType.Stop)) out.writeInt(size)
-        if (data == null) return
-        data!!.position(0)
-        val dst = ByteArray(data!!.limit())
-        data!!.get(dst)
-        out.write(dst)
+        when (type) {
+            MessageType.Synctick, MessageType.Stop -> Unit
+            else -> out.writeInt(size)
+        }
+        data?.let {
+            it.position(0)
+            val dst = ByteArray(it.limit())
+            it.get(dst)
+            out.write(dst)
+        }
     }
 
     override fun toString() = "${type}, tick ${tick}, ${data?.limit() ?: 0} bytes"
@@ -78,16 +82,16 @@ public class Message(
                                 thrown = e
                             }
 
-                            meta.add(p to p.list)
+                            meta[p] = p.list
                         }
                     } catch (e: BufferUnderflowException) {
                         error = MessageFormat.format("Out of data in {0}", this)
                     }
 
-                    meta.add("remaining bits" to bb.remainingBits())
+                    meta["remaining bits"] = bb.remainingBits()
                     if (error != null) {
                         incomplete = true
-                        meta.add("error" to error)
+                        meta["error"] = error
                         thrown?.let { LOG.log(Level.WARNING, { error }, it) }
                         break
                     }
@@ -95,55 +99,55 @@ public class Message(
             }
             MessageType.ConsoleCmd -> {
                 val cmd = DataUtils.getText(data!!, true)
-                meta.add("cmd" to cmd)
+                meta["cmd"] = cmd
             }
             MessageType.UserCmd -> {
                 // https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/usercmd.cpp#L199
                 val bb = BitBuffer(data!!)
                 if (bb.getBoolean()) {
-                    meta.add("Command number" to bb.getInt())
+                    meta["Command number"] = bb.getInt()
                 } // else assume steady increment
                 if (bb.getBoolean()) {
-                    meta.add("Tick count" to bb.getInt())
+                    meta["Tick count"] = bb.getInt()
                 } // else assume steady increment
                 if (bb.getBoolean()) {
-                    meta.add("Viewangle pitch" to bb.getFloat())
+                    meta["Viewangle pitch"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Viewangle yaw" to bb.getFloat())
+                    meta["Viewangle yaw"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Viewangle roll" to bb.getFloat())
+                    meta["Viewangle roll"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Foward move" to bb.getFloat())
+                    meta["Foward move"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Side move" to bb.getFloat())
+                    meta["Side move"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Up move" to bb.getFloat())
+                    meta["Up move"] = bb.getFloat()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Buttons" to Input[bb.getInt()])
+                    meta["Buttons"] = Input[bb.getInt()]
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Impulse" to bb.getByte())
+                    meta["Impulse"] = bb.getByte()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Weapon select" to bb.getBits(HL2DEM.MAX_EDICT_BITS))
+                    meta["Weapon select"] = bb.getBits(HL2DEM.MAX_EDICT_BITS)
                     if (bb.getBoolean()) {
-                        meta.add("Weapon subtype" to bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS))
+                        meta["Weapon subtype"] = bb.getBits(HL2DEM.WEAPON_SUBTYPE_BITS)
                     }
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Mouse Dx" to bb.getShort())
+                    meta["Mouse Dx"] = bb.getShort()
                 }
                 if (bb.getBoolean()) {
-                    meta.add("Mouse Dy" to bb.getShort())
+                    meta["Mouse Dy"] = bb.getShort()
                 }
                 if (bb.remaining() > 0) {
-                    meta.add("Underflow" to bb.remaining())
+                    meta["Underflow"] = bb.remaining()
                 }
             }
             MessageType.DataTables, MessageType.StringTables -> Unit // TODO

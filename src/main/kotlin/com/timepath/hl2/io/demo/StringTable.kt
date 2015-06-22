@@ -18,7 +18,7 @@ class StringTable {
     /**
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/networkstringtable.cpp#L595
      */
-    fun parse(bb: BitBuffer, l: MutableList<Pair<Any, Any>>) {
+    fun parse(bb: BitBuffer, l: TupleMap<Any, Any>) {
         var lastEntry = (-1).toLong()
         val history = ArrayList<String>(32) // Fixed size window
         for (i in 0..numEntries - 1) {

@@ -1,6 +1,7 @@
 package com.timepath.hl2.io.demo
 
 import com.timepath.io.BitBuffer
+import com.timepath.toUnsigned
 import java.awt.Color
 import java.awt.Point
 import java.util.LinkedList
@@ -11,66 +12,67 @@ import java.util.LinkedList
  * @see [https://github.com/LestaD/SourceEngine2007/blob/master/se2007/game/shared/hl2/hl2_usermessages.cpp](null)
  * HookMessage, HOOK_HUD_MESSAGE, MsgFunc_
  */
-public enum class UserMessage(private val id: Int, private val size: Int, private val handler: PacketHandler? = null) {
+public enum class UserMessage(private val id: Int, private val size: Int,
+                              private open val handler: PacketHandler? = null) {
 
-    Geiger(0, 1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add("Range" to (bb.getByte().toInt() and 255) * 2)
-            return true
+    Geiger(0, 1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
+            l["Range"] = bb.getByte().toUnsigned() * 2
+            true
         }
-    }),
-    Train(1, 1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add("Pos" to bb.getByte())
-            return true
+    },
+    Train(1, 1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
+            l["Pos"] = bb.getByte()
+            true
         }
-    }),
-    HudText(2, -1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add("Text" to bb.getString())
-            return true
+    },
+    HudText(2, -1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
+            l["Text"] = bb.getString()
+            true
         }
-    }),
+    },
     SayText(3, -1),
-    SayText2(4, -1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
+    SayText2(4, -1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
             val endBit = bb.positionBits() + lengthBits
             val client = bb.getBits(8)
-            l.add("Client" to client)
+            l["Client"] = client
             // 0 - raw text, 1 - sets CHAT_FILTER_PUBLICCHAT
             val isRaw = bb.getBits(8) != 0L
-            l.add("Raw" to isRaw)
+            l["Raw"] = isRaw
             // \x03 in the message for the team color of the specified clientid
             val kind = bb.getString()
-            l.add("Kind" to kind)
+            l["Kind"] = kind
             val from = bb.getString()
-            l.add("From" to from)
+            l["From"] = from
             val msg = bb.getString()
-            l.add("Text" to msg)
+            l["Text"] = msg
             // This message can have two optional string parameters.
             val args = LinkedList<String>()
             while (bb.positionBits() < endBit) {
                 val arg = bb.getString()
                 args.add(arg)
             }
-            l.add("Args" to args)
-            return true
+            l["Args"] = args
+            true
         }
-    }),
-    TextMsg(5, -1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
+    },
+    TextMsg(5, -1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
             val destination = arrayOf("HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK", "HUD_PRINTCENTER")
             val msgDest = bb.getByte()
-            l.add("Destination" to destination[msgDest.toInt()])
-            l.add("Message" to bb.getString())
+            l["Destination"] = destination[msgDest.toInt()]
+            l["Message"] = bb.getString()
             // These seem to be disabled in TF2
             // l.add(new Pair<Object, Object>("args[0]", bb.getString()));
             // l.add(new Pair<Object, Object>("args[1]", bb.getString()));
             // l.add(new Pair<Object, Object>("args[2]", bb.getString()));
             // l.add(new Pair<Object, Object>("args[3]", bb.getString()));
-            return true
+            true
         }
-    }),
+    },
     ResetHUD(6, 1),
     GameTitle(7, 0),
     ItemPickup(8, -1),
@@ -101,8 +103,8 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
      * $fadeout (message fade out time)
      * $holdtime (stay on the screen for this long)
      */
-    HudMsg(21, -1, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
+    HudMsg(21, -1) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
             val pos = Point(bb.getByte().toInt(), bb.getByte().toInt())
             val color = Color(bb.getByte().toInt(), bb.getByte().toInt(), bb.getByte().toInt(), bb.getByte().toInt())
             val color2 = Color(bb.getByte().toInt(), bb.getByte().toInt(), bb.getByte().toInt(), bb.getByte().toInt())
@@ -111,18 +113,18 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
             val fadeout = bb.getFloat()
             val holdtime = bb.getFloat()
             val fxtime = bb.getFloat()
-            l.add(("Text" to bb.getString()))
-            return true
+            l["Text"] = bb.getString()
+            true
         }
 
         private val MAX_NETMESSAGE = 6
-    }),
-    AmmoDenied(22, 2, object : PacketHandler {
-        override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add("Ammo" to (bb.getShort().toInt() and 65535))
-            return true
+    },
+    AmmoDenied(22, 2) {
+        override val handler = PacketHandler { bb, l, demo, lengthBits ->
+            l["Ammo"] = bb.getShort().toUnsigned()
+            true
         }
-    }),
+    },
     AchievementEvent(23, -1),
     UpdateRadar(24, -1),
     VoiceSubtitle(25, 3),
@@ -160,16 +162,16 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
     HapMeleeContact(57, 0);
 
     companion object {
-        fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM): Boolean {
+        fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM): Boolean {
             val msgType = bb.getByte().toInt()
             val m = UserMessage[msgType]
-            l.add("Message type" to (m?.name() ?: "Unknown: $msgType"))
+            l["Message type"] = (m?.name() ?: "Unknown: $msgType")
             val length = bb.getBits(11).toInt()
-            l.add("Length in bits" to length)
-            l.add("Start bit" to bb.positionBits())
-            l.add("End bit" to bb.positionBits() + length)
+            l["Length in bits"] = length
+            l["Start bit"] = bb.positionBits()
+            l["End bit"] = bb.positionBits() + length
             m?.handler?.let { return it.read(bb, l, demo, length) }
-            l.add("TODO" to msgType)
+            l["TODO"] = msgType
             bb.getBits(length) // Skip
             return true
         }

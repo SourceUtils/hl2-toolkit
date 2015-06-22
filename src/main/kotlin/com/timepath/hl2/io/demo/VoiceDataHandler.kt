@@ -2,6 +2,7 @@ package com.timepath.hl2.io.demo
 
 import com.timepath.Logger
 import com.timepath.io.BitBuffer
+import com.timepath.toUnsigned
 import org.xiph.speex.SpeexDecoder
 import java.io.FileOutputStream
 import java.io.IOException
@@ -40,12 +41,12 @@ class VoiceDataHandler : PacketHandler {
         }
     }
 
-    override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-        val client = bb.getByte().toInt() and 0xFF
-        l.add(("Client" to client))
-        l.add(("Proximity" to bb.getByte()))
-        val length = bb.getShort().toInt() and 0xFFFF
-        l.add(("Length in bits" to length))
+    override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        val client = bb.getByte().toUnsigned()
+        l["Client"] = client
+        l["Proximity"] = bb.getByte()
+        val length = bb.getShort().toUnsigned()
+        l["Length in bits"] = length
         if (length < 0) {
             return false
         }

@@ -76,31 +76,23 @@ public class ReplayDMX private constructor(input: InputStream) {
     }
 
     private class SessionInfoHeader {
-        StructField(index = 0)
-        var version: Byte = 0
+        StructField(0) var version: Byte = 0
         /** Name of session. */
-        StructField(index = 1, limit = MAX_SESSIONNAME_LENGTH - 1)
+        StructField(1, limit = MAX_SESSIONNAME_LENGTH - 1)
         var sessionName: String by Delegates.notNull()
         /** Is this session currently recording? */
-        StructField(index = 2, skip = 3)
-        var recording: Boolean = false
+        StructField(2, skip = 3) var recording: Boolean = false
         /** Number of blocks in the session so far if recording, or total if not recording. */
-        StructField(index = 3)
-        var numBlocks: Int = 0
+        StructField(3) var numBlocks: Int = 0
         /** [CompressorType.INVALID] if header is not compressed. */
-        StructField(index = 4)
-        var compressorType: Int = 0
+        StructField(4) var compressorType: Int = 0
         /** MD5 digest on payload. */
-        StructField(index = 5)
-        var hash = ByteArray(16)
+        StructField(5) var hash = ByteArray(16)
         /** Size of the payload - the compressed payload if it's compressed */
-        StructField(index = 6)
-        var payloadSize: Int = 0
+        StructField(6) var payloadSize: Int = 0
         /** Size of the uncompressed payload, if its compressed, otherwise 0 */
-        StructField(index = 7)
-        var payloadSizeUC: Int = 0
-        StructField(index = 8)
-        var unused = ByteArray(128)
+        StructField(7) var payloadSizeUC: Int = 0
+        StructField(8) var unused = ByteArray(128)
 
         companion object {
             val MAX_SESSIONNAME_LENGTH = 260
@@ -108,20 +100,13 @@ public class ReplayDMX private constructor(input: InputStream) {
     }
 
     private class RecordingSessionBlockSpec {
-        StructField(index = 0)
-        var reconstruction: Int = 0
-        StructField(index = 1)
-        var remoteStatus: Byte = 0
-        StructField(index = 2)
-        var hash = ByteArray(16)
-        StructField(index = 3, skip = 2)
-        var compressorType: Byte = 0
-        StructField(index = 4)
-        var fileSize: Int = 0
-        StructField(index = 5)
-        var uncompressedSize: Int = 0
-        StructField(index = 6)
-        var unused = ByteArray(8)
+        StructField(0) var reconstruction: Int = 0
+        StructField(1) var remoteStatus: Byte = 0
+        StructField(2) var hash = ByteArray(16)
+        StructField(3, skip = 2) var compressorType: Byte = 0
+        StructField(4) var fileSize: Int = 0
+        StructField(5) var uncompressedSize: Int = 0
+        StructField(6) var unused = ByteArray(8)
     }
 
     companion object {

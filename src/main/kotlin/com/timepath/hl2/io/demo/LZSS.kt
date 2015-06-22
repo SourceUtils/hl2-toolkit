@@ -1,5 +1,7 @@
 package com.timepath.hl2.io.demo
 
+import com.timepath.toUnsigned
+
 public class LZSS {
 
     class LZSSException(message: String) : Exception(message)
@@ -7,10 +9,10 @@ public class LZSS {
     companion object {
 
         fun readSwappedInteger(data: ByteArray, offset: Int) = (0
-                + ((data[offset + 0].toInt() and 0xff ) shl 0)
-                + ((data[offset + 1].toInt() and 0xff ) shl 8)
-                + ((data[offset + 2].toInt() and 0xff ) shl 16)
-                + ((data[offset + 3].toInt() and 0xff ) shl 24)
+                + (data[offset + 0].toUnsigned() shl 0)
+                + (data[offset + 1].toUnsigned() shl 8)
+                + (data[offset + 2].toUnsigned() shl 16)
+                + (data[offset + 3].toUnsigned() shl 24)
                 )
 
         public val ID: String = "LZSS"

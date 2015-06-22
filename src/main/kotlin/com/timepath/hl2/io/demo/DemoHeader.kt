@@ -3,10 +3,7 @@ package com.timepath.hl2.io.demo
 import com.timepath.DataUtils
 import com.timepath.Logger
 import com.timepath.io.struct.StructField
-import com.timepath.with
 import java.nio.ByteBuffer
-
-private val MAX_OSPATH = 260
 
 public class DemoHeader(
         StructField(0, limit = 8) var head: String,

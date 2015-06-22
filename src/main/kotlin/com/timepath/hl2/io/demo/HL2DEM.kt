@@ -2,13 +2,13 @@ package com.timepath.hl2.io.demo
 
 import com.timepath.DataUtils
 import com.timepath.Logger
+import com.timepath.with
 import java.io.File
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.LinkedList
 import java.util.logging.Level
-import kotlin.properties.Delegates
 
 /**
  * Format of a demo:
@@ -63,10 +63,7 @@ public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
                 break
             }
 
-            frame.data = ByteBuffer.wrap(dst).let {
-                it.order(ByteOrder.LITTLE_ENDIAN)
-                it
-            }
+            frame.data = ByteBuffer.wrap(dst).with { order(ByteOrder.LITTLE_ENDIAN) }
             if (eager) frame.parse()
         }
     }
