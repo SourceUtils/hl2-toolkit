@@ -2,45 +2,26 @@ package com.timepath.hl2.io.demo
 
 import com.timepath.io.BitBuffer
 
-public enum class GameEventMessageType(private val i: Int) {
+public enum class GameEventMessageType(private val i: Int, val parse: (BitBuffer) -> Any?) {
 
     /** Marks the end of an event description */
-    END(0) {
-        override fun parse(bb: BitBuffer) = throw UnsupportedOperationException()
-    },
-
+    END(0, { throw UnsupportedOperationException() }),
     /** A zero terminated string */
-    STRING(1) {
-        override fun parse(bb: BitBuffer) = bb.getString()
-    },
+    STRING(1, { it.getString() }),
     /** Float, 32 bit */
-    FLOAT(2) {
-        override fun parse(bb: BitBuffer) = bb.getFloat()
-    },
+    FLOAT(2, { it.getFloat() }),
     /** Signed int, 32 bit */
-    LONG(3) {
-        override fun parse(bb: BitBuffer) = bb.getInt()
-    },
+    LONG(3, { it.getInt() }),
     /** Signed int, 16 bit */
-    SHORT(4) {
-        override fun parse(bb: BitBuffer) = bb.getShort()
-    },
+    SHORT(4, { it.getShort() }),
     /** Unsigned int, 8 bit */
-    BYTE(5) {
-        override fun parse(bb: BitBuffer) = bb.getByte()
-    },
+    BYTE(5, { it.getByte() }),
     /** Unsigned int, 1 bit */
-    BOOL(6) {
-        override fun parse(bb: BitBuffer) = bb.getBoolean()
-    },
+    BOOL(6, { it.getBoolean() }),
     /** Any data, but not networked to clients */
-    LOCAL(7) {
-        override fun parse(bb: BitBuffer) = null
-    };
-
-    public abstract fun parse(bb: BitBuffer): Any?
+    LOCAL(7, { null });
 
     companion object {
-        fun get(i: Int): GameEventMessageType = values().first { it.i == i }
+        fun get(i: Int) = values().firstOrNull { it.i == i }
     }
 }

@@ -5,33 +5,32 @@ import com.timepath.Logger
 import com.timepath.io.BitBuffer
 import com.timepath.io.OrderedOutputStream
 import com.timepath.io.struct.StructField
+import com.timepath.with
 import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.text.MessageFormat
 import java.util.LinkedList
 import java.util.logging.Level
 
-public class Message(private val outer: HL2DEM, public val type: MessageType?,
-                     /** Actually 3 bytes? */
-                     StructField(index = 1)
-                     public val tick: Int) {
+public class Message(
+        private val outer: HL2DEM,
+        public val type: MessageType?,
+        StructField(index = 1) public val tick: Int) {
+
     public var data: ByteBuffer? = null
         set(data) {
             $data = data
             $size = data?.capacity() ?: 0
         }
+
     public var meta: MutableList<Pair<Any, Any?>> = LinkedList()
     public var incomplete: Boolean = false
     /** Command / sequence info. TODO: use */
-    StructField(index = 2, nullable = true)
-    public var cseq: ByteArray? = null
+    StructField(index = 2, nullable = true) public var cseq: ByteArray? = null
     /** Outgoing sequence number. TODO: use */
-    StructField(index = 3, nullable = true)
-    public var oseq: ByteArray? = null
-    StructField(index = 4)
-    public var size: Int = 0
-    StructField(index = 0)
-    private val op: Byte = 0
+    StructField(index = 3, nullable = true) public var oseq: ByteArray? = null
+    StructField(index = 4) public var size: Int = 0
+    StructField(index = 0) private val op: Byte = 0
     private var parsed: Boolean = false
 
     public fun write(out: OrderedOutputStream) {
@@ -160,26 +159,33 @@ public class Message(private val outer: HL2DEM, public val type: MessageType?,
             val op = buffer.get().toInt()
             val type = MessageType[op]
             if (type == null) {
-                LOG.severe({ "Unknown demo message type encountered: ${op}" })
+                LOG.severe { "Unknown demo message type encountered: ${op}" }
             }
-            val tick = (65535 and buffer.getShort().toInt()) + (255 and (buffer.get().toInt() shl 16))
-            if (type != MessageType.Stop) buffer.get()
-            LOG.fine({ "${type} at tick ${tick} (${buffer.position()}), ${buffer.remaining()} remaining bytes" })
-            val m = Message(outer, type, tick)
-            if (!(m.type == MessageType.Synctick || m.type == MessageType.Stop)) {
-                if (m.type == MessageType.Packet || m.type == MessageType.Signon) {
-                    val dst = ByteArray(21 * 4)
-                    buffer.get(dst)
-                    m.cseq = dst
+            val tick = buffer.getInt()
+            LOG.fine { "${type} at tick ${tick} (${buffer.position()}), ${buffer.remaining()} remaining bytes" }
+            return Message(outer, type, tick).with {
+                val m = this
+                when {
+                    m.type == MessageType.Synctick,
+                    m.type == MessageType.Stop -> Unit
+                    else -> {
+                        when {
+                            m.type == MessageType.Packet,
+                            m.type == MessageType.Signon -> {
+                                val dst = ByteArray(21 * 4)
+                                buffer.get(dst)
+                                m.cseq = dst
+                            }
+                            m.type == MessageType.UserCmd -> {
+                                val dst = ByteArray(4)
+                                buffer.get(dst)
+                                m.oseq = dst
+                            }
+                        }
+                        m.size = buffer.getInt()
+                    }
                 }
-                if (m.type == MessageType.UserCmd) {
-                    val dst = ByteArray(4)
-                    buffer.get(dst)
-                    m.oseq = dst
-                }
-                m.size = buffer.getInt()
             }
-            return m
         }
     }
 }

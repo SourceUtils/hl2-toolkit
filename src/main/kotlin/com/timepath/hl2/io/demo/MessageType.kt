@@ -12,6 +12,6 @@ public enum class MessageType(private val id: Int) {
     StringTables(8);
 
     companion object {
-        fun get(i: Int): MessageType? = values().first { it.id == i }
+        fun get(i: Int) = values().firstOrNull { it.id == i }
     }
 }

@@ -38,8 +38,8 @@ import kotlin.properties.Delegates
  */
 public class HL2DEM private constructor(buffer: ByteBuffer, eager: Boolean) {
     val frames = LinkedList<Message>()
-    var gameEvents: Array<GameEvent?> by Delegates.notNull()
-    public var header: DemoHeader
+    val gameEvents = arrayOfNulls<GameEvent>(HL2DEM.MAX_GAME_EVENTS)
+    public val header: DemoHeader
     var serverClassBits: Int = 0
 
     init {

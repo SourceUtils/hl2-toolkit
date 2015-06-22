@@ -15,19 +15,19 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
 
     Geiger(0, 1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(("Range" to (bb.getByte().toInt() and 255) * 2))
+            l.add("Range" to (bb.getByte().toInt() and 255) * 2)
             return true
         }
     }),
     Train(1, 1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(("Pos" to bb.getByte()))
+            l.add("Pos" to bb.getByte())
             return true
         }
     }),
     HudText(2, -1, object : PacketHandler {
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l.add(("Text" to bb.getString()))
+            l.add("Text" to bb.getString())
             return true
         }
     }),
@@ -36,24 +36,24 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
             val endBit = bb.positionBits() + lengthBits
             val client = bb.getBits(8)
-            l.add(("Client" to client))
+            l.add("Client" to client)
             // 0 - raw text, 1 - sets CHAT_FILTER_PUBLICCHAT
             val isRaw = bb.getBits(8) != 0L
-            l.add(("Raw" to isRaw))
+            l.add("Raw" to isRaw)
             // \x03 in the message for the team color of the specified clientid
             val kind = bb.getString()
-            l.add(("Kind" to kind))
+            l.add("Kind" to kind)
             val from = bb.getString()
-            l.add(("From" to from))
+            l.add("From" to from)
             val msg = bb.getString()
-            l.add(("Text" to msg))
+            l.add("Text" to msg)
             // This message can have two optional string parameters.
             val args = LinkedList<String>()
             while (bb.positionBits() < endBit) {
                 val arg = bb.getString()
                 args.add(arg)
             }
-            l.add(("Args" to args))
+            l.add("Args" to args)
             return true
         }
     }),
@@ -61,8 +61,8 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
         override fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM, lengthBits: Int): Boolean {
             val destination = arrayOf("HUD_PRINTCONSOLE", "HUD_PRINTNOTIFY", "HUD_PRINTTALK", "HUD_PRINTCENTER")
             val msgDest = bb.getByte()
-            l.add(("Destination" to destination[msgDest.toInt()]))
-            l.add(("Message" to bb.getString()))
+            l.add("Destination" to destination[msgDest.toInt()])
+            l.add("Message" to bb.getString())
             // These seem to be disabled in TF2
             // l.add(new Pair<Object, Object>("args[0]", bb.getString()));
             // l.add(new Pair<Object, Object>("args[1]", bb.getString()));
@@ -163,19 +163,17 @@ public enum class UserMessage(private val id: Int, private val size: Int, privat
         fun read(bb: BitBuffer, l: MutableList<Pair<Any, Any>>, demo: HL2DEM): Boolean {
             val msgType = bb.getByte().toInt()
             val m = UserMessage[msgType]
-            l.add(("Message type" to if ((m != null)) m.name() else ("Unknown: " + msgType)))
+            l.add("Message type" to (m?.name() ?: "Unknown: $msgType"))
             val length = bb.getBits(11).toInt()
-            l.add(("Length in bits" to length))
-            l.add(("Start bit" to bb.positionBits()))
-            l.add(("End bit" to bb.positionBits() + length))
-            if ((m == null) || (m.handler == null)) {
-                l.add(("TODO" to msgType))
-                bb.getBits(length) // Skip
-                return true
-            }
-            return m.handler.read(bb, l, demo, length)
+            l.add("Length in bits" to length)
+            l.add("Start bit" to bb.positionBits())
+            l.add("End bit" to bb.positionBits() + length)
+            m?.handler?.let { return it.read(bb, l, demo, length) }
+            l.add("TODO" to msgType)
+            bb.getBits(length) // Skip
+            return true
         }
 
-        private fun get(i: Int) = values().firstOrNull { it.id == i }
+        fun get(i: Int) = values().firstOrNull { it.id == i }
     }
 }

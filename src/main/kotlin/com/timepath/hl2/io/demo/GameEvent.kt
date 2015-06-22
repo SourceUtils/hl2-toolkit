@@ -8,17 +8,13 @@ class GameEvent(bb: BitBuffer) {
 
     init {
         name = bb.getString()
-        declarations = linkedMapOf<String, GameEventMessageType>().let {
-            while (true) {
-                val entryType = GameEventMessageType[bb.getBits(3).toInt()]
-                if (entryType == GameEventMessageType.END) {
-                    break
-                }
-                val entryName = bb.getString()
-                it[entryName] = entryType
+        declarations = sequence {
+            val evt = GameEventMessageType[bb.getBits(3).toInt()]
+            when (evt!!) {
+                GameEventMessageType.END -> null
+                else -> bb.getString() to evt
             }
-            it
-        }
+        }.toList().toMap()
     }
 
     public fun parse(bb: BitBuffer): Map<String, Any?> = declarations.mapValues { it.value.parse(bb) }

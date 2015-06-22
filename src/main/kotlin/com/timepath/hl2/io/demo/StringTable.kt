@@ -71,14 +71,14 @@ class StringTable {
 
     companion object {
 
-        public val SUBSTRING_BITS: Int = 5
-        public val MAX_USERDATA_BITS: Int = 14
-        public val MAX_USERDATA_SIZE: Int = 1 shl MAX_USERDATA_BITS
+        private val SUBSTRING_BITS: Int = 5
+        private val MAX_USERDATA_BITS: Int = 14
+        private val MAX_USERDATA_SIZE: Int = 1 shl MAX_USERDATA_BITS
         public val MAX_TABLES: Int = 32
-        public val tables: Map<Int, StringTable> = HashMap()
+        private val tables: Map<Int, StringTable> = HashMap()
         private val LOG = Logger()
 
-        fun get(id: Int) = tables[id]!!
+        fun get(id: Int) = tables[id]
 
         fun create(tableName: String, maxEntries: Int, entryBits: Int, userDataFixedSize: Boolean, userDataSize: Int, userDataSizeBits: Int): StringTable {
             val st = StringTable()

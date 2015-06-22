@@ -7,10 +7,11 @@ public class LZSS {
     companion object {
 
         fun readSwappedInteger(data: ByteArray, offset: Int) = (0
-                + ( ( data[offset + 0].toInt() and 0xff ) shl 0 )
-                + ( ( data[offset + 1].toInt() and 0xff ) shl 8 )
-                + ( ( data[offset + 2].toInt() and 0xff ) shl 16 )
-                + ( ( data[offset + 3].toInt() and 0xff ) shl 24 ))
+                + ((data[offset + 0].toInt() and 0xff ) shl 0)
+                + ((data[offset + 1].toInt() and 0xff ) shl 8)
+                + ((data[offset + 2].toInt() and 0xff ) shl 16)
+                + ((data[offset + 3].toInt() and 0xff ) shl 24)
+                )
 
         public val ID: String = "LZSS"
         private val LZSS_LOOKSHIFT = 4

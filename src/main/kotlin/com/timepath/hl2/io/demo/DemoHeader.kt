@@ -3,72 +3,68 @@ package com.timepath.hl2.io.demo
 import com.timepath.DataUtils
 import com.timepath.Logger
 import com.timepath.io.struct.StructField
+import com.timepath.with
 import java.nio.ByteBuffer
-import java.util.logging.Level
-import kotlin.properties.Delegates
 
-public class DemoHeader {
-    StructField(index = 0, limit = 8)
-    public var head: String by Delegates.notNull()
-    StructField(index = 1)
-    public var demoProtocol: Int = 0
-    StructField(index = 2)
-    public var networkProtocol: Int = 0
-    StructField(index = 3, limit = MAX_OSPATH)
-    public var serverName: String by Delegates.notNull()
-    StructField(index = 4, limit = MAX_OSPATH)
-    public var clientName: String by Delegates.notNull()
-    StructField(index = 5, limit = MAX_OSPATH)
-    public var mapName: String by Delegates.notNull()
-    StructField(index = 6, limit = MAX_OSPATH)
-    public var gameDirectory: String by Delegates.notNull()
-    StructField(index = 7)
-    public var playbackTime: Float = 0f
-    StructField(index = 8)
-    public var ticks: Int = 0
-    StructField(index = 9)
-    public var frames: Int = 0
-    StructField(index = 10)
-    public var signonLength: Int = 0
+private val MAX_OSPATH = 260
 
+public class DemoHeader(
+        StructField(0, limit = 8) var head: String,
+        StructField(1) var demoProtocol: Int,
+        StructField(2) var networkProtocol: Int,
+        StructField(3, limit = MAX_OSPATH) var serverName: String,
+        StructField(4, limit = MAX_OSPATH) var clientName: String,
+        StructField(5, limit = MAX_OSPATH) var mapName: String,
+        StructField(6, limit = MAX_OSPATH) var gameDirectory: String,
+        StructField(7) var playbackTime: Float,
+        StructField(8) var ticks: Int,
+        StructField(9) var frames: Int,
+        StructField(10) var signonLength: Int
+) {
     companion object {
 
         private val LOG = Logger()
-        private val MAX_OSPATH = 260
 
         fun parse(slice: ByteBuffer): DemoHeader {
-            val h = DemoHeader()
-            h.head = DataUtils.getText(DataUtils.getSlice(slice, 8))
-            if (HL2DEM.HEADER != h.head) {
-                LOG.log(Level.WARNING, { "Unexpected header" })
+            val head = DataUtils.getText(DataUtils.getSlice(slice, 8))
+            if (HL2DEM.HEADER != head) {
+                LOG.warning { "Unexpected header" }
             }
-            h.demoProtocol = slice.getInt()
-            if (h.demoProtocol != HL2DEM.DEMO_PROTOCOL) {
-                LOG.log(Level.WARNING, { "Unknown demo version ${h.demoProtocol}" })
+            val demoProtocol = slice.getInt()
+            if (demoProtocol != HL2DEM.DEMO_PROTOCOL) {
+                LOG.warning { "Unknown demo version ${demoProtocol}" }
             }
-            h.networkProtocol = slice.getInt()
-            LOG.info({ "Network protocol: ${h.networkProtocol}" })
-            val serverNameBuffer = DataUtils.getSlice(slice, MAX_OSPATH)
-            h.serverName = DataUtils.getText(serverNameBuffer, true)
-            LOG.info({ "Server: ${h.serverName}" })
-            val clientNameBuffer = DataUtils.getSlice(slice, MAX_OSPATH)
-            h.clientName = DataUtils.getText(clientNameBuffer, true)
-            LOG.info({ "Client: ${h.clientName}" })
-            val mapNameBuffer = DataUtils.getSlice(slice, MAX_OSPATH)
-            h.mapName = DataUtils.getText(mapNameBuffer, true)
-            LOG.info({ "Map: ${h.mapName}" })
-            val gameDirectoryBuffer = DataUtils.getSlice(slice, MAX_OSPATH)
-            h.gameDirectory = DataUtils.getText(gameDirectoryBuffer, true)
-            LOG.info({ "Game: ${h.gameDirectory}" })
-            h.playbackTime = slice.getFloat()
-            LOG.info({ "Playback time: ${h.playbackTime}" })
-            h.ticks = slice.getInt()
-            LOG.info({ "Ticks: ${h.ticks}" })
-            h.frames = slice.getInt()
-            LOG.info({ "Frames: ${h.frames}" })
-            h.signonLength = slice.getInt()
-            LOG.info({ "Signon length: ${h.signonLength}" })
-            return h
+            val networkProtocol = slice.getInt()
+            val serverName = DataUtils.getText(DataUtils.getSlice(slice, MAX_OSPATH), true)
+            val clientName = DataUtils.getText(DataUtils.getSlice(slice, MAX_OSPATH), true)
+            val mapName = DataUtils.getText(DataUtils.getSlice(slice, MAX_OSPATH), true)
+            val gameDirectory = DataUtils.getText(DataUtils.getSlice(slice, MAX_OSPATH), true)
+            val playbackTime = slice.getFloat()
+            val ticks = slice.getInt()
+            val frames = slice.getInt()
+            val signonLength = slice.getInt()
+            LOG.info { "Network protocol: ${networkProtocol}" }
+            LOG.info { "Server: ${serverName}" }
+            LOG.info { "Client: ${clientName}" }
+            LOG.info { "Map: ${mapName}" }
+            LOG.info { "Game: ${gameDirectory}" }
+            LOG.info { "Playback time: ${playbackTime}" }
+            LOG.info { "Ticks: ${ticks}" }
+            LOG.info { "Frames: ${frames}" }
+            LOG.info { "Signon length: ${signonLength}" }
+            return DemoHeader(
+                    head = head,
+                    demoProtocol = demoProtocol,
+                    networkProtocol = networkProtocol,
+                    serverName = serverName,
+                    clientName = clientName,
+                    mapName = mapName,
+                    gameDirectory = gameDirectory,
+                    playbackTime = playbackTime,
+                    ticks = ticks,
+                    frames = frames,
+                    signonLength = signonLength
+            )
         }
     }
 }

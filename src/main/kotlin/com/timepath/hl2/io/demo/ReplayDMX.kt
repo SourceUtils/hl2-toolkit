@@ -67,8 +67,8 @@ public class ReplayDMX private constructor(input: InputStream) {
         companion object {
             public fun get(i: Int): CompressorType {
                 val values = values()
-                return when {
-                    i in 0..values.size() - 2 -> values[i + 1]
+                return when (i) {
+                    in 0..values.size() - 2 -> values[i + 1]
                     else -> INVALID
                 }
             }

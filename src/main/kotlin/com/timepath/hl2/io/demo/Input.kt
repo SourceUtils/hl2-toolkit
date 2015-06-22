@@ -45,6 +45,6 @@ public enum class Input(bit: Int) {
     private val mask = 1 shl bit
 
     companion object {
-        public fun get(bits: Int): Set<Input> = Input.values().filter { (it.mask and bits) != 0 }.toSet()
+        fun get(bits: Int) = values().filter { (it.mask and bits) != 0 }.toSet()
     }
 }
