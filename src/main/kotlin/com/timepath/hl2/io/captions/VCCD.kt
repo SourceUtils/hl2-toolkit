@@ -242,28 +242,23 @@ public object VCCD {
         return buf
     }
 
+    public class VCCDEntry() : Comparable<VCCDEntry> {
+        constructor(key: String, value: String) : this() {
+            this.key = key
+            this.value = value
+        }
 
-    public fun VCCDEntry(key: String, value: String): VCCDEntry {
-        val __ = VCCDEntry()
-        __.key = key
-        __.value = value
-        return __
-    }
+        constructor(hash: Int, value: String) : this() {
+            this.hash = hash
+            this.value = value
+        }
 
-    public fun VCCDEntry(hash: Int, value: String): VCCDEntry {
-        val __ = VCCDEntry()
-        __.hash = hash
-        __.value = value
-        return __
-    }
-
-    public class VCCDEntry : Comparable<VCCDEntry> {
         public var block: Int = 0
         public var hash: Int = 0
         public var key: String? = null
             set(str) {
                 hash = hash(str!!)
-                key = str
+                $key = str
             }
         public var length: Int = 0
             /**
