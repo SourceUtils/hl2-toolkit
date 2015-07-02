@@ -82,7 +82,7 @@ public class VTF : ViewableData {
         if (type == 0) {
             flags = buf!!.getInt()
         }
-        val enumSet = EnumFlags.decode<VTFFlags>(flags, javaClass<VTFFlags>())
+        val enumSet = EnumFlags.decode(flags, javaClass<VTFFlags>())
         frameCount = buf!!.getShort().toInt()
         if (type == 0) {
             frameFirst = buf!!.getShort().toInt()

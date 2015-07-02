@@ -1,12 +1,12 @@
 package com.timepath.hl2.io.image
 
-import com.timepath.EnumFlag
+import com.timepath.EnumFlags
 
 /**
  * @see <a>https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/vtf/vtf.h</a>
  * @see <a>https://developer.valvesoftware.com/wiki/Valve_Texture_Format#Image_flags</a>
  */
-public enum class VTFFlags(val mask: Int, private val title: String = "Unused") : EnumFlag {
+public enum class VTFFlags(override val id: Int, private val title: String = "Unused") : EnumFlags.Flag<VTFFlags> {
     // Flags from the *.txt config file
     POINTSAMPLE(1, "Point Sample"),
     TRILINEAR(2, "Trilinear"),
@@ -56,18 +56,12 @@ public enum class VTFFlags(val mask: Int, private val title: String = "Unused") 
     public fun getEnumForMask(mask: Int): VTFFlags? {
         val values = VTFFlags.values()
         for (eachValue in values) {
-            if (eachValue.mask == mask) {
+            if (eachValue.id == mask) {
                 return eachValue
             }
         }
         return null
     }
 
-    override fun getId(): Int {
-        return mask
-    }
-
-    override fun toString(): String {
-        return title
-    }
+    override fun toString() = title
 }
