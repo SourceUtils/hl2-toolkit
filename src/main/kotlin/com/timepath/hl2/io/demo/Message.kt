@@ -65,27 +65,27 @@ public class Message(
                 while (bb.remainingBits() > opSize) {
                     try {
                         val op = bb.getBits(opSize).toInt()
-                        val type = Packet.Type[op]
+                        val type = Packet[op]
                         if (type == null) {
-                            error = MessageFormat.format("Unknown message type {0} in {1}", op, this)
+                            error = "Unknown message type ${op} in ${this}"
                             thrown = Exception("Unknown message")
                         } else {
                             val p = Packet(type, bb.positionBits())
                             try {
-                                if (!type.handler.read(bb, p.list, outer)) {
-                                    error = MessageFormat.format("Incomplete read of {0} in {1}", p, this)
+                                if (!type.read(bb, p.list, outer)) {
+                                    error = "Incomplete read of ${p} in ${this}"
                                 }
                             } catch (e: BufferUnderflowException) {
-                                error = MessageFormat.format("Out of data in {0}", this)
+                                error = "Out of data in ${this}"
                             } catch (e: Exception) {
-                                error = MessageFormat.format("Exception in {0} in {1}", p, this)
+                                error = "Exception in ${p} in ${this}"
                                 thrown = e
                             }
 
                             meta[p] = p.list
                         }
                     } catch (e: BufferUnderflowException) {
-                        error = MessageFormat.format("Out of data in {0}", this)
+                        error = "Out of data in ${this}"
                     }
 
                     meta["remaining bits"] = bb.remainingBits()
