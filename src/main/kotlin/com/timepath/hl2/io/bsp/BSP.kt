@@ -10,7 +10,6 @@ import java.io.InputStream
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import kotlin.properties.Delegates
 
 /**
  * @see <a>https://developer.valvesoftware.com/wiki/Source_BSP_File_Format</a>
@@ -18,9 +17,10 @@ import kotlin.properties.Delegates
  * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-struct.js</a>
  * @see <a>https://github.com/TimePath/webgl-source/blob/master/js/source-bsp-tree.js</a>
  */
-public abstract class BSP {
-    var header: BSPHeader by Delegates.notNull()
-    var input: OrderedInputStream by Delegates.notNull()
+public abstract class BSP(
+        val header: BSP.Header,
+        val input: OrderedInputStream
+) {
     public var indices: IntBuffer? = null
     public var vertices: FloatBuffer? = null
 
@@ -34,85 +34,49 @@ public abstract class BSP {
      * {@code String ents = b.getLump(LumpType.LUMP_ENTITIES);}
      *
      * @param <T>  Expected return type. TODO: Wouldn't it be nice if we just knew at compile time?
-     * @param type The lump
-     * @return The lump
-     * @throws IOException
      */
-    throws(IOException::class)
     public fun <T : Any> getLump(type: LumpType): T? {
         return getLump(type, type.handler as LumpHandler<T>)
     }
 
     /**
      * Intended for overriding to change handler functionality
-     *
-     * @param <T>
-     * @param type
-     * @param handler
-     * @return
-     * @throws IOException
      */
-    throws(IOException::class)
     protected fun <T : Any> getLump(type: LumpType, handler: LumpHandler<T>?): T? {
-        if (handler == null) {
-            return null
-        }
+        if (handler == null) return null
         val lump = header.lumps[type.ID]!!
-        if (lump.isEmpty()) {
-            return null
-        }
+        if (lump.isEmpty()) return null
         input.reset()
         input.skipBytes(lump.offset)
-        return handler.handle(lump, input)
+        return handler.invoke(lump, input)
     }
 
-    /**
-     * @return The map revision
-     */
-    val revision: Int
-        get() = header.mapRevision
+    val revision: Int get() = header.mapRevision
 
-    throws(IOException::class)
     abstract fun process()
 
-    private class BSPHeader() {
-
-        /**
-         * BSP file identifier: VBSP
-         */
-        StructField(index = 0)
-        var ident: Int = 0
-        /**
-         * BSP file identifier: VBSP
-         */
-        StructField(index = 2)
-        var lumps = arrayOfNulls<Lump>(64)
-        /**
-         * The map's revision (iteration, version) number
-         */
-        StructField(index = 3)
-        var mapRevision: Int = 0
-        /**
-         * BSP file version
-         */
-        StructField(index = 1)
-        var version: Int = 0
-    }
+    class Header(
+            /** BSP file identifier: VBSP */
+            @StructField(index = 0) var ident: Int = 0,
+            /** BSP file version */
+            @StructField(index = 1) var version: Int = 0,
+            /** BSP file identifier: VBSP */
+            @StructField(index = 2) var lumps: Array<Lump?> = arrayOfNulls<Lump>(64),
+            /** The map's revision (iteration, version) number */
+            @StructField(index = 3) var mapRevision: Int = 0
+    )
 
     companion object {
 
         private val LOG = Logger()
 
-        throws(IOException::class)
         public fun load(`is`: InputStream): BSP? {
             val input = OrderedInputStream(BufferedInputStream(`is`))
             input.order(ByteOrder.LITTLE_ENDIAN)
             input.mark(input.available())
-            val header = input.readStruct<BSPHeader>(BSPHeader())
+            val header = input.readStruct<Header>(Header())
             // TODO: Other BSP types
-            val bsp = VBSP()
-            bsp.input = input
-            bsp.header = header
+            val bsp = VBSP(header, input)
             // TODO: Struct parser callbacks
             for (i in 0..header.lumps.size() - 1) {
                 header.lumps[i]!!.type = LumpType.values()[i]

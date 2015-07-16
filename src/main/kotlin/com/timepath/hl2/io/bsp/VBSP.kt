@@ -4,22 +4,46 @@ import com.timepath.Logger
 import com.timepath.hl2.io.bsp.lump.Edge
 import com.timepath.hl2.io.bsp.lump.Face
 import com.timepath.hl2.io.bsp.lump.LumpType
+import com.timepath.io.OrderedInputStream
 import com.timepath.steam.io.storage.ACF
 import com.timepath.vfs.provider.zip.ZipFileProvider
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.util.HashMap
 import java.util.LinkedList
 import kotlin.platform.platformStatic
 
-public class VBSP : BSP() {
+public class VBSP(header: BSP.Header, input: OrderedInputStream) : BSP(header, input) {
 
-    /**
-     * @throws java.io.IOException
-     * @see @see <a>https://github.com/toji/webgl-source/blob/master/js/source-bsp.js#L567</a>
-     */
-    throws(IOException::class)
+    override fun process() = processBasic()
+
+    private fun done(vertices: List<Float>?, indices: List<Int>?) {
+        if ((indices != null) && indices.isNotEmpty()) {
+            val new = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer()
+            indices.forEach { new.put(it) }
+            new.flip()
+            this.indices = new
+            LOG.info { "Map: indices ${indices.size()}, triangles ${indices.size() / 3}" }
+        }
+        if ((vertices != null) && !vertices.isEmpty()) {
+            val new = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
+            vertices.forEach { new.put(it) }
+            new.flip()
+            this.vertices = new
+            LOG.info { "Map: vertices ${vertices.size()}" }
+        }
+    }
+
+    fun processBasic() {
+        val vertices = LinkedList<Float>()
+        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
+        while (bspVertices!!.hasRemaining()) {
+            vertices.add(bspVertices.get())
+        }
+        done(vertices, null)
+    }
+
+    /** https://github.com/toji/webgl-source/blob/master/js/source-bsp.js#L567 */
     public fun processToji() {
         val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)!!
         LOG.info { "Vertices: ${bspVertices.capacity()}" }
@@ -34,6 +58,14 @@ public class VBSP : BSP() {
         val vertexBase = 0
         var rootPoint = 0
         var rootVertId = 0
+
+        fun compileGpuVertex(verts: FloatBuffer, pos: Int, vertices: MutableCollection<Float>): Int {
+            val index = vertices.size() / 3
+            verts.position(pos)
+            repeat(3) { vertices.add(verts.get()) }
+            return index
+        }
+
         for (face in bspFaces) {
             val edgeId = face.firstedge
             val vertLookupTable = HashMap<Int, Int>(0)
@@ -81,32 +113,7 @@ public class VBSP : BSP() {
         done(vertices, indices)
     }
 
-    private fun done(vertices: List<Float>?, indices: List<Int>?) {
-        if ((indices != null) && !indices.isEmpty()) {
-            val new = ByteBuffer.allocateDirect(indices.size() * 4).asIntBuffer()
-            for (i in indices) {
-                new.put(i)
-            }
-            new.flip()
-            this.indices = new
-            LOG.info { "Map: indices ${indices.size()}, triangles ${indices.size() / 3}" }
-        }
-        if ((vertices != null) && !vertices.isEmpty()) {
-            val new = ByteBuffer.allocateDirect(vertices.size() * 4).asFloatBuffer()
-            for (v in vertices) {
-                new.put(v)
-            }
-            new.flip()
-            this.vertices = new
-            LOG.info { "Map: vertices ${vertices.size()}" }
-        }
-    }
-
-    /**
-     * @throws java.io.IOException
-     * @see <a>https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L222</a>
-     */
-    throws(IOException::class)
+    /** https://github.com/w23/OpenSource/blob/master/src/BSP.cpp#L222 */
     public fun processW23() {
         val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)!!
         LOG.info({ "Vertices: ${bspVertices.capacity()}" })
@@ -144,48 +151,21 @@ public class VBSP : BSP() {
         done(vertices, indices)
     }
 
-    throws(IOException::class)
-    override fun process() {
-        processBasic()
-    }
-
-    throws(IOException::class)
-    fun processBasic() {
-        val vertices = LinkedList<Float>()
-        val bspVertices = getLump<FloatBuffer>(LumpType.LUMP_VERTEXES)
-        while (bspVertices!!.hasRemaining()) {
-            vertices.add(bspVertices.get())
-        }
-        done(vertices, null)
-    }
-
     companion object {
 
         private val LOG = Logger()
 
-        throws(Exception::class)
         public platformStatic fun main(args: Array<String>) {
-            val b = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)!!
-            LOG.info({ "Revision: ${b.revision}" })
-            // val ents = b.getLump<String>(LumpType.LUMP_ENTITIES)
-            // System.out.println(ents);
-            val z = b.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)
-            z?.let {
+            val map = BSP.load(ACF.fromManifest(440).query("tf/maps/ctf_2fort.bsp")!!.openStream()!!)!!
+            LOG.info { "Revision: ${map.revision}" }
+            map.getLump<String>(LumpType.LUMP_ENTITIES)?.let {
+                LOG.info { it }
+            }
+            map.getLump<ZipFileProvider>(LumpType.LUMP_PAKFILE)?.let {
                 LOG.info { it.name }
             }
-            b.getLump<Any>(LumpType.LUMP_VERTEXES)
+            map.getLump<Any>(LumpType.LUMP_VERTEXES)
         }
 
-        private fun compileGpuVertex(verts: FloatBuffer, pos: Int, vertices: MutableCollection<Float>): Int {
-            val index = vertices.size() / 3
-            verts.position(pos)
-            run {
-                var i = 0
-                while (i++ < 3) {
-                    vertices.add(verts.get())
-                }
-            }
-            return index
-        }
     }
 }

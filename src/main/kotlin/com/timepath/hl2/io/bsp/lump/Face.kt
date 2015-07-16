@@ -1,96 +1,55 @@
 package com.timepath.hl2.io.bsp.lump
 
+import com.timepath.hl2.io.bsp.Lump
+import com.timepath.hl2.io.bsp.LumpHandler
+import com.timepath.io.OrderedInputStream
+import com.timepath.io.struct.Struct
 import com.timepath.io.struct.StructField
 
-public class Face {
-    /**
-     * switchable lighting info
-     */
-    StructField(index = 8)
-    public var styles: ByteArray = ByteArray(MAXLIGHTMAPS)
-    /**
-     * The plane number. unsigned
-     */
-    StructField(index = 0)
-    public var planenum: Short = 0
-    /**
-     * faces opposite to the node's plane direction
-     */
-    StructField(index = 1)
-    public var side: Byte = 0
-    /**
-     * 1 of on node, 0 if in leaf
-     */
-    StructField(index = 2)
-    public var onNode: Byte = 0
-    /**
-     * index into surfedges
-     */
-    StructField(index = 3)
-    public var firstedge: Int = 0
-    /**
-     * number of surfedges
-     */
-    StructField(index = 4)
-    public var numedges: Short = 0
-    /**
-     * texture info
-     */
-    StructField(index = 5)
-    public var texinfo: Short = 0
-    /**
-     * displacement info
-     */
-    StructField(index = 6)
-    public var dispinfo: Short = 0
-    /**
-     * ?
-     */
-    StructField(index = 7)
-    public var surfaceFogVolumeID: Short = 0
-    /**
-     * offset into lightmap lump
-     */
-    StructField(index = 9)
-    public var lightofs: Int = 0
-    /**
-     * face area in units^2
-     */
-    StructField(index = 10)
-    public var area: Float = 0f
-    /**
-     * texture lighting info
-     */
-    StructField(index = 11)
-    public var m_LightmapTextureMinsInLuxels: IntArray = IntArray(2)
-    /**
-     * texture lighting info
-     */
-    StructField(index = 12)
-    public var m_LightmapTextureSizeInLuxels: IntArray = IntArray(2)
-    /**
-     * original face this was split from
-     */
-    StructField(index = 13)
-    public var origFace: Int = 0
-    /**
-     * primitives. unsigned
-     */
-    StructField(index = 14)
-    public var m_NumPrims: Short = 0
-    /**
-     * unsigned
-     */
-    StructField(index = 15)
-    public var firstPrimID: Short = 0
-    /**
-     * lightmap smoothing group. unsigned
-     */
-    StructField(index = 16)
-    public var smoothingGroups: Int = 0
+private val MAXLIGHTMAPS = 4
+private val MAX_MAP_FACES = 65536
 
-    companion object {
-
-        private val MAXLIGHTMAPS = 4
+public class Face(
+        /** The plane number. unsigned */
+        @StructField(0) val planenum: Short = 0,
+        /** faces opposite to the node's plane direction */
+        @StructField(1) val side: Byte = 0,
+        /** 1 of on node, 0 if in leaf */
+        StructField(2) val onNode: Byte = 0,
+        /** index into surfedges */
+        StructField(3) val firstedge: Int = 0,
+        /** number of surfedges */
+        StructField(4) val numedges: Short = 0,
+        /** texture info */
+        StructField(5) val texinfo: Short = 0,
+        /** displacement info */
+        StructField(6) val dispinfo: Short = 0,
+        /** ? */
+        StructField(7) val surfaceFogVolumeID: Short = 0,
+        /** switchable lighting info */
+        StructField(8) val styles: ByteArray = ByteArray(MAXLIGHTMAPS),
+        /** offset into lightmap lump */
+        StructField(9) val lightofs: Int = 0,
+        /** face area in units^2 */
+        StructField(10) val area: Float = 0f,
+        /** texture lighting info */
+        StructField(11) val m_LightmapTextureMinsInLuxels: IntArray = IntArray(2),
+        /** texture lighting info */
+        StructField(12) val m_LightmapTextureSizeInLuxels: IntArray = IntArray(2),
+        /** original face this was split from */
+        StructField(13) val origFace: Int = 0,
+        /** primitives. unsigned */
+        StructField(14) val m_NumPrims: Short = 0,
+        /** unsigned */
+        StructField(15) val firstPrimID: Short = 0,
+        /** lightmap smoothing group. unsigned */
+        StructField(16) val smoothingGroups: Int = 0
+) {
+    class Handler : LumpHandler<List<Face>> {
+        override fun invoke(l: Lump, ois: OrderedInputStream): List<Face> {
+            return (0..(l.length / Struct.sizeof(Face())) - 1).map {
+                ois.readStruct<Face>(Face())
+            }
+        }
     }
 }
