@@ -35,12 +35,13 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object net_Tick : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Tick"] = bb.getInt()
-            l["Host frametime"] = bb.getShort()
-            l["Host frametime StdDev"] = bb.getShort()
-            return true
-        }
+        data class Tick(val tick: Int, val `host frametime`: Short, val `host frametime stddev`: Short)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = Tick(
+                bb.getInt(),
+                bb.getShort(),
+                bb.getShort()
+        )
     }
 
     object net_StringCmd : PacketHandler {
@@ -246,19 +247,32 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object svc_BSPDecal : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Position"] = getVecCoord(bb)
-            l["Decal texture index"] = bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)
+        data class BSPDecal(
+                val position: Vector3f,
+                val `decal texture index`: Long,
+                val entityIndex: Long?,
+                val modelIndex: Long?,
+                val lowPriority: Boolean
+        )
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): Any {
+            val position = getVecCoord(bb)
+            val index = bb.getBits(HL2DEM.MAX_DECAL_INDEX_BITS)
+            val entityIndex: Long?
+            val modelIndex: Long?
             if (bb.getBoolean()) {
-                l["Entity index"] = bb.getBits(HL2DEM.MAX_EDICT_BITS)
+                entityIndex = bb.getBits(HL2DEM.MAX_EDICT_BITS)
                 var bits = HL2DEM.SP_MODEL_INDEX_BITS
                 if (demo.header.demoProtocol <= 21) {
                     bits--
                 }
-                l["Model index"] = bb.getBits(bits)
+                modelIndex = bb.getBits(bits)
+            } else {
+                entityIndex = null
+                modelIndex = null
             }
-            l["Low priority"] = bb.getBoolean()
-            return true
+            val lowPriority = bb.getBoolean()
+            return BSPDecal(position, index, entityIndex, modelIndex, lowPriority)
         }
     }
 
