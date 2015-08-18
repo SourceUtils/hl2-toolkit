@@ -19,36 +19,39 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object net_Disconnect : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Reason"] = bb.getString()
-            return true
-        }
+        data class Disconnect(val reason: String)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = Disconnect(
+                reason = bb.getString()
+        )
     }
 
     object net_File : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Transfer ID"] = bb.getInt()
-            l["Filename"] = bb.getString()
-            l["Requested"] = bb.getBoolean()
-            return true
-        }
+        data class File(val transferId: Int, val name: String, val requested: Boolean)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = File(
+                transferId = bb.getInt(),
+                name = bb.getString(),
+                requested = bb.getBoolean()
+        )
     }
 
     object net_Tick : PacketHandler {
         data class Tick(val tick: Int, val `host frametime`: Short, val `host frametime stddev`: Short)
 
         override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = Tick(
-                bb.getInt(),
-                bb.getShort(),
-                bb.getShort()
+                tick = bb.getInt(),
+                `host frametime` = bb.getShort(),
+                `host frametime stddev` = bb.getShort()
         )
     }
 
     object net_StringCmd : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Command"] = bb.getString()
-            return true
-        }
+        data class StringCmd(val command: String)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = StringCmd(
+                command = bb.getString()
+        )
     }
 
     object net_SetConVar : PacketHandler {
@@ -62,48 +65,85 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object net_SignonState : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            val state = bb.getUByte()
-            l["Signon state"] = (SignonState[state] ?: state)
-            l["Spawn count"] = bb.getInt()
-            return true
-        }
+        data class net_SignonState(val state: SignonState?, val spawnCount: Int)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = net_SignonState(
+                state = SignonState[bb.getUByte()],
+                spawnCount = bb.getInt()
+        )
     }
 
     /** 16 in newer protocols */
     object svc_Prval : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Value"] = bb.getString()
-            return true
-        }
+        data class Prval(val value: String)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = Prval(
+                value = bb.getString()
+        )
     }
 
     object svc_ServerInfo : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        data class ServerInfo(
+                val version: Int,
+                val count: Long,
+                val isSourceTV: Boolean,
+                val isDedicated: Boolean,
+                val serverClientCRC: String,
+                val maxClasses: Int,
+                val mapHash: String,
+                val players: Int,
+                val maxPlayers: Int,
+                val tickInterval: Float,
+                val platform: Char,
+                val gameDir: String,
+                val mapName: String,
+                val sky: String,
+                val host: String,
+                val hasReplay: Boolean
+        )
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): ServerInfo {
             val version = bb.getUShort()
-            l["Version"] = version
-            l["Server count"] = bb.getUInt()
-            l["SourceTV"] = bb.getBoolean()
-            l["Dedicated"] = bb.getBoolean()
-            l["Server client CRC"] = "0x${Integer.toHexString(bb.getInt())}"
-            l["Max classes"] = bb.getUShort()
-            if (version >= 18) {
+            val count = bb.getUInt()
+            val sourceTV = bb.getBoolean()
+            val dedicated = bb.getBoolean()
+            val serverClientCRC = "0x${Integer.toHexString(bb.getInt())}"
+            val maxClasses = bb.getUShort()
+            val hash = if (version >= 18) {
                 val md5 = ByteArray(16)
                 bb.get(md5)
-                l["Server map MD5"] = "%0${md5.size() * 2}x".format(BigInteger(1, md5))
+                "%0${md5.size() * 2}x".format(BigInteger(1, md5))
             } else {
-                l["Server map CRC"] = "0x${Integer.toHexString(bb.getInt())}"
+                // CRC
+                "0x${Integer.toHexString(bb.getInt())}"
             }
-            l["Current player count"] = bb.getUByte()
-            l["Max player count"] = bb.getUByte()
-            l["Interval per tick"] = bb.getFloat()
-            l["Platform"] = bb.getByte().toChar()
-            l["Game directory"] = bb.getString()
-            l["Map name"] = bb.getString()
-            l["Skybox name"] = bb.getString()
-            l["Hostname"] = bb.getString()
-            l["Has replay"] = bb.getBoolean() // ???: protocol version
-            return true
+            val players = bb.getUByte()
+            val maxplayers = bb.getUByte()
+            val tickInterval = bb.getFloat()
+            val platform = bb.getByte().toChar()
+            val gamedir = bb.getString()
+            val mapname = bb.getString()
+            val sky = bb.getString()
+            val host = bb.getString()
+            val replay = bb.getBoolean()
+            return ServerInfo(
+                    version = version,
+                    count = count,
+                    isSourceTV = sourceTV,
+                    isDedicated = dedicated,
+                    serverClientCRC = serverClientCRC,
+                    maxClasses = maxClasses,
+                    mapHash = hash,
+                    players = players,
+                    maxPlayers = maxplayers,
+                    tickInterval = tickInterval,
+                    platform = platform,
+                    gameDir = gamedir,
+                    mapName = mapname,
+                    sky = sky,
+                    host = host,
+                    hasReplay = replay
+            )
         }
     }
 
@@ -132,10 +172,11 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object svc_SetPause : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Paused"] = bb.getBoolean()
-            return true
-        }
+        data class SetPause(val paused: Boolean)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = SetPause(
+                paused = bb.getBoolean()
+        )
     }
 
     /**
@@ -190,11 +231,12 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object svc_VoiceInit : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Codec"] = bb.getString()
-            l["Quality"] = bb.getByte()
-            return true
-        }
+        data class VoiceInit(val codec: String, val quality: Byte)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = VoiceInit(
+                codec = bb.getString(),
+                quality = bb.getByte()
+        )
     }
 
     object svc_VoiceData : PacketHandler by VoiceDataHandler()
@@ -210,46 +252,50 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
 
     /** TODO */
     object svc_Sounds : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        data class Sounds(val reliable: Boolean,
+                          val count: Int,
+                          /** bits */
+                          val length: Int)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): Sounds {
             val reliable = bb.getBoolean()
-            l["Reliable"] = reliable
             val count = if (reliable) 1 else bb.getUByte()
-            l["Number of sounds"] = count
             val length = if (reliable) bb.getByte().toUnsigned() else bb.getShort().toUnsigned()
-            l["Length in bits"] = length
             bb.getBits(length) // Skip
-            return true
+            return Sounds(reliable, count, length)
         }
     }
 
     object svc_SetView : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Entity index"] = bb.getBits(11)
-            return true
-        }
+        data class SetView(val entityIndex: Long)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = SetView(
+                bb.getBits(11)
+        )
     }
 
     object svc_FixAngle : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Relative"] = bb.getBoolean()
-            val v = Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
-            l["Vector"] = v
-            return true
-        }
+        data class FixAngle(val relative: Boolean, val vector: Vector3f)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = FixAngle(
+                relative = bb.getBoolean(),
+                vector = Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
+        )
     }
 
     object svc_CrosshairAngle : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            val v = Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
-            l["Vector"] = v
-            return true
-        }
+        data class CrosshairAngle(val vector: Vector3f)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = CrosshairAngle(
+                Vector3f(readBitAngle(bb, 16), readBitAngle(bb, 16), readBitAngle(bb, 16))
+        )
     }
 
     object svc_BSPDecal : PacketHandler {
         data class BSPDecal(
                 val position: Vector3f,
-                val `decal texture index`: Long,
+                /** decal texture index */
+                val index: Long,
                 val entityIndex: Long?,
                 val modelIndex: Long?,
                 val lowPriority: Boolean
@@ -294,13 +340,14 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
 
     /** TODO */
     object svc_EntityMessage : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Entity index"] = bb.getBits(11)
-            l["Class ID"] = bb.getBits(9)
+        data class EntityMessage(val index: Long, val classId: Long, val length: Int)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): EntityMessage {
+            val index = bb.getBits(11)
+            val classId = bb.getBits(9)
             val length = bb.getBits(11).toInt()
-            l["Length in bits"] = length
             bb.getBits(length) // Skip
-            return true
+            return EntityMessage(index, classId, length)
         }
     }
 
@@ -359,14 +406,14 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
      * https://github.com/LestaD/SourceEngine2007/blob/master/src_main/engine/servermsghandler.cpp#L738
      */
     object svc_TempEntities : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        data class TempEntities(val count: Long, val length: Long)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): TempEntities {
             val numEntries = bb.getBits(HL2DEM.EVENT_INDEX_BITS)
-            l["Number of entries"] = numEntries
             val length = bb.getBits(HL2DEM.NET_MAX_PALYLOAD_BITS)
-            l["Length in bits"] = length
             // FIXME: underflows, but is usually last
             bb.getBits(length.toInt()) // Skip
-            return true
+            return TempEntities(numEntries, length)
             /*
         if(numEntries == 0) {
             val reliable = true
@@ -391,24 +438,26 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object svc_Prefetch : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        data class Prefetch(val index: Long)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): Prefetch {
             val bits = when {
                 demo.header.networkProtocol >= 23 -> HL2DEM.MAX_SOUND_INDEX_BITS
                 else -> 13
             }
-            l["Sound index"] = bb.getBits(bits)
-            return true
+            return Prefetch(bb.getBits(bits))
         }
     }
 
     /** TODO */
     object svc_Menu : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Menu type"] = bb.getShort()
+        data class Menu(val type: Short, val length: Int)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): Menu {
+            val type = bb.getShort()
             val length = bb.getUShort()
-            l["Length in bytes"] = length
             bb.getBits(length * 8) // Skip
-            return true
+            return Menu(type, length)
         }
     }
 
@@ -429,20 +478,22 @@ public class Packet(public val type: PacketHandler, public val offset: Int) {
     }
 
     object svc_GetCvarValue : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
-            l["Cookie"] = "0x${Integer.toHexString(bb.getInt())}"
-            l["value"] = bb.getString()
-            return true
-        }
+        data class GetCvarValue(val cookie: Int, val value: String)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int) = GetCvarValue(
+                bb.getInt(),
+                bb.getString()
+        )
     }
 
     /** TODO */
     object svc_CmdKeyValues : PacketHandler {
-        override fun read(bb: BitBuffer, l: TupleMap<Any, Any>, demo: HL2DEM, lengthBits: Int): Boolean {
+        data class CmdKeyValues(val length: Int)
+
+        override fun read(bb: BitBuffer, demo: HL2DEM, lengthBits: Int): CmdKeyValues {
             val length = bb.getInt()
-            l["Length in bits"] = length
             bb.getBits(length) // Skip
-            return true
+            return CmdKeyValues(length)
         }
     }
 
